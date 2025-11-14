@@ -10,10 +10,12 @@
 //   const [doctors, setDoctors] = useState([]);
 //   const [isEditing, setIsEditing] = useState(false);
 //   const [editForm, setEditForm] = useState({});
-//   const [notification, setNotification] = useState('');
 //   const [loading, setLoading] = useState(false);
 //   const [showAllPrescriptions, setShowAllPrescriptions] = useState(false);
 //   const [showAllFeedback, setShowAllFeedback] = useState(false);
+//   const [showConfirmation, setShowConfirmation] = useState(false);
+//   const [pendingAction, setPendingAction] = useState(null);
+//   const [actionMessage, setActionMessage] = useState('');
 
 //   // Comprehensive mock data with more doctors and detailed information
 //   const initialDoctors = [
@@ -347,15 +349,8 @@
 //     }, 1000);
 //   }, []);
 
-//   const showNotification = (message, type = 'success') => {
-//     const backgroundColor = type === 'error' ? '#dc3545' : '#28a745';
-//     setNotification({ message, type, backgroundColor });
-//     setTimeout(() => setNotification(''), 3000);
-//   };
-
 //   const handleSearch = () => {
 //     if (!searchQuery.trim()) {
-//       showNotification('Please enter search criteria', 'error');
 //       return;
 //     }
 
@@ -371,12 +366,6 @@
 //       setSelectedDoctor(foundDoctor || null);
 //       setIsEditing(false);
 //       setLoading(false);
-      
-//       if (!foundDoctor && searchQuery) {
-//         showNotification('No doctor found with the search criteria', 'error');
-//       } else if (foundDoctor) {
-//         showNotification(`Found doctor: ${foundDoctor.name}`);
-//       }
 //     }, 500);
 //   };
 
@@ -386,25 +375,49 @@
 //       setSelectedDoctor(null);
 //       setSearchQuery('');
 //       setLoading(false);
-//       showNotification(`Viewing all ${doctors.length} doctors`);
 //     }, 500);
 //   };
 
-//   const handleAction = (action) => {
-//     if (!selectedDoctor) return;
+//   const handleActionConfirmation = (action) => {
+//     const actionMessages = {
+//       approve: { 
+//         message: 'Are you sure you want to approve this doctor? This will activate their account.', 
+//         status: 'Active' 
+//       },
+//       suspend: { 
+//         message: 'Are you sure you want to suspend this doctor? They will not be able to access the platform.', 
+//         status: 'Suspended' 
+//       },
+//       reset: { 
+//         message: 'Are you sure you want to reset this doctor to pending status?', 
+//         status: 'Pending' 
+//       },
+//       reject: { 
+//         message: 'Are you sure you want to reject this doctor? This action cannot be undone.', 
+//         status: 'Rejected' 
+//       }
+//     };
+
+//     setPendingAction(action);
+//     setActionMessage(actionMessages[action]?.message || 'Are you sure you want to perform this action?');
+//     setShowConfirmation(true);
+//   };
+
+//   const handleAction = () => {
+//     if (!selectedDoctor || !pendingAction) return;
 
 //     const actionMessages = {
-//       approve: { message: 'Doctor approved successfully', status: 'Active' },
-//       suspend: { message: 'Doctor suspended successfully', status: 'Suspended' },
-//       reset: { message: 'Doctor reset to pending', status: 'Pending' },
-//       reject: { message: 'Doctor rejected', status: 'Rejected' }
+//       approve: { status: 'Active' },
+//       suspend: { status: 'Suspended' },
+//       reset: { status: 'Pending' },
+//       reject: { status: 'Rejected' }
 //     };
 
 //     const updatedDoctors = doctors.map(doc => 
 //       doc.id === selectedDoctor.id 
 //         ? { 
 //             ...doc, 
-//             status: actionMessages[action]?.status || doc.status,
+//             status: actionMessages[pendingAction]?.status || doc.status,
 //             lastActive: new Date().toISOString().split('T')[0]
 //           } 
 //         : doc
@@ -413,7 +426,10 @@
 //     setDoctors(updatedDoctors);
 //     setSelectedDoctor(updatedDoctors.find(d => d.id === selectedDoctor.id));
     
-//     showNotification(actionMessages[action]?.message || 'Action completed');
+//     // Close confirmation modal
+//     setShowConfirmation(false);
+//     setPendingAction(null);
+//     setActionMessage('');
 //   };
 
 //   const handleEdit = () => {
@@ -423,7 +439,6 @@
 
 //   const handleSave = () => {
 //     if (!editForm.name || !editForm.email || !editForm.phone) {
-//       showNotification('Please fill all required fields', 'error');
 //       return;
 //     }
 
@@ -437,7 +452,6 @@
 //     setDoctors(updatedDoctors);
 //     setSelectedDoctor(editForm);
 //     setIsEditing(false);
-//     showNotification('Doctor profile updated successfully');
 //   };
 
 //   const handleCancel = () => {
@@ -503,20 +517,73 @@
 
 //   return (
 //     <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto', minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
-//       {notification && (
+      
+//       {/* Confirmation Modal */}
+//       {showConfirmation && (
 //         <div style={{
 //           position: 'fixed',
-//           top: '20px',
-//           right: '20px',
-//           backgroundColor: notification.backgroundColor,
-//           color: 'white',
-//           padding: '15px 20px',
-//           borderRadius: '5px',
-//           zIndex: 1000,
-//           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-//           fontWeight: '500'
+//           top: 0,
+//           left: 0,
+//           right: 0,
+//           bottom: 0,
+//           backgroundColor: 'rgba(0,0,0,0.5)',
+//           display: 'flex',
+//           justifyContent: 'center',
+//           alignItems: 'center',
+//           zIndex: 1000
 //         }}>
-//           {notification.message}
+//           <div style={{
+//             backgroundColor: 'white',
+//             padding: '30px',
+//             borderRadius: '10px',
+//             boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+//             maxWidth: '400px',
+//             width: '90%',
+//             textAlign: 'center'
+//           }}>
+//             <h3 style={{ color: primaryColor, marginBottom: '15px', fontSize: '20px' }}>
+//               Confirm Action
+//             </h3>
+//             <p style={{ marginBottom: '25px', lineHeight: '1.5', color: '#666' }}>
+//               {actionMessage}
+//             </p>
+//             <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+//               <button
+//                 onClick={() => {
+//                   setShowConfirmation(false);
+//                   setPendingAction(null);
+//                   setActionMessage('');
+//                 }}
+//                 style={{
+//                   padding: '10px 20px',
+//                   backgroundColor: '#6c757d',
+//                   color: 'white',
+//                   border: 'none',
+//                   borderRadius: '6px',
+//                   cursor: 'pointer',
+//                   fontSize: '14px',
+//                   fontWeight: '600'
+//                 }}
+//               >
+//                 Cancel
+//               </button>
+//               <button
+//                 onClick={handleAction}
+//                 style={{
+//                   padding: '10px 20px',
+//                   backgroundColor: pendingAction === 'suspend' || pendingAction === 'reject' ? '#dc3545' : '#28a745',
+//                   color: 'white',
+//                   border: 'none',
+//                   borderRadius: '6px',
+//                   cursor: 'pointer',
+//                   fontSize: '14px',
+//                   fontWeight: '600'
+//                 }}
+//               >
+//                 Confirm
+//               </button>
+//             </div>
+//           </div>
 //         </div>
 //       )}
       
@@ -539,7 +606,7 @@
 //           Search and manage doctor profiles with comprehensive details and analytics
 //         </p>
         
-//         {/* Search Section - Fixed Alignment */}
+//         {/* Search Section */}
 //         <div style={{ marginBottom: '10px' }}>
 //           <div style={{ 
 //             display: 'flex', 
@@ -658,14 +725,20 @@
 //                   cursor: 'pointer',
 //                   transition: 'all 0.3s ease',
 //                   backgroundColor: '#f8f9fa',
+//                   transform: 'translateY(0)',
+//                   boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
 //                 }}
 //                 onMouseEnter={(e) => {
-//                   e.target.style.backgroundColor = accentColor;
-//                   e.target.style.borderColor = primaryColor;
+//                   e.currentTarget.style.backgroundColor = accentColor;
+//                   e.currentTarget.style.borderColor = primaryColor;
+//                   e.currentTarget.style.transform = 'translateY(-2px)';
+//                   e.currentTarget.style.boxShadow = '0 4px 12px rgba(124, 42, 98, 0.15)';
 //                 }}
 //                 onMouseLeave={(e) => {
-//                   e.target.style.backgroundColor = '#f8f9fa';
-//                   e.target.style.borderColor = accentColor;
+//                   e.currentTarget.style.backgroundColor = '#f8f9fa';
+//                   e.currentTarget.style.borderColor = accentColor;
+//                   e.currentTarget.style.transform = 'translateY(0)';
+//                   e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
 //                 }}
 //               >
 //                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -691,10 +764,21 @@
 //                     <span style={{ 
 //                       fontSize: '16px', 
 //                       color: primaryColor,
-//                       fontWeight: 'bold'
-//                     }}>→</span>
+//                       fontWeight: 'bold',
+//                       transition: 'transform 0.3s ease'
+//                     }}
+//                     className="hover-arrow"
+//                     >→</span>
 //                   </div>
 //                 </div>
+//                 <style jsx>{`
+//                   .hover-arrow {
+//                     transition: transform 0.3s ease;
+//                   }
+//                   div:hover .hover-arrow {
+//                     transform: translateX(3px);
+//                   }
+//                 `}</style>
 //               </div>
 //             ))}
 //           </div>
@@ -988,7 +1072,7 @@
 //               </div>
 //             </div>
             
-//             <div style={{ maxHeight: showAllFeedback ? 'none' : '400px', overflowY: 'auto' }}>
+//             <div style={{ maxHeight: showAllFeedback ? 'none' : '400px', overflow: 'hidden' }}>
 //               {displayedFeedback.map((review, index) => (
 //                 <div key={review.id} style={{ 
 //                   padding: '15px', 
@@ -1056,7 +1140,7 @@
 //             </div>
             
 //             <div style={{ overflowX: 'auto' }}>
-//               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
+//               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
 //                 <thead>
 //                   <tr style={{ backgroundColor: accentColor }}>
 //                     <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #ddd', fontWeight: '600' }}>Date</th>
@@ -1075,8 +1159,8 @@
 //                       <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontWeight: '500' }}>{prescription.patient}</td>
 //                       <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px' }}>{prescription.patientAge}</td>
 //                       <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px' }}>{prescription.diagnosis}</td>
-//                       <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', maxWidth: '200px' }}>
-//                         <div style={{ maxHeight: '60px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+//                       <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px' }}>
+//                         <div style={{ maxWidth: '200px' }}>
 //                           {prescription.prescription}
 //                         </div>
 //                       </td>
@@ -1195,7 +1279,7 @@
 //               ) : (
 //                 <>
 //                   <button 
-//                     onClick={() => handleAction('approve')}
+//                     onClick={() => handleActionConfirmation('approve')}
 //                     disabled={selectedDoctor.status === 'Active'}
 //                     style={{ 
 //                       padding: '12px 20px', 
@@ -1212,7 +1296,7 @@
 //                      Approve Doctor
 //                   </button>
 //                   <button 
-//                     onClick={() => handleAction('reset')}
+//                     onClick={() => handleActionConfirmation('reset')}
 //                     style={{ 
 //                       padding: '12px 20px', 
 //                       backgroundColor: '#ffc107', 
@@ -1244,7 +1328,7 @@
 //                      Edit Profile
 //                   </button>
 //                   <button 
-//                     onClick={() => handleAction('suspend')}
+//                     onClick={() => handleActionConfirmation('suspend')}
 //                     disabled={selectedDoctor.status === 'Suspended'}
 //                     style={{ 
 //                       padding: '12px 20px', 
@@ -1261,7 +1345,7 @@
 //                      Suspend Doctor
 //                   </button>
 //                   <button 
-//                     onClick={() => handleAction('reject')}
+//                     onClick={() => handleActionConfirmation('reject')}
 //                     style={{ 
 //                       padding: '12px 20px', 
 //                       backgroundColor: '#fd7e14', 
@@ -1303,13 +1387,6 @@
 
 // export default DoctorLookup;
 
-
-
-
-
-
-
-
 import React, { useState, useEffect } from 'react';
 
 const DoctorLookup = () => {
@@ -1321,10 +1398,13 @@ const DoctorLookup = () => {
   const [doctors, setDoctors] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
-  const [notification, setNotification] = useState('');
   const [loading, setLoading] = useState(false);
   const [showAllPrescriptions, setShowAllPrescriptions] = useState(false);
   const [showAllFeedback, setShowAllFeedback] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
+  const [actionMessage, setActionMessage] = useState('');
+  const [actionReason, setActionReason] = useState('');
 
   // Comprehensive mock data with more doctors and detailed information
   const initialDoctors = [
@@ -1658,15 +1738,8 @@ const DoctorLookup = () => {
     }, 1000);
   }, []);
 
-  const showNotification = (message, type = 'success') => {
-    const backgroundColor = type === 'error' ? '#dc3545' : '#28a745';
-    setNotification({ message, type, backgroundColor });
-    setTimeout(() => setNotification(''), 3000);
-  };
-
   const handleSearch = () => {
     if (!searchQuery.trim()) {
-      showNotification('Please enter search criteria', 'error');
       return;
     }
 
@@ -1682,12 +1755,6 @@ const DoctorLookup = () => {
       setSelectedDoctor(foundDoctor || null);
       setIsEditing(false);
       setLoading(false);
-      
-      if (!foundDoctor && searchQuery) {
-        showNotification('No doctor found with the search criteria', 'error');
-      } else if (foundDoctor) {
-        showNotification(`Found doctor: ${foundDoctor.name}`);
-      }
     }, 500);
   };
 
@@ -1697,26 +1764,68 @@ const DoctorLookup = () => {
       setSelectedDoctor(null);
       setSearchQuery('');
       setLoading(false);
-      showNotification(`Viewing all ${doctors.length} doctors`);
     }, 500);
   };
 
-  const handleAction = (action) => {
-    if (!selectedDoctor) return;
+  const handleActionConfirmation = (action) => {
+    const actionMessages = {
+      approve: { 
+        message: 'Are you sure you want to approve this doctor? This will activate their account.', 
+        status: 'Active',
+        requireReason: false
+      },
+      suspend: { 
+        message: 'Are you sure you want to suspend this doctor? They will not be able to access the platform.', 
+        status: 'Suspended',
+        requireReason: true
+      },
+      reset: { 
+        message: 'Are you sure you want to reset this doctor to pending status?', 
+        status: 'Pending',
+        requireReason: false
+      },
+      reject: { 
+        message: 'Are you sure you want to reject this doctor? This action cannot be undone.', 
+        status: 'Rejected',
+        requireReason: true
+      }
+    };
+
+    setPendingAction(action);
+    setActionMessage(actionMessages[action]?.message || 'Are you sure you want to perform this action?');
+    setActionReason('');
+    setShowConfirmation(true);
+  };
+
+  const handleAction = () => {
+    if (!selectedDoctor || !pendingAction) return;
+
+    // Check if reason is required but not provided
+    const actionsRequiringReason = ['suspend', 'reject'];
+    if (actionsRequiringReason.includes(pendingAction) && !actionReason.trim()) {
+      alert(`Please provide a reason for ${pendingAction}ing this doctor.`);
+      return;
+    }
 
     const actionMessages = {
-      approve: { message: 'Doctor approved successfully', status: 'Active' },
-      suspend: { message: 'Doctor suspended successfully', status: 'Suspended' },
-      reset: { message: 'Doctor reset to pending', status: 'Pending' },
-      reject: { message: 'Doctor rejected', status: 'Rejected' }
+      approve: { status: 'Active' },
+      suspend: { status: 'Suspended' },
+      reset: { status: 'Pending' },
+      reject: { status: 'Rejected' }
     };
 
     const updatedDoctors = doctors.map(doc => 
       doc.id === selectedDoctor.id 
         ? { 
             ...doc, 
-            status: actionMessages[action]?.status || doc.status,
-            lastActive: new Date().toISOString().split('T')[0]
+            status: actionMessages[pendingAction]?.status || doc.status,
+            lastActive: new Date().toISOString().split('T')[0],
+            // Store the reason for suspend/reject actions
+            ...(actionsRequiringReason.includes(pendingAction) && {
+              actionReason: actionReason,
+              actionDate: new Date().toISOString().split('T')[0],
+              actionType: pendingAction
+            })
           } 
         : doc
     );
@@ -1724,7 +1833,18 @@ const DoctorLookup = () => {
     setDoctors(updatedDoctors);
     setSelectedDoctor(updatedDoctors.find(d => d.id === selectedDoctor.id));
     
-    showNotification(actionMessages[action]?.message || 'Action completed');
+    // Show success message with reason if applicable
+    const successMessage = actionsRequiringReason.includes(pendingAction) 
+      ? `Doctor ${pendingAction}ed successfully. Reason: ${actionReason}`
+      : `Doctor ${pendingAction === 'approve' ? 'approved' : 'reset'} successfully.`;
+    
+    alert(successMessage);
+    
+    // Close confirmation modal
+    setShowConfirmation(false);
+    setPendingAction(null);
+    setActionMessage('');
+    setActionReason('');
   };
 
   const handleEdit = () => {
@@ -1734,7 +1854,7 @@ const DoctorLookup = () => {
 
   const handleSave = () => {
     if (!editForm.name || !editForm.email || !editForm.phone) {
-      showNotification('Please fill all required fields', 'error');
+      alert('Please fill in all required fields (Name, Email, Phone)');
       return;
     }
 
@@ -1748,7 +1868,7 @@ const DoctorLookup = () => {
     setDoctors(updatedDoctors);
     setSelectedDoctor(editForm);
     setIsEditing(false);
-    showNotification('Doctor profile updated successfully');
+    alert('Profile updated successfully!');
   };
 
   const handleCancel = () => {
@@ -1812,22 +1932,145 @@ const DoctorLookup = () => {
 
   const metrics = selectedDoctor ? calculateMetrics(selectedDoctor) : null;
 
+  // Edit Form Fields Configuration
+  const editFormFields = [
+    { label: 'Doctor ID', field: 'id', type: 'text', required: true, disabled: true },
+    { label: 'Name', field: 'name', type: 'text', required: true },
+    { label: 'Specialization', field: 'specialization', type: 'text', required: true },
+    { label: 'Phone', field: 'phone', type: 'tel', required: true },
+    { label: 'Email', field: 'email', type: 'email', required: true },
+    { label: 'Alternate Email', field: 'alternateEmail', type: 'email' },
+    { label: 'Address', field: 'address', type: 'text', required: true },
+    { label: 'Clinic Name', field: 'clinicName', type: 'text' },
+    { label: 'Years of Experience', field: 'yearsOfExperience', type: 'number' },
+    { label: 'Date of Birth', field: 'dateOfBirth', type: 'date' },
+    { label: 'Gender', field: 'gender', type: 'select', options: ['Male', 'Female', 'Other'] },
+    { label: 'Status', field: 'status', type: 'select', options: ['Active', 'Pending', 'Suspended', 'Rejected'] },
+    { label: 'Consultation Fee (₹)', field: 'consultationFee', type: 'number' },
+    { label: 'Follow-up Fee (₹)', field: 'followUpFee', type: 'number' },
+    { label: 'License Number', field: 'licenseNumber', type: 'text' },
+    { label: 'License Expiry', field: 'licenseExpiry', type: 'date' },
+    { label: 'Professional Certification', field: 'professionalCertification', type: 'text' },
+    { label: 'Government Health ID', field: 'govtHealthId', type: 'text' },
+    { label: 'KYC Status', field: 'kycStatus', type: 'select', options: ['Verified', 'Pending', 'Rejected'] },
+    { label: 'Satisfaction Rating', field: 'satisfactionRating', type: 'number', step: '0.1', min: '0', max: '5' },
+    { label: 'Response Time', field: 'responseTime', type: 'text' },
+  ];
+
+  // Check if action requires reason
+  const requiresReason = pendingAction === 'suspend' || pendingAction === 'reject';
+
   return (
     <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto', minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
-      {notification && (
+      
+      {/* Confirmation Modal */}
+      {showConfirmation && (
         <div style={{
           position: 'fixed',
-          top: '20px',
-          right: '20px',
-          backgroundColor: notification.backgroundColor,
-          color: 'white',
-          padding: '15px 20px',
-          borderRadius: '5px',
-          zIndex: 1000,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          fontWeight: '500'
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
         }}>
-          {notification.message}
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '10px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            maxWidth: '500px',
+            width: '90%',
+            textAlign: 'center'
+          }}>
+            <h3 style={{ color: primaryColor, marginBottom: '15px', fontSize: '20px' }}>
+              Confirm Action
+            </h3>
+            <p style={{ marginBottom: '20px', lineHeight: '1.5', color: '#666', textAlign: 'left' }}>
+              {actionMessage}
+            </p>
+
+            {/* Reason Input for Suspend/Reject Actions */}
+            {requiresReason && (
+              <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+                <label style={{ 
+                  display: 'block', 
+                  marginBottom: '8px', 
+                  fontWeight: '600', 
+                  color: '#333',
+                  fontSize: '14px'
+                }}>
+                  Reason for {pendingAction === 'suspend' ? 'Suspension' : 'Rejection'}:
+                  <span style={{ color: 'red', marginLeft: '4px' }}>*</span>
+                </label>
+                <textarea
+                  value={actionReason}
+                  onChange={(e) => setActionReason(e.target.value)}
+                  placeholder={`Enter reason for ${pendingAction}ing this doctor...`}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: `1px solid ${!actionReason.trim() ? 'red' : '#ddd'}`,
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    minHeight: '80px',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
+                    fontFamily: 'inherit'
+                  }}
+                  required
+                />
+                {!actionReason.trim() && (
+                  <div style={{ color: 'red', fontSize: '12px', marginTop: '5px', textAlign: 'left' }}>
+                    Please provide a reason for this action
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+              <button
+                onClick={() => {
+                  setShowConfirmation(false);
+                  setPendingAction(null);
+                  setActionMessage('');
+                  setActionReason('');
+                }}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAction}
+                disabled={requiresReason && !actionReason.trim()}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: pendingAction === 'suspend' || pendingAction === 'reject' ? '#dc3545' : '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: (requiresReason && !actionReason.trim()) ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  opacity: (requiresReason && !actionReason.trim()) ? 0.6 : 1
+                }}
+              >
+                Confirm {pendingAction === 'suspend' ? 'Suspension' : pendingAction === 'reject' ? 'Rejection' : ''}
+              </button>
+            </div>
+          </div>
         </div>
       )}
       
@@ -1850,7 +2093,7 @@ const DoctorLookup = () => {
           Search and manage doctor profiles with comprehensive details and analytics
         </p>
         
-        {/* Search Section - Fixed Alignment */}
+        {/* Search Section */}
         <div style={{ marginBottom: '10px' }}>
           <div style={{ 
             display: 'flex', 
@@ -2031,6 +2274,177 @@ const DoctorLookup = () => {
 
       {selectedDoctor && (
         <div style={{ display: 'grid', gap: '25px' }}>
+          {/* Edit Profile Modal */}
+          {isEditing && (
+            <div style={{
+              position: 'fixed',
+              top: '0',
+              left: '0',
+              right: '0',
+              bottom: '0',
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 1000,
+              padding: '20px'
+            }}>
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                width: '90%',
+                maxWidth: '800px',
+                maxHeight: '90vh',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
+              }}>
+                {/* Header */}
+                <div style={{
+                  padding: '20px 25px',
+                  backgroundColor: primaryColor,
+                  color: 'white',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <h3 style={{ margin: 0, fontSize: '20px' }}>Edit Doctor Profile</h3>
+                  <button
+                    onClick={handleCancel}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'white',
+                      fontSize: '20px',
+                      cursor: 'pointer',
+                      padding: '5px'
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Scrollable Form Content */}
+                <div style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  padding: '25px'
+                }}>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                    gap: '20px'
+                  }}>
+                    {editFormFields.map(({ label, field, type, required, disabled, options, step, min, max }) => (
+                      <div key={field} style={{ marginBottom: '15px' }}>
+                        <label style={{
+                          display: 'block',
+                          marginBottom: '8px',
+                          fontWeight: '600',
+                          color: '#333',
+                          fontSize: '14px'
+                        }}>
+                          {label}
+                          {required && <span style={{ color: 'red', marginLeft: '4px' }}>*</span>}
+                        </label>
+                        
+                        {type === 'select' ? (
+                          <select
+                            value={editForm[field] || ''}
+                            onChange={(e) => handleInputChange(field, e.target.value)}
+                            disabled={disabled}
+                            style={{
+                              width: '100%',
+                              padding: '12px',
+                              border: `1px solid ${required && !editForm[field] ? 'red' : '#ddd'}`,
+                              borderRadius: '6px',
+                              fontSize: '14px',
+                              backgroundColor: disabled ? '#f5f5f5' : 'white',
+                              boxSizing: 'border-box'
+                            }}
+                          >
+                            <option value="">Select {label}</option>
+                            {options.map(option => (
+                              <option key={option} value={option}>{option}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type={type}
+                            value={editForm[field] || ''}
+                            onChange={(e) => handleInputChange(field, e.target.value)}
+                            disabled={disabled}
+                            required={required}
+                            step={step}
+                            min={min}
+                            max={max}
+                            style={{
+                              width: '100%',
+                              padding: '12px',
+                              border: `1px solid ${required && !editForm[field] ? 'red' : '#ddd'}`,
+                              borderRadius: '6px',
+                              fontSize: '14px',
+                              backgroundColor: disabled ? '#f5f5f5' : 'white',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                        )}
+                        
+                        {required && !editForm[field] && (
+                          <div style={{ color: 'red', fontSize: '12px', marginTop: '5px' }}>
+                            This field is required
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div style={{
+                  padding: '20px 25px',
+                  backgroundColor: '#f8f9fa',
+                  borderTop: '1px solid #dee2e6',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: '12px'
+                }}>
+                  <button
+                    onClick={handleCancel}
+                    style={{
+                      padding: '12px 24px',
+                      backgroundColor: '#6c757d',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    style={{
+                      padding: '12px 24px',
+                      backgroundColor: '#28a745',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    Update Profile
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Doctor Information */}
           <section style={{
             backgroundColor: 'white',
@@ -2069,107 +2483,101 @@ const DoctorLookup = () => {
               </div>
             </div>
 
-            {isEditing ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-                {[
-                  { label: 'Name', field: 'name', type: 'text', required: true },
-                  { label: 'Specialization', field: 'specialization', type: 'text', required: true },
-                  { label: 'Phone', field: 'phone', type: 'tel', required: true },
-                  { label: 'Email', field: 'email', type: 'email', required: true },
-                  { label: 'Alternate Email', field: 'alternateEmail', type: 'email' },
-                  { label: 'Address', field: 'address', type: 'text', required: true },
-                  { label: 'Clinic Name', field: 'clinicName', type: 'text' },
-                  { label: 'Years of Experience', field: 'yearsOfExperience', type: 'number' },
-                  { label: 'Consultation Fee', field: 'consultationFee', type: 'number' },
-                  { label: 'Follow-up Fee', field: 'followUpFee', type: 'number' }
-                ].map(({ label, field, type, required }) => (
-                  <div key={field}>
-                    <strong>{label}:{required && '*'}</strong>
-                    <input
-                      type={type}
-                      value={editForm[field] || ''}
-                      onChange={(e) => handleInputChange(field, e.target.value)}
-                      style={{ 
-                        marginLeft: '10px', 
-                        padding: '8px', 
-                        border: '1px solid #ddd', 
-                        borderRadius: '4px',
-                        width: '200px'
-                      }}
-                      required={required}
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-                <div><strong>Name:</strong> {selectedDoctor.name}</div>
-                <div><strong>Specialization:</strong> {selectedDoctor.specialization}</div>
-                <div><strong>Phone:</strong> {selectedDoctor.phone}</div>
-                <div><strong>Email:</strong> {selectedDoctor.email}</div>
-                <div><strong>Alternate Email:</strong> {selectedDoctor.alternateEmail || 'N/A'}</div>
-                <div><strong>Address:</strong> {selectedDoctor.address}</div>
-                <div><strong>Clinic Name:</strong> {selectedDoctor.clinicName}</div>
-                <div><strong>Years of Experience:</strong> {selectedDoctor.yearsOfExperience}</div>
-                <div><strong>Gender:</strong> {selectedDoctor.gender}</div>
-                <div><strong>Date of Birth:</strong> {selectedDoctor.dateOfBirth}</div>
-                <div><strong>Registration Date:</strong> {selectedDoctor.registrationDate}</div>
-                <div><strong>Last Active:</strong> {selectedDoctor.lastActive}</div>
-                <div><strong>Consultation Fee:</strong> ₹{selectedDoctor.consultationFee}</div>
-                <div><strong>Follow-up Fee:</strong> ₹{selectedDoctor.followUpFee}</div>
-                <div>
-                  <strong>Available Slots:</strong>
-                  <div style={{ marginTop: '5px' }}>
-                    {selectedDoctor.availableSlots.map((slot, index) => (
-                      <span key={index} style={{
-                        display: 'inline-block',
-                        padding: '4px 8px',
-                        backgroundColor: accentColor,
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        margin: '2px'
-                      }}>
-                        {slot}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <strong>Working Days:</strong>
-                  <div style={{ marginTop: '5px' }}>
-                    {selectedDoctor.workingDays.map((day, index) => (
-                      <span key={index} style={{
-                        display: 'inline-block',
-                        padding: '4px 8px',
-                        backgroundColor: '#e9ecef',
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        margin: '2px'
-                      }}>
-                        {day}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <strong>Languages:</strong>
-                  <div style={{ marginTop: '5px' }}>
-                    {selectedDoctor.languages.map((lang, index) => (
-                      <span key={index} style={{
-                        display: 'inline-block',
-                        padding: '4px 8px',
-                        backgroundColor: '#d1ecf1',
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        margin: '2px'
-                      }}>
-                        {lang}
-                      </span>
-                    ))}
+            {/* Show action reason if doctor is suspended or rejected */}
+            {(selectedDoctor.status === 'Suspended' || selectedDoctor.status === 'Rejected') && selectedDoctor.actionReason && (
+              <div style={{
+                padding: '15px',
+                backgroundColor: '#fff3cd',
+                border: '1px solid #ffeaa7',
+                borderRadius: '6px',
+                marginBottom: '20px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                  <span style={{ fontSize: '16px', color: '#856404' }}>⚠️</span>
+                  <div>
+                    <strong style={{ color: '#856404', fontSize: '14px' }}>
+                      {selectedDoctor.status} Reason:
+                    </strong>
+                    <div style={{ color: '#856404', fontSize: '14px', marginTop: '5px' }}>
+                      {selectedDoctor.actionReason}
+                    </div>
+                    {selectedDoctor.actionDate && (
+                      <div style={{ color: '#856404', fontSize: '12px', marginTop: '5px', fontStyle: 'italic' }}>
+                        Action taken on: {selectedDoctor.actionDate}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+              <div><strong>Name:</strong> {selectedDoctor.name}</div>
+              <div><strong>Specialization:</strong> {selectedDoctor.specialization}</div>
+              <div><strong>Phone:</strong> {selectedDoctor.phone}</div>
+              <div><strong>Email:</strong> {selectedDoctor.email}</div>
+              <div><strong>Alternate Email:</strong> {selectedDoctor.alternateEmail || 'N/A'}</div>
+              <div><strong>Address:</strong> {selectedDoctor.address}</div>
+              <div><strong>Clinic Name:</strong> {selectedDoctor.clinicName}</div>
+              <div><strong>Years of Experience:</strong> {selectedDoctor.yearsOfExperience}</div>
+              <div><strong>Gender:</strong> {selectedDoctor.gender}</div>
+              <div><strong>Date of Birth:</strong> {selectedDoctor.dateOfBirth}</div>
+              <div><strong>Registration Date:</strong> {selectedDoctor.registrationDate}</div>
+              <div><strong>Last Active:</strong> {selectedDoctor.lastActive}</div>
+              <div><strong>Consultation Fee:</strong> ₹{selectedDoctor.consultationFee}</div>
+              <div><strong>Follow-up Fee:</strong> ₹{selectedDoctor.followUpFee}</div>
+              <div>
+                <strong>Available Slots:</strong>
+                <div style={{ marginTop: '5px' }}>
+                  {selectedDoctor.availableSlots.map((slot, index) => (
+                    <span key={index} style={{
+                      display: 'inline-block',
+                      padding: '4px 8px',
+                      backgroundColor: accentColor,
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      margin: '2px'
+                    }}>
+                      {slot}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <strong>Working Days:</strong>
+                <div style={{ marginTop: '5px' }}>
+                  {selectedDoctor.workingDays.map((day, index) => (
+                    <span key={index} style={{
+                      display: 'inline-block',
+                      padding: '4px 8px',
+                      backgroundColor: '#e9ecef',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      margin: '2px'
+                    }}>
+                      {day}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <strong>Languages:</strong>
+                <div style={{ marginTop: '5px' }}>
+                  {selectedDoctor.languages.map((lang, index) => (
+                    <span key={index} style={{
+                      display: 'inline-block',
+                      padding: '4px 8px',
+                      backgroundColor: '#d1ecf1',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      margin: '2px'
+                    }}>
+                      {lang}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
           </section>
 
           {/* Registration & Compliance */}
@@ -2316,7 +2724,7 @@ const DoctorLookup = () => {
               </div>
             </div>
             
-            <div style={{ maxHeight: showAllFeedback ? 'none' : '400px', overflowY: 'auto' }}>
+            <div style={{ maxHeight: showAllFeedback ? 'none' : '400px', overflow: 'hidden' }}>
               {displayedFeedback.map((review, index) => (
                 <div key={review.id} style={{ 
                   padding: '15px', 
@@ -2384,7 +2792,7 @@ const DoctorLookup = () => {
             </div>
             
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ backgroundColor: accentColor }}>
                     <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #ddd', fontWeight: '600' }}>Date</th>
@@ -2403,8 +2811,8 @@ const DoctorLookup = () => {
                       <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', fontWeight: '500' }}>{prescription.patient}</td>
                       <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px' }}>{prescription.patientAge}</td>
                       <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px' }}>{prescription.diagnosis}</td>
-                      <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px', maxWidth: '200px' }}>
-                        <div style={{ maxHeight: '60px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <td style={{ padding: '12px', border: '1px solid #ddd', fontSize: '14px' }}>
+                        <div style={{ maxWidth: '200px' }}>
                           {prescription.prescription}
                         </div>
                       </td>
@@ -2485,127 +2893,88 @@ const DoctorLookup = () => {
           }}>
             <h3 style={{ color: primaryColor, marginBottom: '20px', fontSize: '20px' }}>Admin Actions</h3>
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              {isEditing ? (
-                <>
-                  <button 
-                    onClick={handleSave}
-                    style={{ 
-                      padding: '12px 20px', 
-                      backgroundColor: '#28a745', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '6px', 
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                     Save Changes
-                  </button>
-                  <button 
-                    onClick={handleCancel}
-                    style={{ 
-                      padding: '12px 20px', 
-                      backgroundColor: '#6c757d', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '6px', 
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                    ❌ Cancel
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button 
-                    onClick={() => handleAction('approve')}
-                    disabled={selectedDoctor.status === 'Active'}
-                    style={{ 
-                      padding: '12px 20px', 
-                      backgroundColor: selectedDoctor.status === 'Active' ? '#6c757d' : '#28a745', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '6px', 
-                      cursor: selectedDoctor.status === 'Active' ? 'not-allowed' : 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                     Approve Doctor
-                  </button>
-                  <button 
-                    onClick={() => handleAction('reset')}
-                    style={{ 
-                      padding: '12px 20px', 
-                      backgroundColor: '#ffc107', 
-                      color: 'black', 
-                      border: 'none', 
-                      borderRadius: '6px', 
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                     Reset Doctor
-                  </button>
-                  <button 
-                    onClick={handleEdit}
-                    style={{ 
-                      padding: '12px 20px', 
-                      backgroundColor: primaryColor, 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '6px', 
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                     Edit Profile
-                  </button>
-                  <button 
-                    onClick={() => handleAction('suspend')}
-                    disabled={selectedDoctor.status === 'Suspended'}
-                    style={{ 
-                      padding: '12px 20px', 
-                      backgroundColor: selectedDoctor.status === 'Suspended' ? '#6c757d' : '#dc3545', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '6px', 
-                      cursor: selectedDoctor.status === 'Suspended' ? 'not-allowed' : 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                     Suspend Doctor
-                  </button>
-                  <button 
-                    onClick={() => handleAction('reject')}
-                    style={{ 
-                      padding: '12px 20px', 
-                      backgroundColor: '#fd7e14', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '6px', 
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                     Reject Doctor
-                  </button>
-                </>
-              )}
+              <button 
+                onClick={() => handleActionConfirmation('approve')}
+                disabled={selectedDoctor.status === 'Active'}
+                style={{ 
+                  padding: '12px 20px', 
+                  backgroundColor: selectedDoctor.status === 'Active' ? '#6c757d' : '#28a745', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '6px', 
+                  cursor: selectedDoctor.status === 'Active' ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                 Approve Doctor
+              </button>
+              <button 
+                onClick={() => handleActionConfirmation('reset')}
+                style={{ 
+                  padding: '12px 20px', 
+                  backgroundColor: '#ffc107', 
+                  color: 'black', 
+                  border: 'none', 
+                  borderRadius: '6px', 
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                 Reset Doctor
+              </button>
+              <button 
+                onClick={handleEdit}
+                style={{ 
+                  padding: '12px 20px', 
+                  backgroundColor: primaryColor, 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '6px', 
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                 Edit Profile
+              </button>
+              <button 
+                onClick={() => handleActionConfirmation('suspend')}
+                disabled={selectedDoctor.status === 'Suspended'}
+                style={{ 
+                  padding: '12px 20px', 
+                  backgroundColor: selectedDoctor.status === 'Suspended' ? '#6c757d' : '#dc3545', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '6px', 
+                  cursor: selectedDoctor.status === 'Suspended' ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                 Suspend Doctor
+              </button>
+              <button 
+                onClick={() => handleActionConfirmation('reject')}
+                style={{ 
+                  padding: '12px 20px', 
+                  backgroundColor: '#fd7e14', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '6px', 
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                 Reject Doctor
+              </button>
             </div>
           </section>
         </div>

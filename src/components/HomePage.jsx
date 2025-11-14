@@ -1,3 +1,5 @@
+
+
 import React, { useState, useRef, useEffect } from 'react';
 
 // Separate ReviewModal component to prevent re-renders
@@ -351,7 +353,7 @@ const ReviewModal = ({ showReviewModal, setShowReviewModal, setPendingReviews })
   );
 };
 
-const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
+const HomePage = ({ onNavigateToAuth, onNavigateToAdmin, onNavigateToHome }) => {
   const [activeSection, setActiveSection] = useState('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -367,6 +369,8 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [pendingReviews, setPendingReviews] = useState([]);
+  const [showBackToHome, setShowBackToHome] = useState(false);
+  const [activeFooterLink, setActiveFooterLink] = useState('');
 
   const [reviews] = useState([
     {
@@ -457,45 +461,39 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
 
   const doctors = [
     { 
-      name: 'Dr.Brahma Gadikota', 
+      name: 'Dr.Brahma Gadikoto', 
       specialty: 'General Physician', 
       experience: '10 years', 
-      availability: 'Available Today',
       rating: '4.9'
     },
     { 
       name: 'Dr.Maha Lakshmi', 
       specialty: 'Neurologist', 
       experience: '7 years', 
-      availability: 'Available Today',
       rating: '4.6'
     },
     { 
       name: 'Dr. Divya V', 
       specialty: 'Cardiologist', 
       experience: '8 years', 
-      availability: 'Available Tomorrow',
       rating: '4.8'
     },
     { 
       name: 'Dr. Bhavana Shinagam', 
       specialty: 'Psychologist', 
       experience: '9 years', 
-      availability: 'Available Today',
       rating: '4.8'
     },
     { 
       name: 'Dr. Charitha Kasturi', 
       specialty: 'Pediatrician', 
       experience: '8 years', 
-      availability: 'Available Today',
       rating: '4.9'
     },
     { 
       name: 'Dr. Sreenivas Tulasi', 
       specialty: 'Dermatologist', 
       experience: '12 years', 
-      availability: 'Available Now',
       rating: '4.7'
     }
   ];
@@ -523,7 +521,7 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
   // Medical background image URL
   const medicalBackground = 'https://images.unsplash.com/photo-1551076805-e1869033e561?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80';
 
-  // Function to render star ratings
+  // Function to render star ratings - REMOVED DUPLICATE
   const renderStars = (rating) => {
     return '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
   };
@@ -540,9 +538,16 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
   const handleSectionChange = (section) => {
     setActiveSection(section);
     scrollToTop();
+    setShowBackToHome(false);
   };
 
-  // Contact form validation
+  // Function to handle footer link click
+  const handleFooterLinkClick = (link) => {
+    setActiveFooterLink(link);
+    handleSectionChange(link.toLowerCase());
+  };
+
+  // Contact form validation with proper email regex
   const validateContactForm = () => {
     const errors = {};
     const nameRegex = /^[A-Za-z\s]+$/;
@@ -552,12 +557,14 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
       errors.name = 'Name is required';
     } else if (!nameRegex.test(contactForm.name)) {
       errors.name = 'Name should contain only letters and spaces';
+    } else if (contactForm.name.trim().length < 2) {
+      errors.name = 'Name should be at least 2 characters long';
     }
 
     if (!contactForm.email.trim()) {
       errors.email = 'Email is required';
     } else if (!emailRegex.test(contactForm.email)) {
-      errors.email = 'Please enter a valid email address';
+      errors.email = 'Please enter a valid email address (e.g., example@domain.com)';
     }
 
     if (!contactForm.subject.trim()) {
@@ -603,10 +610,19 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
 
   // Handle contact form input changes
   const handleContactInputChange = (field, value) => {
-    setContactForm(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    // For name field, only allow letters and spaces
+    if (field === 'name') {
+      const lettersOnly = value.replace(/[^A-Za-z\s]/g, '');
+      setContactForm(prev => ({
+        ...prev,
+        [field]: lettersOnly
+      }));
+    } else {
+      setContactForm(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
     
     // Clear error when user starts typing
     if (contactErrors[field]) {
@@ -617,10 +633,41 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
     }
   };
 
+  // Handle contact form field blur
+  const handleContactFieldBlur = (field, value) => {
+    const errors = validateContactForm();
+    setContactErrors(errors);
+  };
+
   // Handle write review button click
   const handleWriteReview = () => {
     setShowReviewModal(true);
   };
+
+  // Handle login button click
+  const handleLoginClick = () => {
+    setShowBackToHome(true);
+    onNavigateToAuth();
+  };
+
+  // Handle admin button click
+  const handleAdminClick = () => {
+    setShowBackToHome(true);
+    setShowAdminModal(true);
+  };
+
+  // Handle back to home
+  const handleBackToHome = () => {
+    setShowBackToHome(false);
+    setShowAdminModal(false);
+    setLoginError('');
+    if (onNavigateToHome) {
+      onNavigateToHome();
+    } else {
+      handleSectionChange('home');
+    }
+  };
+
   // Admin Modal Component
   const AdminLoginModal = () => {
     const [adminCredentials, setAdminCredentials] = useState({
@@ -747,6 +794,16 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
               Unauthorized access is prohibited.
             </p>
           </div>
+
+          {/* Back to Home Button */}
+          <div style={styles.backToHomeContainer}>
+            <button 
+              style={styles.backToHomeButton}
+              onClick={handleBackToHome}
+            >
+              ← Back to Home
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -771,6 +828,89 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
       handleSectionChange('search');
     }
   };
+
+  // Footer Component
+  const Footer = () => (
+    <footer style={styles.footer}>
+      <div style={styles.footerContent}>
+        {/* Column 1: Brand */}
+        <div style={styles.footerSection}>
+          <h2 style={styles.footerTitle}>QUICKMED</h2>
+          <p style={styles.footerText}>
+            Delivering healthcare to your doorstep with speed and care.
+          </p>
+        </div>
+
+        {/* Column 2: Quick Links */}
+        <div style={styles.footerSection}>
+          <h3 style={styles.footerSubtitle}>Quick Links</h3>
+          <div style={styles.footerLinks}>
+            {['Home', 'About', 'Services', 'Doctors', 'Reviews', 'Contact'].map((link) => (
+              <button
+                key={link}
+                style={{
+                  ...styles.footerLink,
+                  ...(activeFooterLink === link && styles.activeFooterLink)
+                }}
+                onClick={() => handleFooterLinkClick(link)}
+              >
+                {link}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Column 3: Legal */}
+        <div style={styles.footerSection}>
+          <h3 style={styles.footerSubtitle}>Legal</h3>
+          <div style={styles.footerLinks}>
+            {['Privacy Policy', 'Refund Policy', 'Terms & Conditions'].map((link) => (
+              <button
+                key={link}
+                style={styles.footerLink}
+                onClick={() => alert(`${link} page would open here`)}
+              >
+                {link}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Column 4: Contact Info */}
+        <div style={styles.footerSection}>
+          <h3 style={styles.footerSubtitle}>Contact Info</h3>
+          <div style={styles.footerContact}>
+            <div style={styles.footerContactItem}>
+              <span style={styles.footerContactIcon}>📧</span>
+              <span style={styles.footerContactText}>support@quickmed.com</span>
+            </div>
+            <div style={styles.footerContactItem}>
+              <span style={styles.footerContactIcon}>📞</span>
+              <span style={styles.footerContactText}>9392416962</span>
+            </div>
+            <div style={styles.footerContactItem}>
+              <span style={styles.footerContactIcon}>🏥</span>
+              <span style={styles.footerContactText}>24/7 Emergency Service</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Bottom Border and Copyright */}
+      <div style={styles.footerBottom}>
+        <div style={styles.footerBottomContent}>
+          <p style={styles.copyright}>
+            © 2025 QuickMed. All rights reserved. | Healthcare Revolutionized
+          </p>
+          <div style={styles.madeWithLove}>
+            <span>Made with</span>
+            <span style={styles.heartIcon}>❤️</span>
+            <span>for better healthcare</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
 
   return (
     <div style={styles.homepage}>
@@ -847,20 +987,32 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
           <div style={styles.authButtons}>
             <button 
               style={styles.loginButton}
-              onClick={onNavigateToAuth}
+              onClick={handleLoginClick}
             >
               Login
             </button>
             {/* Admin Access Button */}
             <button 
               style={styles.adminAccessButton}
-              onClick={() => setShowAdminModal(true)}
+              onClick={handleAdminClick}
             >
               🔧 Admin
             </button>
           </div>
         </nav>
       </header>
+
+      {/* Back to Home Button - Show when in auth/admin mode */}
+      {showBackToHome && (
+        <div style={styles.backToHomeBanner}>
+          <button 
+            style={styles.backToHomeBannerButton}
+            onClick={handleBackToHome}
+          >
+            ← Back to Home
+          </button>
+        </div>
+      )}
 
       {/* Main Content */}
       <main style={styles.main}>
@@ -1121,13 +1273,6 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
                   <h3 style={styles.doctorName}>{doctor.name}</h3>
                   <p style={styles.doctorSpecialty}>{doctor.specialty}</p>
                   <p style={styles.doctorExperience}>Experience: {doctor.experience}</p>
-                  <div style={{
-                    ...styles.availabilityBadge,
-                    backgroundColor: doctor.availability === 'Available Now' ? '#4CAF50' : 
-                                   doctor.availability === 'Available Today' ? '#FF9800' : '#7C2A62'
-                  }}>
-                    {doctor.availability}
-                  </div>
                 </div>
               ))}
             </div>
@@ -1226,38 +1371,40 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
 
         {/* Contact Section */}
         {activeSection === 'contact' && (
-          <section style={styles.section}>
+          <section style={styles.contactSection}>
             <h2 style={styles.sectionTitle}>Contact Us</h2>
-            <p style={styles.sectionSubtitle}>We're here to help with your healthcare needs</p>
+            <p style={styles.contactSubtitle}>We're here to help with your healthcare needs</p>
             <div style={styles.contactContent}>
               <div style={styles.contactInfo}>
-                <h3 style={styles.contactSubtitle}>Get in Touch</h3>
-                <div style={styles.contactItem}>
-                  <span style={styles.contactIcon}>📧</span>
-                  <div>
-                    <strong>Email:</strong><br />
-                    support@quickmed.com
+                <h3 style={styles.contactInfoTitle}>Get in Touch</h3>
+                <div style={styles.contactItems}>
+                  <div style={styles.contactItem}>
+                    <span style={styles.contactIcon}>📧</span>
+                    <div style={styles.contactText}>
+                      <strong>Email:</strong>
+                      <p>support@quickmed.com</p>
+                    </div>
                   </div>
-                </div>
-                <div style={styles.contactItem}>
-                  <span style={styles.contactIcon}>📞</span>
-                  <div>
-                    <strong>Phone:</strong><br />
-                    9392416962
+                  <div style={styles.contactItem}>
+                    <span style={styles.contactIcon}>📞</span>
+                    <div style={styles.contactText}>
+                      <strong>Phone:</strong>
+                      <p>9392416962</p>
+                    </div>
                   </div>
-                </div>
-                <div style={styles.contactItem}>
-                  <span style={styles.contactIcon}>🏥</span>
-                  <div>
-                    <strong>Address:</strong><br />
-                    123 Healthcare Ave, Medical District, City
+                  <div style={styles.contactItem}>
+                    <span style={styles.contactIcon}>🏥</span>
+                    <div style={styles.contactText}>
+                      <strong>Address:</strong>
+                      <p>123 Healthcare Ave, Medical District, City</p>
+                    </div>
                   </div>
-                </div>
-                <div style={styles.contactItem}>
-                  <span style={styles.contactIcon}>🚨</span>
-                  <div>
-                    <strong>Emergency:</strong><br />
-                    Available 24/7
+                  <div style={styles.contactItem}>
+                    <span style={styles.contactIcon}>🚨</span>
+                    <div style={styles.contactText}>
+                      <strong>Emergency:</strong>
+                      <p>Available 24/7</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1272,6 +1419,8 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
                     }}
                     value={contactForm.name}
                     onChange={(e) => handleContactInputChange('name', e.target.value)}
+                    onBlur={(e) => handleContactFieldBlur('name', e.target.value)}
+                    maxLength={50}
                   />
                   {contactErrors.name && <span style={styles.errorText}>{contactErrors.name}</span>}
                 </div>
@@ -1286,6 +1435,7 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
                     }}
                     value={contactForm.email}
                     onChange={(e) => handleContactInputChange('email', e.target.value)}
+                    onBlur={(e) => handleContactFieldBlur('email', e.target.value)}
                   />
                   {contactErrors.email && <span style={styles.errorText}>{contactErrors.email}</span>}
                 </div>
@@ -1300,6 +1450,7 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
                     }}
                     value={contactForm.subject}
                     onChange={(e) => handleContactInputChange('subject', e.target.value)}
+                    onBlur={(e) => handleContactFieldBlur('subject', e.target.value)}
                     maxLength={100}
                   />
                   {contactErrors.subject && <span style={styles.errorText}>{contactErrors.subject}</span>}
@@ -1318,6 +1469,7 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
                     }}
                     value={contactForm.message}
                     onChange={(e) => handleContactInputChange('message', e.target.value)}
+                    onBlur={(e) => handleContactFieldBlur('message', e.target.value)}
                     maxLength={500}
                   />
                   {contactErrors.message && <span style={styles.errorText}>{contactErrors.message}</span>}
@@ -1335,56 +1487,13 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin }) => {
         )}
       </main>
 
-      {/* Footer */}
-      <footer style={styles.footer}>
-        <div style={styles.footerContent}>
-          <div style={styles.footerSection}>
-            <h3 style={styles.footerTitle}>QUICKMED</h3>
-            <p style={styles.footerText}>Delivering healthcare to your doorstep with speed and care.</p>
-          </div>
-          <div style={styles.footerSection}>
-            <h4 style={styles.footerSubtitle}>Quick Links</h4>
-            <button 
-              style={activeSection === 'home' ? {...styles.footerLink, ...styles.activeFooterLink} : styles.footerLink} 
-              onClick={() => handleSectionChange('home')}
-            >Home</button>
-            <button 
-              style={activeSection === 'about' ? {...styles.footerLink, ...styles.activeFooterLink} : styles.footerLink} 
-              onClick={() => handleSectionChange('about')}
-            >About</button>
-            <button 
-              style={activeSection === 'services' ? {...styles.footerLink, ...styles.activeFooterLink} : styles.footerLink} 
-              onClick={() => handleSectionChange('services')}
-            >Services</button>
-            <button 
-              style={activeSection === 'doctors' ? {...styles.footerLink, ...styles.activeFooterLink} : styles.footerLink} 
-              onClick={() => handleSectionChange('doctors')}
-            >Doctors</button>
-            <button 
-              style={activeSection === 'reviews' ? {...styles.footerLink, ...styles.activeFooterLink} : styles.footerLink} 
-              onClick={() => handleSectionChange('reviews')}
-            >Reviews</button>
-            <button 
-              style={activeSection === 'contact' ? {...styles.footerLink, ...styles.activeFooterLink} : styles.footerLink} 
-              onClick={() => handleSectionChange('contact')}
-            >Contact</button>
-          </div>
-          <div style={styles.footerSection}>
-            <h4 style={styles.footerSubtitle}>Contact Info</h4>
-            <p style={styles.footerText}>📧 support@quickmed.com</p>
-            <p style={styles.footerText}>📞 9392416962</p>
-            <p style={styles.footerText}>🏥 24/7 Emergency Service</p>
-          </div>
-        </div>
-        <div style={styles.footerBottom}>
-          <p style={styles.copyright}>&copy; 2025 QuickMed. All rights reserved. | Healthcare Revolutionized</p>
-        </div>
-      </footer>
+      {/* Updated Footer */}
+      <Footer />
     </div>
   );
 };
 
-// Styles object (same as before with minor additions)
+// Updated Styles object with fixed duplicate keys
 const styles = {
   homepage: {
     minHeight: '100vh',
@@ -1467,6 +1576,38 @@ const styles = {
     fontWeight: '600',
     transition: 'all 0.3s ease',
     boxShadow: '0 4px 15px rgba(124, 42, 98, 0.3)',
+  },
+  // Back to Home Styles
+  backToHomeBanner: {
+    backgroundColor: '#7C2A62',
+    padding: '0.5rem 2rem',
+    textAlign: 'center',
+  },
+  backToHomeBannerButton: {
+    backgroundColor: 'white',
+    color: '#7C2A62',
+    border: 'none',
+    padding: '0.5rem 1rem',
+    borderRadius: '20px',
+    cursor: 'pointer',
+    fontWeight: '600',
+    fontSize: '0.9rem',
+    transition: 'all 0.3s ease',
+  },
+  backToHomeContainer: {
+    marginTop: '1.5rem',
+    textAlign: 'center',
+  },
+  backToHomeButton: {
+    backgroundColor: '#7C2A62',
+    color: 'white',
+    border: 'none',
+    padding: '0.75rem 1.5rem',
+    borderRadius: '25px',
+    cursor: 'pointer',
+    fontWeight: '600',
+    fontSize: '1rem',
+    transition: 'all 0.3s ease',
   },
   // Modal Styles
   modalOverlay: {
@@ -2036,19 +2177,26 @@ const styles = {
     maxWidth: '1200px',
     margin: '0 auto',
   },
+  // Contact Section with proper spacing
+  contactSection: {
+    padding: '6rem 2rem 5rem 2rem',
+    maxWidth: '1200px',
+    margin: '0 auto',
+  },
+  contactSubtitle: {
+    fontSize: '1.2rem',
+    textAlign: 'center',
+    color: '#000000',
+    marginBottom: '3rem',
+    fontWeight: '400',
+    paddingTop: '50px',
+  },
   sectionTitle: {
     fontSize: '3rem',
     marginBottom: '1rem',
     textAlign: 'center',
     color: '#000000',
     fontWeight: '700',
-  },
-  sectionSubtitle: {
-    fontSize: '1.2rem',
-    textAlign: 'center',
-    color: '#000000',
-    marginBottom: '3rem',
-    fontWeight: '400',
   },
   aboutContent: {
     lineHeight: '1.8',
@@ -2170,15 +2318,6 @@ const styles = {
   doctorExperience: {
     marginBottom: '1.5rem',
     color: '#000000',
-  },
-  availabilityBadge: {
-    display: 'inline-block',
-    padding: '0.5rem 1.5rem',
-    borderRadius: '20px',
-    fontSize: '0.9rem',
-    marginBottom: '2rem',
-    fontWeight: '600',
-    color: 'white',
   },
   // Reviews Section Styles
   ratingSummary: {
@@ -2324,6 +2463,7 @@ const styles = {
     color: 'white',
     transition: 'all 0.3s ease',
   },
+  // Contact Section Styles
   contactContent: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
@@ -2335,16 +2475,21 @@ const styles = {
     backgroundColor: 'white',
     borderRadius: '20px',
     boxShadow: '0 8px 25px rgba(124, 42, 98, 0.1)',
+    height: 'fit-content',
   },
-  contactSubtitle: {
+  contactInfoTitle: {
     fontSize: '1.8rem',
     marginBottom: '2rem',
     color: '#000000',
     fontWeight: '600',
+    textAlign: 'left',
+  },
+  contactItems: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1.5rem',
   },
   contactItem: {
-    marginBottom: '2rem',
-    fontSize: '1.1rem',
     display: 'flex',
     alignItems: 'center',
     gap: '1rem',
@@ -2352,6 +2497,15 @@ const styles = {
   contactIcon: {
     fontSize: '1.5rem',
     color: '#7C2A62',
+    flexShrink: 0,
+    width: '30px',
+    textAlign: 'center',
+  },
+  contactText: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.2rem',
+    flex: 1,
   },
   contactForm: {
     display: 'flex',
@@ -2369,8 +2523,9 @@ const styles = {
     color: 'white',
     transition: 'all 0.3s ease',
   },
+  // Updated Footer Styles - Fixed duplicate keys
   footer: {
-    backgroundColor: '#7C2A62',
+    backgroundColor: '#7A1B5B',
     color: 'white',
     padding: '3rem 0 0',
   },
@@ -2385,57 +2540,97 @@ const styles = {
   footerSection: {
     display: 'flex',
     flexDirection: 'column',
+    textAlign: 'center',
   },
   footerTitle: {
     fontSize: '1.8rem',
     marginBottom: '1rem',
     color: '#F7D9EB',
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   footerSubtitle: {
     fontSize: '1.3rem',
     marginBottom: '1.5rem',
     color: '#F7D9EB',
+    fontWeight: '600',
   },
   footerText: {
-    marginBottom: '1rem',
+    marginBottom: '0.5rem',
     color: '#F7D9EB',
     lineHeight: '1.6',
   },
-  socialLinks: {
+  footerLinks: {
     display: 'flex',
-    gap: '1rem',
-    marginTop: '1rem',
-  },
-  socialIcon: {
-    fontSize: '1.5rem',
-    cursor: 'pointer',
-    transition: 'transform 0.3s ease',
-    color: '#F7D9EB',
+    flexDirection: 'column',
+    gap: '0.8rem',
   },
   footerLink: {
     backgroundColor: 'transparent',
     border: 'none',
     color: '#F7D9EB',
-    textAlign: 'left',
+    textAlign: 'center',
     padding: '0.5rem 0',
     cursor: 'pointer',
     transition: 'all 0.3s ease',
     fontSize: '1rem',
+    width: 'fit-content',
+    margin: '0 auto',
   },
   activeFooterLink: {
     color: '#FFFFFF',
     fontWeight: 'bold',
     textDecoration: 'underline',
   },
+  footerContact: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+  },
+  // Fixed duplicate keys by renaming footer contact styles
+  footerContactItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+    justifyContent: 'center',
+  },
+  footerContactIcon: {
+    fontSize: '1.2rem',
+    color: '#F7D9EB',
+    flexShrink: 0,
+  },
+  footerContactText: {
+    color: '#F7D9EB',
+    fontSize: '1rem',
+  },
   footerBottom: {
     borderTop: '1px solid #F7D9EB',
     padding: '2rem 2rem',
-    textAlign: 'center',
     marginTop: '3rem',
+  },
+  footerBottomContent: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '1rem',
   },
   copyright: {
     margin: 0,
     color: '#F7D9EB',
+    fontSize: '1rem',
+    textAlign: 'center',
+  },
+  madeWithLove: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    color: '#F7D9EB',
+    fontSize: '0.9rem',
+  },
+  heartIcon: {
+    color: '#ff6b6b',
     fontSize: '1rem',
   },
 };

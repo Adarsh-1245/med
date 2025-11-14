@@ -185,7 +185,7 @@ const AdminLogin = ({ onLoginSuccess, onSwitchToSignup }) => {
             fontWeight: 'bold',
             letterSpacing: '0.5px'
           }}>
-            MediQuick Admin
+            QuickMed Admin
           </h1>
           <p style={{ 
             color: '#666', 

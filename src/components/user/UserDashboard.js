@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useContext } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ProfileProvider, useProfile } from './UserDashboardHooks';
 import UserDashboardHeader from './UserDashboardHeader';
 import UserDashboardViews from './UserDashboardViews';
@@ -24,6 +24,22 @@ const UserDashboardContent = ({ user, onLogout }) => {
 
   const [paymentLoading, setPaymentLoading] = useState(false);
 
+  // Address Management State
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState({
+    street: '',
+    city: '',
+    state: '',
+    pincode: '',
+    landmark: '',
+    addressType: 'home'
+  });
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+
+  // Quantity state for pharmacy medicines
+  const [pharmacyQuantities, setPharmacyQuantities] = useState({});
+
   const [showChatbot, setShowChatbot] = useState(false);
   const [chatMessages, setChatMessages] = useState([
     {
@@ -48,7 +64,7 @@ const UserDashboardContent = ({ user, onLogout }) => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showProfilePhotoModal, setShowProfilePhotoModal] = useState(false);
   const [profilePhotoFile, setProfilePhotoFile] = useState(null);
-  const [profilePhotoPreview, setProfilePhotoPreview] = useState(profile.profilePhoto);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState(profile?.profilePhoto || null);
 
   const [appointments, setAppointments] = useState([
     {
@@ -208,10 +224,10 @@ const UserDashboardContent = ({ user, onLogout }) => {
       deliveryTime: '20 min', 
       rating: 4.5,
       medicines: [
-        { id: 2, name: 'Paracetamol 500mg', price: 30, category: 'OTC' },
-        { id: 5, name: 'Amoxicillin 500mg', price: 120, category: 'Prescription' },
-        { id: 7, name: 'Cetirizine 10mg', price: 25, category: 'OTC' },
-        { id: 8, name: 'Omeprazole 20mg', price: 45, category: 'Prescription' }
+        { id: 2, name: 'Paracetamol 500mg', price: 30, category: 'OTC', stock: 15 },
+        { id: 5, name: 'Amoxicillin 500mg', price: 120, category: 'Prescription', stock: 8 },
+        { id: 7, name: 'Cetirizine 10mg', price: 25, category: 'OTC', stock: 20 },
+        { id: 8, name: 'Omeprazole 20mg', price: 45, category: 'Prescription', stock: 12 }
       ]
     },
     { 
@@ -221,10 +237,10 @@ const UserDashboardContent = ({ user, onLogout }) => {
       deliveryTime: '25 min', 
       rating: 4.8,
       medicines: [
-        { id: 1, name: 'Aspirin 75mg', price: 25, category: 'OTC' },
-        { id: 4, name: 'Vitamin C 1000mg', price: 40, category: 'Vitamins' },
-        { id: 9, name: 'Multivitamin Tablets', price: 150, category: 'Vitamins' },
-        { id: 10, name: 'Calcium Supplements', price: 200, category: 'Vitamins' }
+        { id: 1, name: 'Aspirin 75mg', price: 25, category: 'OTC', stock: 25 },
+        { id: 4, name: 'Vitamin C 1000mg', price: 40, category: 'Vitamins', stock: 30 },
+        { id: 9, name: 'Multivitamin Tablets', price: 150, category: 'Vitamins', stock: 18 },
+        { id: 10, name: 'Calcium Supplements', price: 200, category: 'Vitamins', stock: 22 }
       ]
     },
     { 
@@ -234,10 +250,10 @@ const UserDashboardContent = ({ user, onLogout }) => {
       deliveryTime: '30 min', 
       rating: 4.3,
       medicines: [
-        { id: 3, name: 'Ibuprofen 400mg', price: 35, category: 'OTC' },
-        { id: 6, name: 'Blood Pressure Monitor', price: 899, category: 'Equipment' },
-        { id: 11, name: 'Diabetes Test Strips', price: 350, category: 'Equipment' },
-        { id: 12, name: 'Thermometer', price: 150, category: 'Equipment' }
+        { id: 3, name: 'Ibuprofen 400mg', price: 35, category: 'OTC', stock: 10 },
+        { id: 6, name: 'Blood Pressure Monitor', price: 899, category: 'Equipment', stock: 5 },
+        { id: 11, name: 'Diabetes Test Strips', price: 350, category: 'Equipment', stock: 15 },
+        { id: 12, name: 'Thermometer', price: 150, category: 'Equipment', stock: 8 }
       ]
     }
   ];
@@ -281,77 +297,6 @@ const UserDashboardContent = ({ user, onLogout }) => {
       image: '👨‍⚕️',
       bio: 'Cardiology expert with extensive experience in heart-related conditions.',
       qualifications: 'MBBS, DM (Cardiology)'
-    }
-  ];
-
-  const initialOrders = [
-    {
-      id: 'ORD001',
-      date: '2024-01-15',
-      items: [
-        { name: 'Paracetamol 500mg', quantity: 2, price: 30 },
-        { name: 'Vitamin C 1000mg', quantity: 1, price: 40 }
-      ],
-      total: 100,
-      status: 'Delivered',
-      deliveryAddress: '123 Main St, City, 560001',
-      trackingAvailable: false
-    },
-    {
-      id: 'ORD002',
-      date: '2024-01-10',
-      items: [
-        { name: 'Aspirin 75mg', quantity: 1, price: 25 }
-      ],
-      total: 25,
-      status: 'In Transit',
-      deliveryAddress: '123 Main St, City, 560001',
-      trackingAvailable: true,
-      deliveryPartner: {
-        name: 'Rahul Kumar',
-        phone: '+91 9876543210',
-        estimatedTime: '25 min'
-      }
-    },
-    {
-      id: 'ORD003',
-      date: new Date().toISOString().split('T')[0],
-      items: [
-        { name: 'Amoxicillin 500mg', quantity: 1, price: 120 },
-        { name: 'Vitamin C 1000mg', quantity: 2, price: 40 }
-      ],
-      total: 200,
-      status: 'On the Way',
-      deliveryAddress: '456 Park Avenue, City, 560001',
-      trackingAvailable: true,
-      deliveryPartner: {
-        name: 'Rahul Kumar',
-        phone: '+91 9876543210',
-        estimatedTime: '15 min'
-      }
-    },
-    {
-      id: 'ORD004',
-      date: '2024-01-12',
-      items: [
-        { name: 'Ibuprofen 400mg', quantity: 1, price: 35 },
-        { name: 'Cetirizine 10mg', quantity: 2, price: 25 }
-      ],
-      total: 85,
-      status: 'Pending',
-      deliveryAddress: '789 Oak Street, City, 560001',
-      trackingAvailable: false
-    },
-    {
-      id: 'ORD005',
-      date: '2024-01-08',
-      items: [
-        { name: 'Blood Pressure Monitor', quantity: 1, price: 899 }
-      ],
-      total: 899,
-      status: 'Delivered',
-      deliveryAddress: '321 Pine Road, City, 560001',
-      trackingAvailable: false
     }
   ];
 
@@ -540,13 +485,78 @@ const UserDashboardContent = ({ user, onLogout }) => {
     setShowAppointmentDetails(true);
   };
 
+  // Enhanced pharmacy store view function
   const viewPharmacyStore = (pharmacy) => {
     setSelectedPharmacy(pharmacy);
     setShowPharmacyStore(true);
+    
+    // Initialize search query for this pharmacy if not exists
+    if (!pharmacySearchQueries[pharmacy.id]) {
+      setPharmacySearchQueries(prev => ({
+        ...prev,
+        [pharmacy.id]: ''
+      }));
+    }
   };
 
+  // Enhanced add to cart from pharmacy with better feedback
   const addToCartFromPharmacy = (medicine) => {
-    addToCart(medicine);
+    return new Promise((resolve) => {
+      const existingItem = cart.find(item => item.id === medicine.id);
+      if (existingItem) {
+        setCart(cart.map(item => 
+          item.id === medicine.id 
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        ));
+      } else {
+        setCart([...cart, { ...medicine, quantity: 1, addedFrom: 'pharmacy' }]);
+      }
+      
+      addNotification('Medicine Added', `${medicine.name} added to cart from pharmacy`, 'order');
+      
+      // Simulate API call delay for better UX
+      setTimeout(() => {
+        resolve();
+      }, 300);
+    });
+  };
+
+  // Enhanced quantity management for pharmacy medicines
+  const handlePharmacyQuantityChange = (medicineId, change) => {
+    setPharmacyQuantities(prev => {
+      const currentQuantity = prev[medicineId] || 0;
+      const newQuantity = Math.max(0, currentQuantity + change);
+      
+      return {
+        ...prev,
+        [medicineId]: newQuantity
+      };
+    });
+  };
+
+  const handleAddToCartFromPharmacy = async (medicine) => {
+    const quantity = pharmacyQuantities[medicine.id] || 1;
+    
+    if (quantity === 0) {
+      // If quantity is 0, add 1 by default
+      setPharmacyQuantities(prev => ({
+        ...prev,
+        [medicine.id]: 1
+      }));
+      await addToCartFromPharmacy(medicine);
+    } else {
+      // Add the specified quantity
+      for (let i = 0; i < quantity; i++) {
+        await addToCartFromPharmacy(medicine);
+      }
+      
+      // Reset quantity after adding to cart
+      setPharmacyQuantities(prev => ({
+        ...prev,
+        [medicine.id]: 0
+      }));
+    }
   };
 
   const handlePrescriptionUpload = (event) => {
@@ -643,6 +653,104 @@ const UserDashboardContent = ({ user, onLogout }) => {
     setShowProfileDropdown(!showProfileDropdown);
   };
 
+  // Address Management Functions
+  const saveAddressToProfile = (address) => {
+    const newAddress = {
+      id: `ADDR${Date.now()}`,
+      ...address,
+      isDefault: savedAddresses.length === 0
+    };
+    
+    setSavedAddresses(prev => [...prev, newAddress]);
+    
+    // Update user profile with address
+    const updatedProfile = {
+      ...userProfile,
+      address: address
+    };
+    setUserProfile(updatedProfile);
+    updateProfile(updatedProfile);
+  };
+
+  const handleAddressInputChange = (field, value) => {
+    setDeliveryAddress(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const selectSavedAddress = (addressId) => {
+    const address = savedAddresses.find(addr => addr.id === addressId);
+    if (address) {
+      setDeliveryAddress(address);
+      setSelectedAddressId(addressId);
+    }
+  };
+
+  const setDefaultAddress = (addressId) => {
+    setSavedAddresses(prev => 
+      prev.map(addr => ({
+        ...addr,
+        isDefault: addr.id === addressId
+      }))
+    );
+  };
+
+  const deleteAddress = (addressId) => {
+    if (savedAddresses.length <= 1) {
+      alert('You must have at least one saved address');
+      return;
+    }
+    
+    setSavedAddresses(prev => prev.filter(addr => addr.id !== addressId));
+    if (selectedAddressId === addressId) {
+      const defaultAddress = savedAddresses.find(addr => addr.isDefault) || savedAddresses[0];
+      setDeliveryAddress(defaultAddress);
+      setSelectedAddressId(defaultAddress.id);
+    }
+  };
+
+  // Updated Checkout Flow
+  const handleCheckoutConfirmation = () => {
+    if (cart.length === 0) {
+      alert('Your cart is empty!');
+      return;
+    }
+
+    // Check if user has saved addresses
+    if (savedAddresses.length > 0) {
+      setShowAddressModal(true);
+    } else {
+      // If no saved addresses, prompt to add one
+      setShowAddressModal(true);
+    }
+  };
+
+  const handleConfirmCheckout = () => {
+    // Validate address
+    if (!deliveryAddress.street || !deliveryAddress.city || !deliveryAddress.pincode) {
+      alert('Please complete the delivery address before proceeding to payment.');
+      return;
+    }
+
+    setShowAddressModal(false);
+    setShowCheckoutConfirm(false);
+    
+    // Save address to profile if it's new
+    if (!savedAddresses.find(addr => 
+      addr.street === deliveryAddress.street && 
+      addr.pincode === deliveryAddress.pincode
+    )) {
+      saveAddressToProfile(deliveryAddress);
+    }
+    
+    initiatePayment();
+  };
+
+  const handleCancelCheckout = () => {
+    setShowCheckoutConfirm(false);
+  };
+
   const initiatePayment = async () => {
     if (cart.length === 0) {
       alert('Your cart is empty!');
@@ -675,7 +783,9 @@ const UserDashboardContent = ({ user, onLogout }) => {
           contact: userProfile.phone
         },
         notes: {
-          address: userProfile.address,
+          address: `${deliveryAddress.street}, ${deliveryAddress.city}, ${deliveryAddress.state} - ${deliveryAddress.pincode}`,
+          landmark: deliveryAddress.landmark || 'Not specified',
+          address_type: deliveryAddress.addressType
         },
         theme: {
           color: '#7C2A62'
@@ -710,7 +820,8 @@ const UserDashboardContent = ({ user, onLogout }) => {
           items: [...cart],
           total: getTotalPrice(),
           status: 'Confirmed',
-          deliveryAddress: userProfile.address || 'Address not provided',
+          deliveryAddress: `${deliveryAddress.street}, ${deliveryAddress.city}, ${deliveryAddress.state} - ${deliveryAddress.pincode}`,
+          addressDetails: deliveryAddress,
           paymentId: paymentResponse.razorpay_payment_id,
           trackingAvailable: true,
           deliveryPartner: {
@@ -725,7 +836,7 @@ const UserDashboardContent = ({ user, onLogout }) => {
         setActiveView('orders');
         
         addNotification('Order Confirmed', `Your order ${orderId} has been placed successfully`, 'order');
-        alert(`Payment successful! Order ID: ${orderId}\nPayment ID: ${paymentResponse.razorpay_payment_id}`);
+        alert(`Payment successful! Order ID: ${orderId}\nYour order will be delivered to: ${deliveryAddress.street}, ${deliveryAddress.city}`);
       } else {
         alert('Payment verification failed. Please contact support.');
       }
@@ -743,19 +854,6 @@ const UserDashboardContent = ({ user, onLogout }) => {
         resolve({ success: true });
       }, 1000);
     });
-  };
-
-  const handleCheckoutConfirmation = () => {
-    setShowCheckoutConfirm(true);
-  };
-
-  const handleConfirmCheckout = () => {
-    setShowCheckoutConfirm(false);
-    initiatePayment();
-  };
-
-  const handleCancelCheckout = () => {
-    setShowCheckoutConfirm(false);
   };
 
   const handleBookAppointment = (doctor, timeSlot) => {
@@ -882,19 +980,26 @@ const UserDashboardContent = ({ user, onLogout }) => {
     }, 2000);
   };
 
+  // Enhanced pharmacy search function with real-time filtering
   const handlePharmacySearch = (pharmacyId, query) => {
     setPharmacySearchQueries(prev => ({
       ...prev,
       [pharmacyId]: query
     }));
+    
+    // Add search analytics in real app
+    console.log(`Search in pharmacy ${pharmacyId}: ${query}`);
   };
 
+  // Enhanced pharmacy medicine filtering
   const getFilteredPharmacyMedicines = (pharmacy) => {
+    if (!pharmacy) return [];
     const query = pharmacySearchQueries[pharmacy.id] || '';
-    if (!query.trim()) return pharmacy.medicines;
+    if (!query.trim()) return pharmacy.medicines || [];
     
-    return pharmacy.medicines.filter(medicine =>
-      medicine.name.toLowerCase().includes(query.toLowerCase())
+    return (pharmacy.medicines || []).filter(medicine =>
+      medicine.name.toLowerCase().includes(query.toLowerCase()) ||
+      medicine.category.toLowerCase().includes(query.toLowerCase())
     );
   };
 
@@ -987,6 +1092,18 @@ const UserDashboardContent = ({ user, onLogout }) => {
     profilePhotoInputRef.current?.click();
   };
 
+  // Auto-focus search input when pharmacy store modal opens
+  useEffect(() => {
+    if (showPharmacyStore && selectedPharmacy) {
+      setTimeout(() => {
+        const searchInput = document.querySelector(`[data-pharmacy-id="${selectedPharmacy.id}"]`);
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }, 100);
+    }
+  }, [showPharmacyStore, selectedPharmacy]);
+
   useEffect(() => {
     const loadRazorpayScript = () => {
       return new Promise((resolve) => {
@@ -1007,6 +1124,78 @@ const UserDashboardContent = ({ user, onLogout }) => {
   }, []);
 
   useEffect(() => {
+    // Move initialOrders inside useEffect to fix the warning
+    const initialOrders = [
+      {
+        id: 'ORD001',
+        date: '2024-01-15',
+        items: [
+          { name: 'Paracetamol 500mg', quantity: 2, price: 30 },
+          { name: 'Vitamin C 1000mg', quantity: 1, price: 40 }
+        ],
+        total: 100,
+        status: 'Delivered',
+        deliveryAddress: '123 Main St, City, 560001',
+        trackingAvailable: false
+      },
+      {
+        id: 'ORD002',
+        date: '2024-01-10',
+        items: [
+          { name: 'Aspirin 75mg', quantity: 1, price: 25 }
+        ],
+        total: 25,
+        status: 'In Transit',
+        deliveryAddress: '123 Main St, City, 560001',
+        trackingAvailable: true,
+        deliveryPartner: {
+          name: 'Rahul Kumar',
+          phone: '+91 9876543210',
+          estimatedTime: '25 min'
+        }
+      },
+      {
+        id: 'ORD003',
+        date: new Date().toISOString().split('T')[0],
+        items: [
+          { name: 'Amoxicillin 500mg', quantity: 1, price: 120 },
+          { name: 'Vitamin C 1000mg', quantity: 2, price: 40 }
+        ],
+        total: 200,
+        status: 'On the Way',
+        deliveryAddress: '456 Park Avenue, City, 560001',
+        trackingAvailable: true,
+        deliveryPartner: {
+          name: 'Rahul Kumar',
+          phone: '+91 9876543210',
+          estimatedTime: '15 min'
+        }
+      },
+      {
+        id: 'ORD004',
+        date: '2024-01-12',
+        items: [
+          { name: 'Ibuprofen 400mg', quantity: 1, price: 35 },
+          { name: 'Cetirizine 10mg', quantity: 2, price: 25 }
+        ],
+        total: 85,
+        status: 'Pending',
+        deliveryAddress: '789 Oak Street, City, 560001',
+        trackingAvailable: false
+      },
+      {
+        id: 'ORD005',
+        date: '2024-01-08',
+        items: [
+          { name: 'Blood Pressure Monitor', quantity: 1, price: 899 }
+        ],
+        total: 899,
+        status: 'Delivered',
+        deliveryAddress: '321 Pine Road, City, 560001',
+        trackingAvailable: false
+      }
+    ];
+
     setOrders(initialOrders);
     
     const trackableOrder = initialOrders.find(order => 
@@ -1015,7 +1204,7 @@ const UserDashboardContent = ({ user, onLogout }) => {
     if (trackableOrder) {
       setTrackingOrder(trackableOrder);
     }
-  }, []);
+  }, []); // Empty dependency array since initialOrders is now inside
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -1162,7 +1351,24 @@ const UserDashboardContent = ({ user, onLogout }) => {
     setShowProfileDropdown,
     profileRef,
     notificationRef,
-    styles
+    styles,
+    pharmacySearchQueries,
+    // Address Management Props
+    showAddressModal,
+    setShowAddressModal,
+    deliveryAddress,
+    setDeliveryAddress,
+    savedAddresses,
+    selectedAddressId,
+    handleAddressInputChange,
+    selectSavedAddress,
+    setDefaultAddress,
+    deleteAddress,
+    saveAddressToProfile,
+    // Pharmacy Quantity Management
+    pharmacyQuantities,
+    handlePharmacyQuantityChange,
+    handleAddToCartFromPharmacy
   };
 
   return (

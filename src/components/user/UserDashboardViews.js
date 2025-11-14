@@ -1,6 +1,244 @@
 import React from 'react';
 import UserDashboardComponents from './UserDashboardComponents';
 
+// Pharmacy Store View with Quantity Controls
+export const PharmacyStoreView = ({ 
+  selectedPharmacy, 
+  setShowPharmacyStore, 
+  pharmacySearchQueries,
+  handlePharmacySearch,
+  getFilteredPharmacyMedicines,
+  addToCartFromPharmacy,
+  cart,
+  pharmacyQuantities,
+  handlePharmacyQuantityChange,
+  handleAddToCartFromPharmacy
+}) => {
+  
+  if (!selectedPharmacy) return null;
+
+  const filteredMedicines = getFilteredPharmacyMedicines(selectedPharmacy);
+  const searchQuery = pharmacySearchQueries[selectedPharmacy.id] || '';
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'white',
+      zIndex: 1000,
+      overflowY: 'auto'
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: '15px',
+        borderBottom: '1px solid #eee',
+        backgroundColor: '#f8f9fa',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <div>
+          <button
+            onClick={() => setShowPharmacyStore(false)}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '16px',
+              cursor: 'pointer',
+              marginRight: '10px'
+            }}
+          >
+            ← Back
+          </button>
+          <h2 style={{ margin: 0, color: '#7C2A62' }}>{selectedPharmacy.name}</h2>
+          <div style={{ fontSize: '14px', color: '#666' }}>
+            {selectedPharmacy.distance} • {selectedPharmacy.deliveryTime} • ⭐ {selectedPharmacy.rating}
+          </div>
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      <div style={{ padding: '15px', borderBottom: '1px solid #eee' }}>
+        <input
+          data-pharmacy-id={selectedPharmacy.id}
+          type="text"
+          placeholder="Search medicines in this pharmacy..."
+          value={searchQuery}
+          onChange={(e) => handlePharmacySearch(selectedPharmacy.id, e.target.value)}
+          style={{
+            width: '100%',
+            padding: '10px',
+            border: '1px solid #ddd',
+            borderRadius: '8px',
+            fontSize: '14px'
+          }}
+        />
+      </div>
+
+      {/* Medicines List */}
+      <div style={{ padding: '15px' }}>
+        <h3 style={{ marginBottom: '15px', color: '#333' }}>
+          Available Medicines ({filteredMedicines.length} items)
+        </h3>
+        
+        {filteredMedicines.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+            No medicines found matching your search.
+          </div>
+        ) : (
+          <div>
+            {filteredMedicines.map(medicine => (
+              <div
+                key={medicine.id}
+                style={{
+                  padding: '15px',
+                  border: '1px solid #eee',
+                  borderRadius: '8px',
+                  marginBottom: '10px',
+                  backgroundColor: 'white'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+                      {medicine.name}
+                    </div>
+                    <div style={{ 
+                      fontSize: '12px', 
+                      color: medicine.category === 'Prescription' ? '#e74c3c' : '#27ae60',
+                      marginBottom: '5px'
+                    }}>
+                      {medicine.category}
+                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#7C2A62' }}>
+                      ₹{medicine.price}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+                      Stock: {medicine.stock} available
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                    {/* Quantity Controls */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <button
+                        onClick={() => handlePharmacyQuantityChange(medicine.id, -1)}
+                        disabled={pharmacyQuantities[medicine.id] <= 0}
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          border: '1px solid #7C2A62',
+                          backgroundColor: pharmacyQuantities[medicine.id] <= 0 ? '#f0f0f0' : 'white',
+                          color: pharmacyQuantities[medicine.id] <= 0 ? '#999' : '#7C2A62',
+                          borderRadius: '4px',
+                          cursor: pharmacyQuantities[medicine.id] <= 0 ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '14px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        –
+                      </button>
+                      
+                      <span style={{ 
+                        minWidth: '30px', 
+                        textAlign: 'center',
+                        fontWeight: 'bold',
+                        fontSize: '14px'
+                      }}>
+                        {pharmacyQuantities[medicine.id] || 0}
+                      </span>
+                      
+                      <button
+                        onClick={() => handlePharmacyQuantityChange(medicine.id, 1)}
+                        disabled={(pharmacyQuantities[medicine.id] || 0) >= medicine.stock}
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          border: '1px solid #7C2A62',
+                          backgroundColor: (pharmacyQuantities[medicine.id] || 0) >= medicine.stock ? '#f0f0f0' : 'white',
+                          color: (pharmacyQuantities[medicine.id] || 0) >= medicine.stock ? '#999' : '#7C2A62',
+                          borderRadius: '4px',
+                          cursor: (pharmacyQuantities[medicine.id] || 0) >= medicine.stock ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '14px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
+                    
+                    {/* Add to Cart Button */}
+                    <button
+                      onClick={() => handleAddToCartFromPharmacy(medicine)}
+                      disabled={(pharmacyQuantities[medicine.id] || 0) === 0}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: (pharmacyQuantities[medicine.id] || 0) === 0 ? '#f0f0f0' : '#7C2A62',
+                        color: (pharmacyQuantities[medicine.id] || 0) === 0 ? '#999' : 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: (pharmacyQuantities[medicine.id] || 0) === 0 ? 'not-allowed' : 'pointer',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        minWidth: '100px'
+                      }}
+                    >
+                      {pharmacyQuantities[medicine.id] > 0 ? `Add ${pharmacyQuantities[medicine.id]}` : 'Add to Cart'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Cart Footer */}
+      {cart.length > 0 && (
+        <div style={{
+          position: 'sticky',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: 'white',
+          borderTop: '1px solid #eee',
+          padding: '15px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div style={{ fontWeight: 'bold' }}>
+            View Cart ({cart.reduce((total, item) => total + item.quantity, 0)})
+          </div>
+          <button
+            onClick={() => setShowPharmacyStore(false)}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#7C2A62',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold'
+            }}
+          >
+            Back to Pharmacies
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const UserDashboardViews = ({
   activeView,
   setActiveView,
@@ -56,7 +294,16 @@ const UserDashboardViews = ({
   updateProfile,
   triggerProfilePhotoUpload,
   removeProfilePhoto,
-  styles
+  styles,
+  // New props for pharmacy quantities
+  pharmacyQuantities,
+  handlePharmacyQuantityChange,
+  handleAddToCartFromPharmacy,
+  // Pharmacy store props
+  showPharmacyStore,
+  setShowPharmacyStore,
+  selectedPharmacy,
+  pharmacySearchQueries
 }) => {
   const {
     BackButton,
@@ -68,6 +315,24 @@ const UserDashboardViews = ({
     LiveTrackingView,
     ProfileView
   } = UserDashboardComponents;
+
+  // Show Pharmacy Store View if active
+  if (showPharmacyStore) {
+    return (
+      <PharmacyStoreView
+        selectedPharmacy={selectedPharmacy}
+        setShowPharmacyStore={setShowPharmacyStore}
+        pharmacySearchQueries={pharmacySearchQueries}
+        handlePharmacySearch={handlePharmacySearch}
+        getFilteredPharmacyMedicines={getFilteredPharmacyMedicines}
+        addToCartFromPharmacy={addToCartFromPharmacy}
+        cart={cart}
+        pharmacyQuantities={pharmacyQuantities}
+        handlePharmacyQuantityChange={handlePharmacyQuantityChange}
+        handleAddToCartFromPharmacy={handleAddToCartFromPharmacy}
+      />
+    );
+  }
 
   if (activeView === 'dashboard') {
     return (

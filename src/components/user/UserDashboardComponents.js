@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 export const BackButton = ({ onClick, text = 'Back', styles }) => (
   <button 
@@ -125,33 +125,48 @@ export const PharmacyMedicineCard = ({ medicine, cart, updateQuantity, addToCart
     <div style={styles.medicineItem}>
       <div style={styles.medicineInfo}>
         <h5 style={styles.medicineName}>{medicine.name}</h5>
-        <p style={styles.medicineCategory}>{medicine.category}</p>
-        <p style={styles.medicinePrice}>₹{medicine.price}</p>
+        <p style={styles.medicineDosage}>{medicine.dosage || '500mg'}</p>
+        <div style={styles.medicineCategory}>
+          {medicine.prescriptionRequired ? (
+            <span style={styles.prescriptionBadge}>Prescription</span>
+          ) : (
+            <span style={styles.otcBadge}>OTC</span>
+          )}
+        </div>
+        <div style={styles.stockStatus}>
+          {medicine.inStock ? (
+            <span style={styles.inStockBadge}>In Stock</span>
+          ) : (
+            <span style={styles.outOfStockBadge}>Out of Stock</span>
+          )}
+        </div>
+        <p style={styles.medicinePrice}>¥{medicine.price}</p>
       </div>
       <div style={styles.quantityControls}>
         {quantity > 0 ? (
-          <>
+          <div style={styles.quantityContainer}>
             <button 
-              style={styles.quantityButton}
+              style={styles.minusButton}
               onClick={() => updateQuantity(medicine.id, quantity - 1)}
               type="button"
             >
               −
             </button>
-            <span style={styles.quantity}>{quantity}</span>
+            <span style={styles.quantityNumber}>{quantity}</span>
             <button 
-              style={styles.quantityButton}
+              style={styles.plusButton}
               onClick={() => updateQuantity(medicine.id, quantity + 1)}
               type="button"
             >
               +
             </button>
-          </>
+          </div>
         ) : (
           <button 
             style={styles.addToCartPharmacyButton}
             onClick={() => addToCartFromPharmacy(medicine)}
             type="button"
+            disabled={!medicine.inStock}
           >
             Add to Cart
           </button>
@@ -164,59 +179,39 @@ export const PharmacyMedicineCard = ({ medicine, cart, updateQuantity, addToCart
 export const NearbyPharmaciesSection = ({ 
   pharmacies, 
   viewPharmacyStore, 
-  handlePharmacySearch, 
-  getFilteredPharmacyMedicines,
-  addToCartFromPharmacy,
-  cart,
-  updateQuantity,
   styles 
 }) => {
-  const PharmacyCard = ({ pharmacy }) => {
-    const filteredMedicines = getFilteredPharmacyMedicines(pharmacy);
-    const searchQuery = handlePharmacySearch[pharmacy.id] || '';
-
-    return (
-      <div key={pharmacy.id} style={styles.pharmacyCard}>
-        <div style={styles.pharmacyHeader}>
-          <div style={styles.pharmacyIcon}>🏪</div>
-          <div style={styles.pharmacyInfo}>
-            <h4 style={styles.pharmacyName}>{pharmacy.name}</h4>
-            <div style={styles.pharmacyRating}>
-              ⭐ {pharmacy.rating}
-            </div>
+  const PharmacyCard = ({ pharmacy }) => (
+    <div key={pharmacy.id} style={styles.pharmacyCard}>
+      <div style={styles.pharmacyHeader}>
+        <div style={styles.pharmacyIcon}>🏪</div>
+        <div style={styles.pharmacyInfo}>
+          <h4 style={styles.pharmacyName}>{pharmacy.name}</h4>
+          <div style={styles.pharmacyRating}>
+            ⭐ {pharmacy.rating}
           </div>
         </div>
-        <div style={styles.pharmacyDetails}>
-          <div style={styles.pharmacyDetailItem}>
-            <span style={styles.pharmacyDetailLabel}>Distance:</span>
-            <span style={styles.pharmacyDetailValue}>{pharmacy.distance}</span>
-          </div>
-          <div style={styles.pharmacyDetailItem}>
-            <span style={styles.pharmacyDetailLabel}>Delivery Time:</span>
-            <span style={styles.pharmacyDetailValue}>{pharmacy.deliveryTime}</span>
-          </div>
-        </div>
-        
-        <div style={styles.pharmacySearchContainer}>
-          <input
-            type="text"
-            placeholder={`Search medicines in ${pharmacy.name}...`}
-            value={searchQuery}
-            onChange={(e) => handlePharmacySearch(pharmacy.id, e.target.value)}
-            style={styles.pharmacySearchInputSmall}
-          />
-        </div>
-        
-        <button 
-          style={styles.viewButton} 
-          onClick={() => viewPharmacyStore(pharmacy)}
-          type="button"
-        >
-          View Store
-        </button>
       </div>
-    );
-  };
+      <div style={styles.pharmacyDetails}>
+        <div style={styles.pharmacyDetailItem}>
+          <span style={styles.pharmacyDetailLabel}>Distance:</span>
+          <span style={styles.pharmacyDetailValue}>{pharmacy.distance}</span>
+        </div>
+        <div style={styles.pharmacyDetailItem}>
+          <span style={styles.pharmacyDetailLabel}>Delivery Time:</span>
+          <span style={styles.pharmacyDetailValue}>{pharmacy.deliveryTime}</span>
+        </div>
+      </div>
+      
+      <button 
+        style={styles.viewButton} 
+        onClick={() => viewPharmacyStore(pharmacy)}
+        type="button"
+      >
+        View Store
+      </button>
+    </div>
+  );
 
   return (
     <section style={styles.pharmaciesSection}>
@@ -649,7 +644,7 @@ export const ProfileView = ({
   const [localIsFormValid, setLocalIsFormValid] = useState(false);
   const [localIsFormTouched, setLocalIsFormTouched] = useState(false);
 
-  const validateLocalForm = () => {
+  const validateLocalForm = useCallback(() => {
     const errors = {};
 
     if (!localProfile.phone.trim()) {
@@ -692,11 +687,11 @@ export const ProfileView = ({
 
     setLocalFormErrors(errors);
     setLocalIsFormValid(Object.keys(errors).length === 0);
-  };
+  }, [localProfile]);
 
   useEffect(() => {
     validateLocalForm();
-  }, [localProfile]);
+  }, [validateLocalForm]);
 
   const handleLocalProfileChange = (e) => {
     const { name, value } = e.target;

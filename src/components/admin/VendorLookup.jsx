@@ -1,418 +1,292 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
-const VendorLookup = () => {
-  const primaryColor = '#7C2A62';
-  const accentColor = '#F7D9EB';
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedVendor, setSelectedVendor] = useState(null);
-  const [showAllVendors, setShowAllVendors] = useState(false);
-  const [notification, setNotification] = useState('');
-  const [dailySalesData, setDailySalesData] = useState([]);
-  const [vendors, setVendors] = useState([]);
-  const [editProfileOpen, setEditProfileOpen] = useState(false);
-  const [supportOpen, setSupportOpen] = useState(false);
-  const [editFormData, setEditFormData] = useState({});
-
-  // Comprehensive vendor data - moved to state so it can be updated
-  const initialVendors = [
-    {
-      id: 'V001',
-      name: 'MedPlus Pharmacy',
-      owner: 'Rajesh Kumar',
-      phone: '+91 9876543210',
-      email: 'medplus@pharmacy.com',
-      address: '123 MG Road, Bangalore, Karnataka - 560001',
-      status: 'Active',
-      registrationDate: '2020-03-15',
-      licenseNumber: 'PHARM123456',
-      licenseExpiry: '2025-12-31',
-      drugPermitNumber: 'DP789012',
-      gstNumber: '29AABCU9603R1ZM',
-      kycStatus: 'Verified',
-      totalMedicines: 1250,
-      lowStock: 15,
-      expiredItems: 3,
-      outOfStock: 8,
-      averageRating: 4.5,
-      totalReviews: 234,
-      totalOrders: 1250,
-      completedOrders: 1200,
-      cancelledOrders: 25,
-      refundedOrders: 15,
-      averageOrderValue: 850,
-      monthlyRevenue: 425000,
-      documents: {
-        drugPermit: 'drug_permit_V001.pdf',
-        gstCertificate: 'gst_cert_V001.pdf',
-        licenseCopy: 'license_V001.pdf'
-      },
-      recentReviews: [
-        { id: 1, customer: 'Rahul Sharma', rating: 5, comment: 'Excellent service and fast delivery. Medicines were genuine and properly packed.', date: '2024-01-15' },
-        { id: 2, customer: 'Priya Patel', rating: 4, comment: 'Good quality medicines, slightly delayed delivery but overall satisfied.', date: '2024-01-14' },
-        { id: 3, customer: 'Anil Kumar', rating: 3, comment: 'Average experience. Some medicines were not available as expected.', date: '2024-01-12' },
-        { id: 4, customer: 'Sneha Reddy', rating: 5, comment: 'Best pharmacy in town! Always have what I need and great customer service.', date: '2024-01-10' }
-      ],
-      products: [
-        { id: 1, name: 'Paracetamol 500mg', brand: 'Cipla', quantity: 150, price: 25, sku: 'SKU001', expiry: '2025-06-30', category: 'Pain Relief' },
-        { id: 2, name: 'Amoxicillin 250mg', brand: 'Sun Pharma', quantity: 80, price: 45, sku: 'SKU002', expiry: '2024-11-30', category: 'Antibiotic' },
-        { id: 3, name: 'Vitamin C 1000mg', brand: 'Himalaya', quantity: 200, price: 120, sku: 'SKU003', expiry: '2025-12-31', category: 'Supplement' },
-        { id: 4, name: 'Metformin 500mg', brand: 'Dr. Reddy\'s', quantity: 5, price: 35, sku: 'SKU004', expiry: '2024-09-30', category: 'Diabetes' },
-        { id: 5, name: 'Atorvastatin 20mg', brand: 'Lupin', quantity: 12, price: 85, sku: 'SKU005', expiry: '2025-03-31', category: 'Cholesterol' },
-        { id: 6, name: 'Omeprazole 20mg', brand: 'Mankind', quantity: 0, price: 55, sku: 'SKU006', expiry: '2025-01-31', category: 'Acidity' },
-        { id: 7, name: 'Cetirizine 10mg', brand: 'Cipla', quantity: 45, price: 18, sku: 'SKU007', expiry: '2024-12-31', category: 'Allergy' },
-        { id: 8, name: 'Aspirin 75mg', brand: 'GSK', quantity: 90, price: 30, sku: 'SKU008', expiry: '2025-08-31', category: 'Blood Thinner' }
-      ],
-      salesData: {
-        daily: 42,
-        weekly: 285,
-        monthly: 1250,
-        trend: 'up'
-      },
-      compliance: {
-        lastAudit: '2024-01-10',
-        auditScore: 92,
-        violations: 0,
-        warnings: 1
-      }
+// Move initial vendors data outside component to prevent recreation
+const initialVendors = [
+  {
+    id: 'V001',
+    name: 'MedPlus Pharmacy',
+    owner: 'Rajesh Kumar',
+    phone: '+91 9876543210',
+    email: 'medplus@pharmacy.com',
+    address: '123 MG Road, Bangalore, Karnataka - 560001',
+    status: 'Active',
+    registrationDate: '2020-03-15',
+    licenseNumber: 'PHARM123456',
+    licenseExpiry: '2025-12-31',
+    drugPermitNumber: 'DPP89012',
+    gstNumber: '29AABCU9603R12M',
+    kycStatus: 'Verified',
+    totalMedicines: 1250,
+    lowStock: 15,
+    expiredItems: 3,
+    outOfStock: 8,
+    averageRating: 4.5,
+    totalReviews: 234,
+    totalOrders: 1250,
+    completedOrders: 1200,
+    cancelledOrders: 25,
+    refundedOrders: 15,
+    averageOrderValue: 850,
+    monthlyRevenue: 425000,
+    documents: {
+      drugPermit: 'drug_permit_V001.pdf',
+      gstCertificate: 'gst_cert_V001.pdf',
+      licenseCopy: 'license_V001.pdf'
     },
-    {
-      id: 'V002',
-      name: 'Apollo Pharmacy',
-      owner: 'Priya Singh',
-      phone: '+91 9876543211',
-      email: 'apollo.delhi@pharmacy.com',
-      address: '45 Connaught Place, New Delhi - 110001',
-      status: 'Active',
-      registrationDate: '2019-08-22',
-      licenseNumber: 'PHARM789012',
-      licenseExpiry: '2024-11-30',
-      drugPermitNumber: 'DP345678',
-      gstNumber: '07AABCU9603R1ZN',
-      kycStatus: 'Pending',
-      totalMedicines: 890,
-      lowStock: 8,
-      expiredItems: 1,
-      outOfStock: 3,
-      averageRating: 4.2,
-      totalReviews: 156,
-      totalOrders: 890,
-      completedOrders: 865,
-      cancelledOrders: 15,
-      refundedOrders: 8,
-      averageOrderValue: 720,
-      monthlyRevenue: 312000,
-      documents: {
-        drugPermit: 'drug_permit_V002.pdf',
-        gstCertificate: 'gst_cert_V002.pdf',
-        licenseCopy: 'license_V002.pdf'
-      },
-      recentReviews: [
-        { id: 1, customer: 'Amit Verma', rating: 4, comment: 'Good service and reasonable prices.', date: '2024-01-14' },
-        { id: 2, customer: 'Neha Gupta', rating: 5, comment: 'Very professional staff and quick service.', date: '2024-01-13' }
-      ],
-      products: [
-        { id: 1, name: 'Ibuprofen 400mg', brand: 'Cipla', quantity: 75, price: 32, sku: 'SKU101', expiry: '2025-04-30', category: 'Pain Relief' },
-        { id: 2, name: 'Azithromycin 250mg', brand: 'Sun Pharma', quantity: 40, price: 68, sku: 'SKU102', expiry: '2024-10-31', category: 'Antibiotic' }
-      ],
-      salesData: {
-        daily: 28,
-        weekly: 195,
-        monthly: 890,
-        trend: 'stable'
-      },
-      compliance: {
-        lastAudit: '2024-01-05',
-        auditScore: 88,
-        violations: 1,
-        warnings: 0
-      }
+    recentReviews: [
+      { id: 1, customer: 'Rahul Sharma', rating: 5, comment: 'Excellent service and fast delivery. Medicines were genuine and properly packed.', date: '2024-01-15' },
+      { id: 2, customer: 'Priya Patel', rating: 4, comment: 'Good quality medicines, slightly delayed delivery but overall satisfied.', date: '2024-01-14' },
+      { id: 3, customer: 'Anil Kumar', rating: 3, comment: 'Average experience. Some medicines were not available as expected.', date: '2024-01-12' },
+      { id: 4, customer: 'Sneha Reddy', rating: 5, comment: 'Best pharmacy in town! Always have what I need and great customer service.', date: '2024-01-10' }
+    ],
+    products: [
+      { id: 1, name: 'Paracetamol 500mg', brand: 'Cipla', quantity: 150, price: 25, sku: 'SKU001', expiry: '2025-06-30', category: 'Pain Relief' },
+      { id: 2, name: 'Amoxicillin 250mg', brand: 'Sun Pharma', quantity: 80, price: 45, sku: 'SKU002', expiry: '2024-11-30', category: 'Antibiotic' },
+      { id: 3, name: 'Vitamin C 1000mg', brand: 'Himalaya', quantity: 200, price: 120, sku: 'SKU003', expiry: '2025-12-31', category: 'Supplement' },
+      { id: 4, name: 'Metformin 500mg', brand: 'Dr. Reddy\'s', quantity: 5, price: 35, sku: 'SKU004', expiry: '2024-09-30', category: 'Diabetes' },
+      { id: 5, name: 'Atorvastatin 20mg', brand: 'Lupin', quantity: 12, price: 85, sku: 'SKU005', expiry: '2025-03-31', category: 'Cholesterol' },
+      { id: 6, name: 'Omeprazole 20mg', brand: 'Mankind', quantity: 0, price: 55, sku: 'SKU006', expiry: '2025-01-31', category: 'Acidity' },
+      { id: 7, name: 'Cetirizine 10mg', brand: 'Cipla', quantity: 45, price: 18, sku: 'SKU007', expiry: '2024-12-31', category: 'Allergy' },
+      { id: 8, name: 'Aspirin 75mg', brand: 'GSK', quantity: 90, price: 30, sku: 'SKU008', expiry: '2025-08-31', category: 'Blood Thinner' }
+    ],
+    salesData: {
+      daily: 42,
+      weekly: 285,
+      monthly: 1250,
+      trend: 'up'
     },
-    {
-      id: 'V003',
-      name: 'Wellness Forever',
-      owner: 'Arun Mehta',
-      phone: '+91 9876543212',
-      email: 'wellness.mumbai@pharmacy.com',
-      address: '78 Linking Road, Mumbai, Maharashtra - 400052',
-      status: 'Suspended',
-      registrationDate: '2021-01-10',
-      licenseNumber: 'PHARM345678',
-      licenseExpiry: '2024-08-15',
-      drugPermitNumber: 'DP901234',
-      gstNumber: '27AABCU9603R1ZO',
-      kycStatus: 'Rejected',
-      totalMedicines: 0,
-      lowStock: 0,
-      expiredItems: 12,
-      outOfStock: 0,
-      averageRating: 3.8,
-      totalReviews: 89,
-      totalOrders: 0,
-      completedOrders: 0,
-      cancelledOrders: 0,
-      refundedOrders: 0,
-      averageOrderValue: 0,
-      monthlyRevenue: 0,
-      documents: {
-        drugPermit: 'drug_permit_V003.pdf',
-        gstCertificate: 'gst_cert_V003.pdf',
-        licenseCopy: 'license_V003.pdf'
-      },
-      recentReviews: [],
-      products: [],
-      salesData: {
-        daily: 0,
-        weekly: 0,
-        monthly: 0,
-        trend: 'down'
-      },
-      compliance: {
-        lastAudit: '2023-12-20',
-        auditScore: 65,
-        violations: 3,
-        warnings: 2
-      }
+    compliance: {
+      lastAudit: '2024-01-10',
+      auditScore: 92,
+      violations: 0,
+      warnings: 1,
+      warningReasons: [
+        { date: '2023-09-15', reason: 'Late submission of monthly sales report' }
+      ],
+      suspensionReasons: [],
+      blacklistReasons: []
     }
-  ];
-
-  // Initialize vendors state
-  useEffect(() => {
-    setVendors(initialVendors);
-    setSelectedVendor(initialVendors[0]);
-    setDailySalesData(generateDailySalesData());
-  }, []);
-
-  // Generate daily sales data for chart
-  const generateDailySalesData = () => {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days.map(day => ({
-      day,
-      sales: Math.floor(Math.random() * 50) + 20,
-      revenue: Math.floor(Math.random() * 40000) + 10000
-    }));
-  };
-
-  // Enhanced search function
-  const handleSearch = () => {
-    if (!searchQuery.trim()) {
-      setSelectedVendor(vendors[0]);
-      setShowAllVendors(false);
-      showNotification('Showing default vendor');
-      return;
+  },
+  {
+    id: 'V002',
+    name: 'Apollo Pharmacy',
+    owner: 'Priya Singh',
+    phone: '+91 9876543211',
+    email: 'apollo.delhi@pharmacy.com',
+    address: '45 Connaught Place, New Delhi - 110001',
+    status: 'Active',
+    registrationDate: '2019-08-22',
+    licenseNumber: 'PHARM789012',
+    licenseExpiry: '2024-11-30',
+    drugPermitNumber: 'DP345678',
+    gstNumber: '07AABCU9603R1ZN',
+    kycStatus: 'Pending',
+    totalMedicines: 890,
+    lowStock: 8,
+    expiredItems: 1,
+    outOfStock: 3,
+    averageRating: 4.2,
+    totalReviews: 156,
+    totalOrders: 890,
+    completedOrders: 865,
+    cancelledOrders: 15,
+    refundedOrders: 8,
+    averageOrderValue: 720,
+    monthlyRevenue: 312000,
+    documents: {
+      drugPermit: 'drug_permit_V002.pdf',
+      gstCertificate: 'gst_cert_V002.pdf',
+      licenseCopy: 'license_V002.pdf'
+    },
+    recentReviews: [
+      { id: 1, customer: 'Amit Verma', rating: 4, comment: 'Good service and reasonable prices.', date: '2024-01-14' },
+      { id: 2, customer: 'Neha Gupta', rating: 5, comment: 'Very professional staff and quick service.', date: '2024-01-13' }
+    ],
+    products: [
+      { id: 1, name: 'Ibuprofen 400mg', brand: 'Cipla', quantity: 75, price: 32, sku: 'SKU101', expiry: '2025-04-30', category: 'Pain Relief' },
+      { id: 2, name: 'Azithromycin 250mg', brand: 'Sun Pharma', quantity: 40, price: 68, sku: 'SKU102', expiry: '2024-10-31', category: 'Antibiotic' }
+    ],
+    salesData: {
+      daily: 28,
+      weekly: 195,
+      monthly: 890,
+      trend: 'stable'
+    },
+    compliance: {
+      lastAudit: '2024-01-05',
+      auditScore: 88,
+      violations: 1,
+      warnings: 0,
+      warningReasons: [],
+      suspensionReasons: [],
+      blacklistReasons: []
     }
-
-    const query = searchQuery.toLowerCase().trim();
-    const foundVendor = vendors.find(v => 
-      v.id.toLowerCase() === query || 
-      v.name.toLowerCase().includes(query) ||
-      v.phone.includes(query) ||
-      v.owner.toLowerCase().includes(query) ||
-      v.licenseNumber.toLowerCase().includes(query)
-    );
-    
-    if (foundVendor) {
-      setSelectedVendor(foundVendor);
-      setShowAllVendors(false);
-      setDailySalesData(generateDailySalesData());
-      showNotification(`Found vendor: ${foundVendor.name}`);
-    } else {
-      setSelectedVendor(null);
-      showNotification('No vendor found with the search criteria', 'error');
+  },
+  {
+    id: 'V003',
+    name: 'Wellness Forever',
+    owner: 'Arun Mehta',
+    phone: '+91 9876543212',
+    email: 'wellness.mumbai@pharmacy.com',
+    address: '78 Linking Road, Mumbai, Maharashtra - 400052',
+    status: 'Suspended',
+    registrationDate: '2021-01-10',
+    licenseNumber: 'PHARM345678',
+    licenseExpiry: '2024-08-15',
+    drugPermitNumber: 'DP901234',
+    gstNumber: '27AABCU9603R1ZO',
+    kycStatus: 'Rejected',
+    totalMedicines: 0,
+    lowStock: 0,
+    expiredItems: 12,
+    outOfStock: 0,
+    averageRating: 3.8,
+    totalReviews: 89,
+    totalOrders: 0,
+    completedOrders: 0,
+    cancelledOrders: 0,
+    refundedOrders: 0,
+    averageOrderValue: 0,
+    monthlyRevenue: 0,
+    documents: {
+      drugPermit: 'drug_permit_V003.pdf',
+      gstCertificate: 'gst_cert_V003.pdf',
+      licenseCopy: 'license_V003.pdf'
+    },
+    recentReviews: [],
+    products: [],
+    salesData: {
+      daily: 0,
+      weekly: 0,
+      monthly: 0,
+      trend: 'down'
+    },
+    compliance: {
+      lastAudit: '2023-12-20',
+      auditScore: 65,
+      violations: 3,
+      warnings: 2,
+      warningReasons: [
+        { date: '2023-11-15', reason: 'Multiple customer complaints about expired medicines' },
+        { date: '2023-12-20', reason: 'Failure to maintain proper inventory records' }
+      ],
+      suspensionReasons: [
+        { date: '2024-01-01', reason: 'Repeated violations of pharmaceutical regulations' }
+      ],
+      blacklistReasons: []
     }
-  };
+  }
+];
 
-  const handleShowAllVendors = () => {
-    setShowAllVendors(true);
-    setSelectedVendor(null);
-    showNotification('Showing all vendors');
-  };
+// Separate Modal Components to prevent re-renders
+const ActionConfirmationModal = React.memo(({ actionConfirmation, onConfirm, onCancel, primaryColor, reason, onReasonChange }) => {
+  if (!actionConfirmation) return null;
 
-  const handleVendorSelect = (vendor) => {
-    setSelectedVendor(vendor);
-    setShowAllVendors(false);
-    setSearchQuery('');
-    setDailySalesData(generateDailySalesData());
-    showNotification(`Selected vendor: ${vendor.name}`);
-  };
+  const showReasonInput = ['suspend', 'blacklist', 'send-warning'].includes(actionConfirmation.action);
 
-  // Document viewing functions
-  const handleViewDocument = (documentType, vendor) => {
-    const documentName = vendor.documents[documentType];
-    showNotification(`Opening ${documentType.replace(/([A-Z])/g, ' $1')}: ${documentName}`);
-    // In a real application, this would open the actual document
-    console.log(`Opening document: ${documentName} for vendor ${vendor.name}`);
-  };
-
-  // Update vendor in state
-  const updateVendor = (vendorId, updates) => {
-    setVendors(prevVendors => 
-      prevVendors.map(vendor => 
-        vendor.id === vendorId ? { ...vendor, ...updates } : vendor
-      )
-    );
-    
-    // Also update selected vendor if it's the one being modified
-    if (selectedVendor && selectedVendor.id === vendorId) {
-      setSelectedVendor(prev => ({ ...prev, ...updates }));
-    }
-  };
-
-  // Admin actions functions with real updates
-  const handleAdminAction = (action, vendor) => {
-    const vendorName = vendor.name;
-    
-    switch (action) {
-      case 'approve':
-        updateVendor(vendor.id, { 
-          status: 'Active',
-          kycStatus: 'Verified'
-        });
-        showNotification(`Vendor ${vendorName} has been approved and activated`);
-        break;
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1001
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        padding: '30px',
+        borderRadius: '10px',
+        width: '90%',
+        maxWidth: '500px',
+        textAlign: 'center'
+      }}>
+        <h3 style={{ color: primaryColor, marginBottom: '15px' }}>Confirm Action</h3>
+        <p style={{ marginBottom: '25px', lineHeight: '1.5' }}>
+          {actionConfirmation.message}
+        </p>
         
-      case 'reject':
-        updateVendor(vendor.id, { 
-          status: 'Inactive',
-          kycStatus: 'Rejected'
-        });
-        showNotification(`Vendor ${vendorName} has been rejected and deactivated`);
-        break;
-        
-      case 'request-resubmit':
-        updateVendor(vendor.id, { 
-          kycStatus: 'Pending'
-        });
-        showNotification(`Requested document re-submission from ${vendorName}`);
-        break;
-        
-      case 'edit-profile':
-        setEditFormData({
-          name: vendor.name,
-          owner: vendor.owner,
-          phone: vendor.phone,
-          email: vendor.email,
-          address: vendor.address
-        });
-        setEditProfileOpen(true);
-        break;
-        
-      case 'suspend':
-        updateVendor(vendor.id, { 
-          status: 'Suspended'
-        });
-        showNotification(`Vendor ${vendorName} has been suspended`);
-        break;
-        
-      case 'blacklist':
-        updateVendor(vendor.id, { 
-          status: 'Blacklisted'
-        });
-        showNotification(`Vendor ${vendorName} has been blacklisted`);
-        break;
-        
-      case 'send-warning':
-        updateVendor(vendor.id, { 
-          compliance: {
-            ...vendor.compliance,
-            warnings: vendor.compliance.warnings + 1
-          }
-        });
-        showNotification(`Warning sent to ${vendorName}. Total warnings: ${vendor.compliance.warnings + 1}`);
-        break;
-        
-      case 'open-support':
-        setSupportOpen(true);
-        break;
-        
-      default:
-        showNotification(`Action performed on ${vendorName}`);
-    }
-  };
-
-  // Handle edit form submission
-  const handleEditSubmit = (e) => {
-    e.preventDefault();
-    if (selectedVendor) {
-      updateVendor(selectedVendor.id, editFormData);
-      setEditProfileOpen(false);
-      showNotification('Vendor profile updated successfully');
-    }
-  };
-
-  // Handle form input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Notification system
-  const showNotification = (message, type = 'success') => {
-    setNotification(message);
-    setTimeout(() => setNotification(''), 3000);
-  };
-
-  const getStatusColor = (status) => {
-    switch(status) {
-      case 'Active': return { bg: '#d4edda', text: '#155724' };
-      case 'Inactive': return { bg: '#f8d7da', text: '#721c24' };
-      case 'Suspended': return { bg: '#fff3cd', text: '#856404' };
-      case 'Blacklisted': return { bg: '#000', text: '#fff' };
-      default: return { bg: '#e2e3e5', text: '#383d41' };
-    }
-  };
-
-  const getKYCStatusColor = (status) => {
-    switch(status) {
-      case 'Verified': return { bg: '#d4edda', text: '#155724' };
-      case 'Pending': return { bg: '#fff3cd', text: '#856404' };
-      case 'Rejected': return { bg: '#f8d7da', text: '#721c24' };
-      default: return { bg: '#e2e3e5', text: '#383d41' };
-    }
-  };
-
-  const getTrendIcon = (trend) => {
-    switch(trend) {
-      case 'up': return '↗️';
-      case 'down': return '↘️';
-      case 'stable': return '→';
-      default: return '→';
-    }
-  };
-
-  // Simple bar chart component for sales
-  const SalesBarChart = ({ data }) => {
-    const maxSales = Math.max(...data.map(item => item.sales));
-    
-    return (
-      <div style={{ display: 'flex', alignItems: 'end', gap: '10px', height: '150px', padding: '20px 0' }}>
-        {data.map((item, index) => (
-          <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
-            <div
+        {showReasonInput && (
+          <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#333' }}>
+              Reason for {actionConfirmation.action.replace('-', ' ')}:
+            </label>
+            <textarea
+              value={reason}
+              onChange={onReasonChange}
+              placeholder={`Enter reason for ${actionConfirmation.action.replace('-', ' ')}...`}
+              rows="3"
               style={{
-                height: `${(item.sales / maxSales) * 100}px`,
-                backgroundColor: primaryColor,
-                width: '30px',
-                borderRadius: '5px 5px 0 0',
-                transition: 'height 0.3s ease'
+                width: '100%',
+                padding: '10px',
+                border: '1px solid #ddd',
+                borderRadius: '5px',
+                resize: 'vertical',
+                fontSize: '14px',
+                fontFamily: 'inherit'
               }}
+              required
             />
-            <div style={{ marginTop: '8px', fontSize: '12px', fontWeight: 'bold' }}>
-              {item.sales}
-            </div>
-            <div style={{ fontSize: '11px', color: '#666' }}>
-              {item.day}
-            </div>
           </div>
-        ))}
+        )}
+        
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+          <button
+            onClick={onCancel}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              minWidth: '80px'
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={showReasonInput && !reason.trim()}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: showReasonInput && !reason.trim() ? '#ccc' : primaryColor,
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: showReasonInput && !reason.trim() ? 'not-allowed' : 'pointer',
+              minWidth: '80px'
+            }}
+          >
+            Confirm
+          </button>
+        </div>
       </div>
-    );
+    </div>
+  );
+});
+
+const EditProfileModal = React.memo(({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  formData, 
+  onInputChange, 
+  primaryColor, 
+  accentColor 
+}) => {
+  if (!isOpen) return null;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit();
   };
 
-  // Edit Profile Modal
-  const EditProfileModal = () => (
+  return (
     <div style={{
       position: 'fixed',
       top: 0,
@@ -435,19 +309,21 @@ const VendorLookup = () => {
         overflow: 'auto'
       }}>
         <h3 style={{ color: primaryColor, marginBottom: '20px' }}>Edit Vendor Profile</h3>
-        <form onSubmit={handleEditSubmit}>
+        <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '15px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Store Name:</label>
             <input
               type="text"
               name="name"
-              value={editFormData.name || ''}
-              onChange={handleInputChange}
+              value={formData.name}
+              onChange={onInputChange}
               style={{
                 width: '100%',
                 padding: '10px',
                 border: `1px solid ${accentColor}`,
-                borderRadius: '5px'
+                borderRadius: '5px',
+                fontSize: '14px',
+                fontFamily: 'inherit'
               }}
               required
             />
@@ -457,13 +333,15 @@ const VendorLookup = () => {
             <input
               type="text"
               name="owner"
-              value={editFormData.owner || ''}
-              onChange={handleInputChange}
+              value={formData.owner}
+              onChange={onInputChange}
               style={{
                 width: '100%',
                 padding: '10px',
                 border: `1px solid ${accentColor}`,
-                borderRadius: '5px'
+                borderRadius: '5px',
+                fontSize: '14px',
+                fontFamily: 'inherit'
               }}
               required
             />
@@ -473,13 +351,15 @@ const VendorLookup = () => {
             <input
               type="tel"
               name="phone"
-              value={editFormData.phone || ''}
-              onChange={handleInputChange}
+              value={formData.phone}
+              onChange={onInputChange}
               style={{
                 width: '100%',
                 padding: '10px',
                 border: `1px solid ${accentColor}`,
-                borderRadius: '5px'
+                borderRadius: '5px',
+                fontSize: '14px',
+                fontFamily: 'inherit'
               }}
               required
             />
@@ -489,13 +369,15 @@ const VendorLookup = () => {
             <input
               type="email"
               name="email"
-              value={editFormData.email || ''}
-              onChange={handleInputChange}
+              value={formData.email}
+              onChange={onInputChange}
               style={{
                 width: '100%',
                 padding: '10px',
                 border: `1px solid ${accentColor}`,
-                borderRadius: '5px'
+                borderRadius: '5px',
+                fontSize: '14px',
+                fontFamily: 'inherit'
               }}
               required
             />
@@ -504,15 +386,17 @@ const VendorLookup = () => {
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Address:</label>
             <textarea
               name="address"
-              value={editFormData.address || ''}
-              onChange={handleInputChange}
+              value={formData.address}
+              onChange={onInputChange}
               rows="3"
               style={{
                 width: '100%',
                 padding: '10px',
                 border: `1px solid ${accentColor}`,
                 borderRadius: '5px',
-                resize: 'vertical'
+                resize: 'vertical',
+                fontSize: '14px',
+                fontFamily: 'inherit'
               }}
               required
             />
@@ -520,14 +404,15 @@ const VendorLookup = () => {
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
             <button
               type="button"
-              onClick={() => setEditProfileOpen(false)}
+              onClick={onClose}
               style={{
                 padding: '10px 20px',
                 backgroundColor: '#6c757d',
                 color: 'white',
                 border: 'none',
                 borderRadius: '5px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                fontSize: '14px'
               }}
             >
               Cancel
@@ -540,7 +425,8 @@ const VendorLookup = () => {
                 color: 'white',
                 border: 'none',
                 borderRadius: '5px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                fontSize: '14px'
               }}
             >
               Save Changes
@@ -550,9 +436,12 @@ const VendorLookup = () => {
       </div>
     </div>
   );
+});
 
-  // Support Modal
-  const SupportModal = () => (
+const SupportModal = React.memo(({ isOpen, onClose, selectedVendor, primaryColor, accentColor }) => {
+  if (!isOpen) return null;
+
+  return (
     <div style={{
       position: 'fixed',
       top: 0,
@@ -591,36 +480,37 @@ const VendorLookup = () => {
               padding: '10px',
               border: `1px solid ${accentColor}`,
               borderRadius: '5px',
-              resize: 'vertical'
+              resize: 'vertical',
+              fontSize: '14px',
+              fontFamily: 'inherit'
             }}
           />
         </div>
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
           <button
-            onClick={() => setSupportOpen(false)}
+            onClick={onClose}
             style={{
               padding: '10px 20px',
               backgroundColor: '#6c757d',
               color: 'white',
               border: 'none',
               borderRadius: '5px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              fontSize: '14px'
             }}
           >
             Cancel
           </button>
           <button
-            onClick={() => {
-              setSupportOpen(false);
-              showNotification('Support ticket created successfully');
-            }}
+            onClick={onClose}
             style={{
               padding: '10px 20px',
               backgroundColor: primaryColor,
               color: 'white',
               border: 'none',
               borderRadius: '5px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              fontSize: '14px'
             }}
           >
             Submit Ticket
@@ -629,30 +519,410 @@ const VendorLookup = () => {
       </div>
     </div>
   );
+});
+
+// Sales Chart Component
+const SalesBarChart = React.memo(({ data, primaryColor }) => {
+  const maxSales = Math.max(...data.map(item => item.sales));
+  
+  return (
+    <div style={{ display: 'flex', alignItems: 'end', gap: '10px', height: '150px', padding: '20px 0' }}>
+      {data.map((item, index) => (
+        <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
+          <div
+            style={{
+              height: `${(item.sales / maxSales) * 100}px`,
+              backgroundColor: primaryColor,
+              width: '30px',
+              borderRadius: '5px 5px 0 0',
+              transition: 'height 0.3s ease'
+            }}
+          />
+          <div style={{ marginTop: '8px', fontSize: '12px', fontWeight: 'bold' }}>
+            {item.sales}
+          </div>
+          <div style={{ fontSize: '11px', color: '#666' }}>
+            {item.day}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+});
+
+// Main Component
+const VendorLookup = () => {
+  const primaryColor = '#7C2A62';
+  const accentColor = '#F7D9EB';
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [showAllVendors, setShowAllVendors] = useState(false);
+  const [dailySalesData, setDailySalesData] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    owner: '',
+    phone: '',
+    email: '',
+    address: ''
+  });
+  const [actionConfirmation, setActionConfirmation] = useState(null);
+  const [actionReason, setActionReason] = useState('');
+
+  // Initialize vendors state
+  useEffect(() => {
+    setVendors(initialVendors);
+    setSelectedVendor(initialVendors[0]);
+    setDailySalesData(generateDailySalesData());
+  }, []);
+
+  // Generate daily sales data for chart
+  const generateDailySalesData = useCallback(() => {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return days.map(day => ({
+      day,
+      sales: Math.floor(Math.random() * 50) + 20,
+      revenue: Math.floor(Math.random() * 40000) + 10000
+    }));
+  }, []);
+
+  // Enhanced search function
+  const handleSearch = useCallback(() => {
+    if (!searchQuery.trim()) {
+      setSelectedVendor(vendors[0]);
+      setShowAllVendors(false);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    const foundVendor = vendors.find(v => 
+      v.id.toLowerCase() === query || 
+      v.name.toLowerCase().includes(query) ||
+      v.phone.includes(query) ||
+      v.owner.toLowerCase().includes(query) ||
+      v.licenseNumber.toLowerCase().includes(query)
+    );
+    
+    if (foundVendor) {
+      setSelectedVendor(foundVendor);
+      setShowAllVendors(false);
+      setDailySalesData(generateDailySalesData());
+    } else {
+      setSelectedVendor(null);
+    }
+  }, [searchQuery, vendors, generateDailySalesData]);
+
+  const handleShowAllVendors = useCallback(() => {
+    setShowAllVendors(true);
+    setSelectedVendor(null);
+  }, []);
+
+  const handleVendorSelect = useCallback((vendor) => {
+    setSelectedVendor(vendor);
+    setShowAllVendors(false);
+    setSearchQuery('');
+    setDailySalesData(generateDailySalesData());
+  }, [generateDailySalesData]);
+
+  // Document viewing functions
+  const handleViewDocument = useCallback((documentType, vendor) => {
+    const documentName = vendor.documents[documentType];
+    alert(`Opening document: ${documentName} for vendor ${vendor.name}`);
+    // In a real application, this would open the actual document
+    console.log(`Opening document: ${documentName} for vendor ${vendor.name}`);
+  }, []);
+
+  // Update vendor in state
+  const updateVendor = useCallback((vendorId, updates) => {
+    setVendors(prevVendors => 
+      prevVendors.map(vendor => 
+        vendor.id === vendorId ? { ...vendor, ...updates } : vendor
+      )
+    );
+    
+    if (selectedVendor && selectedVendor.id === vendorId) {
+      setSelectedVendor(prev => ({ ...prev, ...updates }));
+    }
+  }, [selectedVendor]);
+
+  // Show action confirmation
+  const showActionConfirmation = useCallback((action, vendor) => {
+    const actionMessages = {
+      'approve': `Are you sure you want to approve ${vendor.name}? This will activate their account.`,
+      'reject': `Are you sure you want to reject ${vendor.name}? This will deactivate their account.`,
+      'request-resubmit': `Request document re-submission from ${vendor.name}?`,
+      'suspend': `Are you sure you want to suspend ${vendor.name}? They will not be able to operate.`,
+      'blacklist': `WARNING: This will permanently blacklist ${vendor.name}. This action cannot be undone.`,
+      'send-warning': `Send a formal warning to ${vendor.name}?`,
+    };
+
+    setActionConfirmation({
+      action,
+      vendor,
+      message: actionMessages[action] || `Perform ${action} on ${vendor.name}?`
+    });
+    setActionReason(''); // Reset reason when opening new confirmation
+  }, []);
+
+  // Handle direct admin actions (without confirmation)
+  const handleDirectAdminAction = useCallback((action, vendor) => {
+    switch (action) {
+      case 'edit-profile':
+        setEditFormData({
+          name: vendor.name,
+          owner: vendor.owner,
+          phone: vendor.phone,
+          email: vendor.email,
+          address: vendor.address
+        });
+        setEditProfileOpen(true);
+        break;
+        
+      case 'open-support':
+        setSupportOpen(true);
+        break;
+        
+      default:
+        break;
+    }
+  }, []);
+
+  // Handle confirmed admin action
+  const handleConfirmedAction = useCallback(() => {
+    const { action, vendor } = actionConfirmation;
+    const currentDate = new Date().toISOString().split('T')[0];
+    
+    switch (action) {
+      case 'approve':
+        updateVendor(vendor.id, { 
+          status: 'Active',
+          kycStatus: 'Verified'
+        });
+        break;
+        
+      case 'reject':
+        updateVendor(vendor.id, { 
+          status: 'Inactive',
+          kycStatus: 'Rejected'
+        });
+        break;
+        
+      case 'request-resubmit':
+        updateVendor(vendor.id, { 
+          kycStatus: 'Pending'
+        });
+        break;
+        
+      case 'suspend':
+        updateVendor(vendor.id, { 
+          status: 'Suspended',
+          compliance: {
+            ...vendor.compliance,
+            suspensionReasons: [
+              ...vendor.compliance.suspensionReasons,
+              { date: currentDate, reason: actionReason }
+            ]
+          }
+        });
+        break;
+        
+      case 'blacklist':
+        updateVendor(vendor.id, { 
+          status: 'Blacklisted',
+          compliance: {
+            ...vendor.compliance,
+            blacklistReasons: [
+              ...vendor.compliance.blacklistReasons,
+              { date: currentDate, reason: actionReason }
+            ]
+          }
+        });
+        break;
+        
+      case 'send-warning':
+        updateVendor(vendor.id, { 
+          compliance: {
+            ...vendor.compliance,
+            warnings: vendor.compliance.warnings + 1,
+            warningReasons: [
+              ...vendor.compliance.warningReasons,
+              { date: currentDate, reason: actionReason }
+            ]
+          }
+        });
+        break;
+        
+      default:
+        break;
+    }
+    
+    setActionConfirmation(null);
+    setActionReason('');
+  }, [actionConfirmation, actionReason, updateVendor]);
+
+  // Handle edit form submission
+  const handleEditSubmit = useCallback((e) => {
+    if (e) e.preventDefault();
+    if (selectedVendor) {
+      updateVendor(selectedVendor.id, editFormData);
+      setEditProfileOpen(false);
+    }
+  }, [selectedVendor, editFormData, updateVendor]);
+
+  // Handle form input changes - FIXED: Stable function reference
+  const handleInputChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  }, []);
+
+  // Handle reason input change
+  const handleReasonChange = useCallback((e) => {
+    setActionReason(e.target.value);
+  }, []);
+
+  // Reset form when modal closes
+  const handleCloseEditModal = useCallback(() => {
+    setEditProfileOpen(false);
+  }, []);
+
+  const handleCloseSupportModal = useCallback(() => {
+    setSupportOpen(false);
+  }, []);
+
+  const handleCancelAction = useCallback(() => {
+    setActionConfirmation(null);
+    setActionReason('');
+  }, []);
+
+  const getStatusColor = useCallback((status) => {
+    switch(status) {
+      case 'Active': return { bg: '#d4edda', text: '#155724' };
+      case 'Inactive': return { bg: '#f8d7da', text: '#721c24' };
+      case 'Suspended': return { bg: '#fff3cd', text: '#856404' };
+      case 'Blacklisted': return { bg: '#000', text: '#fff' };
+      default: return { bg: '#e2e3e5', text: '#383d41' };
+    }
+  }, []);
+
+  const getKYCStatusColor = useCallback((status) => {
+    switch(status) {
+      case 'Verified': return { bg: '#d4edda', text: '#155724' };
+      case 'Pending': return { bg: '#fff3cd', text: '#856404' };
+      case 'Rejected': return { bg: '#f8d7da', text: '#721c24' };
+      default: return { bg: '#e2e3e5', text: '#383d41' };
+    }
+  }, []);
+
+  const getTrendIcon = useCallback((trend) => {
+    switch(trend) {
+      case 'up': return '↗️';
+      case 'down': return '↘️';
+      case 'stable': return '→';
+      default: return '→';
+    }
+  }, []);
+
+  // Render compliance history section
+  const renderComplianceHistory = useCallback((vendor) => {
+    const hasHistory = vendor.compliance.warningReasons?.length > 0 || 
+                      vendor.compliance.suspensionReasons?.length > 0 || 
+                      vendor.compliance.blacklistReasons?.length > 0;
+
+    if (!hasHistory) return null;
+
+    return (
+      <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '5px' }}>
+        <h4 style={{ color: primaryColor, marginBottom: '15px' }}>Compliance History</h4>
+        
+        {vendor.compliance.warningReasons?.length > 0 && (
+          <div style={{ marginBottom: '15px' }}>
+            <h5 style={{ color: '#856404', marginBottom: '8px' }}>Warning History:</h5>
+            {vendor.compliance.warningReasons.map((warning, index) => (
+              <div key={index} style={{ 
+                padding: '8px', 
+                marginBottom: '5px', 
+                backgroundColor: '#fff3cd',
+                borderLeft: '3px solid #ffc107',
+                borderRadius: '3px'
+              }}>
+                <strong>{warning.date}:</strong> {warning.reason}
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {vendor.compliance.suspensionReasons?.length > 0 && (
+          <div style={{ marginBottom: '15px' }}>
+            <h5 style={{ color: '#856404', marginBottom: '8px' }}>Suspension History:</h5>
+            {vendor.compliance.suspensionReasons.map((suspension, index) => (
+              <div key={index} style={{ 
+                padding: '8px', 
+                marginBottom: '5px', 
+                backgroundColor: '#fff3cd',
+                borderLeft: '3px solid #fd7e14',
+                borderRadius: '3px'
+              }}>
+                <strong>{suspension.date}:</strong> {suspension.reason}
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {vendor.compliance.blacklistReasons?.length > 0 && (
+          <div>
+            <h5 style={{ color: '#721c24', marginBottom: '8px' }}>Blacklist History:</h5>
+            {vendor.compliance.blacklistReasons.map((blacklist, index) => (
+              <div key={index} style={{ 
+                padding: '8px', 
+                marginBottom: '5px', 
+                backgroundColor: '#f8d7da',
+                borderLeft: '3px solid #dc3545',
+                borderRadius: '3px'
+              }}>
+                <strong>{blacklist.date}:</strong> {blacklist.reason}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }, [primaryColor]);
 
   return (
     <div style={{ padding: '20px', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-      {/* Notification */}
-      {notification && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          backgroundColor: '#28a745',
-          color: 'white',
-          padding: '15px 20px',
-          borderRadius: '5px',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-          zIndex: 1000,
-          animation: 'slideIn 0.3s ease'
-        }}>
-          {notification}
-        </div>
-      )}
-
       {/* Modals */}
-      {editProfileOpen && <EditProfileModal />}
-      {supportOpen && <SupportModal />}
+      <ActionConfirmationModal 
+        actionConfirmation={actionConfirmation}
+        onConfirm={handleConfirmedAction}
+        onCancel={handleCancelAction}
+        primaryColor={primaryColor}
+        reason={actionReason}
+        onReasonChange={handleReasonChange}
+      />
+      
+      <EditProfileModal 
+        isOpen={editProfileOpen}
+        onClose={handleCloseEditModal}
+        onSubmit={handleEditSubmit}
+        formData={editFormData}
+        onInputChange={handleInputChange}
+        primaryColor={primaryColor}
+        accentColor={accentColor}
+      />
+      
+      <SupportModal 
+        isOpen={supportOpen}
+        onClose={handleCloseSupportModal}
+        selectedVendor={selectedVendor}
+        primaryColor={primaryColor}
+        accentColor={accentColor}
+      />
 
       <h2 style={{ color: primaryColor, marginBottom: '20px' }}>Vendor Lookup & Profile</h2>
       
@@ -670,7 +940,8 @@ const VendorLookup = () => {
               padding: '12px',
               border: `1px solid ${accentColor}`,
               borderRadius: '5px',
-              fontSize: '14px'
+              fontSize: '14px',
+              fontFamily: 'inherit'
             }}
           />
           <button
@@ -731,21 +1002,15 @@ const VendorLookup = () => {
                   borderRadius: '5px',
                   cursor: 'pointer',
                   backgroundColor: '#fafafa',
-                  transition: 'all 0.3s ease',
-                  transform: 'translateY(0)',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                  transition: 'all 0.3s ease'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = '#F7E8F3';
                   e.currentTarget.style.borderColor = primaryColor;
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(124, 42, 98, 0.2)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = '#fafafa';
                   e.currentTarget.style.borderColor = accentColor;
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -856,61 +1121,79 @@ const VendorLookup = () => {
               <div><strong>Audit Score:</strong> {selectedVendor.compliance.auditScore}%</div>
               <div><strong>Violations:</strong> {selectedVendor.compliance.violations}</div>
               <div><strong>Warnings:</strong> {selectedVendor.compliance.warnings}</div>
-              <div>
-                <strong>Drug Permit Certificate:</strong> 
-                <button 
-                  onClick={() => handleViewDocument('drugPermit', selectedVendor)}
-                  style={{ 
-                    marginLeft: '10px', 
-                    padding: '5px 10px', 
-                    backgroundColor: primaryColor, 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '3px', 
-                    cursor: 'pointer',
-                    fontSize: '12px'
-                  }}
-                >
-                  📄 View Document
-                </button>
-              </div>
-              <div>
-                <strong>GST Certificate:</strong> 
-                <button 
-                  onClick={() => handleViewDocument('gstCertificate', selectedVendor)}
-                  style={{ 
-                    marginLeft: '10px', 
-                    padding: '5px 10px', 
-                    backgroundColor: primaryColor, 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '3px', 
-                    cursor: 'pointer',
-                    fontSize: '12px'
-                  }}
-                >
-                  📄 View Document
-                </button>
-              </div>
-              <div>
-                <strong>License Copy:</strong> 
-                <button 
-                  onClick={() => handleViewDocument('licenseCopy', selectedVendor)}
-                  style={{ 
-                    marginLeft: '10px', 
-                    padding: '5px 10px', 
-                    backgroundColor: primaryColor, 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '3px', 
-                    cursor: 'pointer',
-                    fontSize: '12px'
-                  }}
-                >
-                  📄 View Document
-                </button>
+              
+              {/* Document Viewing Section - FIXED */}
+              <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '15px', marginTop: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '5px' }}>
+                  <div>
+                    <strong>Drug Permit Certificate:</strong>
+                    <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>Number: {selectedVendor.drugPermitNumber}</div>
+                  </div>
+                  <button 
+                    onClick={() => handleViewDocument('drugPermit', selectedVendor)}
+                    style={{ 
+                      padding: '8px 12px', 
+                      backgroundColor: primaryColor, 
+                      color: 'white', 
+                      border: 'none', 
+                      borderRadius: '3px', 
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    📄 View Document
+                  </button>
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '5px' }}>
+                  <div>
+                    <strong>GST Certificate:</strong>
+                    <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>Number: {selectedVendor.gstNumber}</div>
+                  </div>
+                  <button 
+                    onClick={() => handleViewDocument('gstCertificate', selectedVendor)}
+                    style={{ 
+                      padding: '8px 12px', 
+                      backgroundColor: primaryColor, 
+                      color: 'white', 
+                      border: 'none', 
+                      borderRadius: '3px', 
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    📄 View Document
+                  </button>
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '5px' }}>
+                  <div>
+                    <strong>License Copy:</strong>
+                    <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>Number: {selectedVendor.licenseNumber}</div>
+                  </div>
+                  <button 
+                    onClick={() => handleViewDocument('licenseCopy', selectedVendor)}
+                    style={{ 
+                      padding: '8px 12px', 
+                      backgroundColor: primaryColor, 
+                      color: 'white', 
+                      border: 'none', 
+                      borderRadius: '3px', 
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    📄 View Document
+                  </button>
+                </div>
               </div>
             </div>
+            
+            {/* Compliance History */}
+            {renderComplianceHistory(selectedVendor)}
           </section>
 
           {/* Stock & Inventory */}
@@ -979,7 +1262,7 @@ const VendorLookup = () => {
             {/* Daily Sales Chart */}
             <div style={{ marginBottom: '20px' }}>
               <h4 style={{ color: primaryColor, marginBottom: '15px' }}>Daily Sales Overview</h4>
-              <SalesBarChart data={dailySalesData} />
+              <SalesBarChart data={dailySalesData} primaryColor={primaryColor} />
             </div>
           </section>
 
@@ -1101,49 +1384,49 @@ const VendorLookup = () => {
             <h3 style={{ color: primaryColor, marginBottom: '15px', borderBottom: `2px solid ${accentColor}`, paddingBottom: '10px' }}>G. Admin Actions</h3>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               <button 
-                onClick={() => handleAdminAction('approve', selectedVendor)}
+                onClick={() => showActionConfirmation('approve', selectedVendor)}
                 style={{ padding: '10px 15px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
               >
                 Approve
               </button>
               <button 
-                onClick={() => handleAdminAction('reject', selectedVendor)}
+                onClick={() => showActionConfirmation('reject', selectedVendor)}
                 style={{ padding: '10px 15px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
               >
                 Reject
               </button>
               <button 
-                onClick={() => handleAdminAction('request-resubmit', selectedVendor)}
+                onClick={() => showActionConfirmation('request-resubmit', selectedVendor)}
                 style={{ padding: '10px 15px', backgroundColor: '#ffc107', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
               >
                 Request Re-submit
               </button>
               <button 
-                onClick={() => handleAdminAction('edit-profile', selectedVendor)}
+                onClick={() => handleDirectAdminAction('edit-profile', selectedVendor)}
                 style={{ padding: '10px 15px', backgroundColor: primaryColor, color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
               >
                 Edit Profile
               </button>
               <button 
-                onClick={() => handleAdminAction('suspend', selectedVendor)}
+                onClick={() => showActionConfirmation('suspend', selectedVendor)}
                 style={{ padding: '10px 15px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
               >
                 Suspend Vendor
               </button>
               <button 
-                onClick={() => handleAdminAction('blacklist', selectedVendor)}
+                onClick={() => showActionConfirmation('blacklist', selectedVendor)}
                 style={{ padding: '10px 15px', backgroundColor: '#343a40', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
               >
                 Blacklist Vendor
               </button>
               <button 
-                onClick={() => handleAdminAction('send-warning', selectedVendor)}
+                onClick={() => showActionConfirmation('send-warning', selectedVendor)}
                 style={{ padding: '10px 15px', backgroundColor: '#17a2b8', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
               >
                 Send Warning
               </button>
               <button 
-                onClick={() => handleAdminAction('open-support', selectedVendor)}
+                onClick={() => handleDirectAdminAction('open-support', selectedVendor)}
                 style={{ padding: '10px 15px', backgroundColor: '#6610f2', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
               >
                 Open Support
@@ -1173,19 +1456,6 @@ const VendorLookup = () => {
           </button>
         </div>
       )}
-
-      <style jsx>{`
-        @keyframes slideIn {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-      `}</style>
     </div>
   );
 };

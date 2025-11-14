@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
+const Login = ({ onSwitchToSignup, onLoginSuccess, onBackToHome }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userType, setUserType] = useState('user');
@@ -46,117 +46,170 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
 
   const currentUserType = userTypes.find(user => user.type === userType);
 
+  // Enhanced authentication function
+  const authenticateUser = (email, password, userType) => {
+    // First, check localStorage for any registered users
+    const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+    
+    // Mock users for demo (only used if no users in localStorage)
+    const mockUsers = [
+      { email: 'user@quickmed.com', password: 'password123', userType: 'user', fullName: 'Demo User' },
+      { email: 'vendor@quickmed.com', password: 'password123', userType: 'vendor', fullName: 'Demo Vendor' },
+      { email: 'delivery@quickmed.com', password: 'password123', userType: 'delivery', fullName: 'Demo Delivery' },
+      { email: 'doctor@quickmed.com', password: 'password123', userType: 'doctor', fullName: 'Demo Doctor' }
+    ];
+
+    // Combine registered users with mock users
+    const allUsers = [...registeredUsers, ...mockUsers];
+    
+    console.log('Available users:', allUsers); // Debug log
+    console.log('Login attempt:', { email, password, userType }); // Debug log
+
+    // Find user with matching credentials
+    const user = allUsers.find(u => 
+      u.email.toLowerCase() === email.toLowerCase() && 
+      u.password === password && 
+      u.userType === userType
+    );
+
+    return user;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Basic validation
+    if (!email.trim() || !password.trim()) {
+      setToastMessage('Please fill in all fields');
+      setToastType('error');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+      return;
+    }
+
     setIsLoading(true);
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const storedUsers = localStorage.getItem('registeredUsers');
-    const users = storedUsers ? JSON.parse(storedUsers) : [];
-    
-    const user = users.find(user => user.email === email || user.phone === email);
-    
-    if (!user) {
-      setToastMessage('User not found. Please sign up first.');
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const user = authenticateUser(email, password, userType);
+      
+      if (user) {
+        setToastMessage(`Welcome back, ${user.fullName || user.email}!`);
+        setToastType('success');
+        setShowToast(true);
+        
+        // Save to localStorage if Remember Me is checked
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', JSON.stringify({
+            email: user.email,
+            userType: user.userType
+          }));
+        }
+        
+        // Save current user session
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        
+        // Clear form
+        setEmail('');
+        setPassword('');
+        
+        // Call success callback
+        if (onLoginSuccess) {
+          onLoginSuccess(user);
+        }
+      } else {
+        setToastMessage('Invalid email, password, or user type. Please try again.');
+        setToastType('error');
+        setShowToast(true);
+        
+        // Debug info in console
+        console.error('Login failed. Check credentials and user type match.');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setToastMessage('An error occurred during login. Please try again.');
       setToastType('error');
       setShowToast(true);
+    } finally {
       setIsLoading(false);
       setTimeout(() => setShowToast(false), 3000);
-      return;
     }
-    
-    if (user.password !== password) {
-      setToastMessage('Invalid password. Please try again.');
-      setToastType('error');
-      setShowToast(true);
-      setIsLoading(false);
-      setTimeout(() => setShowToast(false), 3000);
-      return;
-    }
-    
-    if (user.userType !== userType) {
-      setToastMessage(`Please login as ${user.userType}`);
-      setToastType('error');
-      setShowToast(true);
-      setIsLoading(false);
-      setTimeout(() => setShowToast(false), 3000);
-      return;
-    }
-    
-    // Save to localStorage if Remember Me is checked
-    if (rememberMe) {
-      const rememberMeData = {
-        email: user.email,
-        userType: user.userType,
-        timestamp: new Date().getTime()
-      };
-      localStorage.setItem('rememberMe', JSON.stringify(rememberMeData));
-    } else {
-      localStorage.removeItem('rememberMe');
-    }
-    
-    setToastMessage(`Welcome back, ${user.fullName}!`);
-    setToastType('success');
-    setShowToast(true);
-    
-    localStorage.setItem('currentUser', JSON.stringify(user));
-    setEmail('');
-    setPassword('');
-    setIsLoading(false);
-    
-    // Call the success callback
-    if (onLoginSuccess) {
-      onLoginSuccess(user);
-    }
-    
-    setTimeout(() => setShowToast(false), 3000);
   };
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const storedUsers = localStorage.getItem('registeredUsers');
-    const users = storedUsers ? JSON.parse(storedUsers) : [];
-    
-    const user = users.find(user => user.email === forgotEmail);
-    
-    if (!user) {
-      setToastMessage('No account found with this email address.');
+    if (!forgotEmail.trim()) {
+      setToastMessage('Please enter your email address');
       setToastType('error');
       setShowToast(true);
-      setIsLoading(false);
       setTimeout(() => setShowToast(false), 3000);
       return;
     }
+
+    setIsLoading(true);
     
-    setToastMessage(`Password reset link sent to ${forgotEmail}`);
-    setToastType('success');
-    setShowToast(true);
-    setShowForgotPassword(false);
-    setForgotEmail('');
-    setIsLoading(false);
-    
-    setTimeout(() => setShowToast(false), 3000);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setToastMessage(`Password reset link sent to ${forgotEmail}`);
+      setToastType('success');
+      setShowToast(true);
+      setShowForgotPassword(false);
+      setForgotEmail('');
+    } catch (error) {
+      setToastMessage('Failed to send reset link. Please try again.');
+      setToastType('error');
+      setShowToast(true);
+    } finally {
+      setIsLoading(false);
+      setTimeout(() => setShowToast(false), 3000);
+    }
   };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
+  // Enhanced password toggle with keyboard support
+  const handlePasswordToggleKeyPress = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      togglePasswordVisibility();
+    }
+  };
+
   // Check for remembered user on component mount
   React.useEffect(() => {
     const remembered = localStorage.getItem('rememberMe');
     if (remembered) {
-      const rememberData = JSON.parse(remembered);
-      setEmail(rememberData.email);
-      setUserType(rememberData.userType);
-      setRememberMe(true);
+      try {
+        const rememberData = JSON.parse(remembered);
+        setEmail(rememberData.email || '');
+        setUserType(rememberData.userType || 'user');
+        setRememberMe(true);
+      } catch (error) {
+        console.error('Error parsing remembered user:', error);
+      }
     }
   }, []);
+
+  // Eye icon SVG components
+  const EyeIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+  );
+
+  const EyeOffIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+      <line x1="1" y1="1" x2="23" y2="23"></line>
+    </svg>
+  );
 
   return (
     <div style={{
@@ -166,7 +219,8 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
       alignItems: 'center',
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
       backgroundColor: '#f8fafc',
-      padding: '20px'
+      padding: '20px',
+      position: 'relative'
     }}>
       
       {/* Toast Message */}
@@ -247,6 +301,7 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
                     outline: 'none',
                     color: '#333333'
                   }}
+                  disabled={isLoading}
                 />
               </div>
               
@@ -265,6 +320,7 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
                     cursor: 'pointer',
                     flex: 1
                   }}
+                  disabled={isLoading}
                 >
                   Cancel
                 </button>
@@ -338,10 +394,10 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
               marginBottom: '20px',
               opacity: 0.9
             }}>
-              {userType === 'user'}
-              {userType === 'vendor'}
-              {userType === 'delivery'}
-              {userType === 'doctor'}
+              {userType === 'user' && ''}
+              {userType === 'vendor' && ''}
+              {userType === 'delivery' && ''}
+              {userType === 'doctor' && ''}
             </div>
             
             <h2 style={{
@@ -375,9 +431,9 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
                 <button
                   key={user.type}
                   type="button"
-                  onClick={() => setUserType(user.type)}
+                  onClick={() => !isLoading && setUserType(user.type)}
                   style={{
-                    padding: '10px 16px',
+                    padding: '12px 16px',
                     border: `2px solid ${userType === user.type ? 'white' : 'rgba(255,255,255,0.3)'}`,
                     borderRadius: '8px',
                     backgroundColor: userType === user.type ? 'rgba(255,255,255,0.2)' : 'transparent',
@@ -390,6 +446,9 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
                     gap: '6px',
                     transition: 'all 0.3s ease'
                   }}
+                  onMouseOver={(e) => !isLoading && userType !== user.type && (e.target.style.borderColor = 'rgba(255,255,255,0.6)', e.target.style.backgroundColor = 'rgba(255,255,255,0.1)')}
+                  onMouseOut={(e) => !isLoading && userType !== user.type && (e.target.style.borderColor = 'rgba(255,255,255,0.3)', e.target.style.backgroundColor = 'transparent')}
+                  disabled={isLoading}
                 >
                   <span style={{ fontSize: '16px' }}>
                     {user.type === 'user' && '👤'}
@@ -450,7 +509,7 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder={`Enter your ${userType === 'vendor' ? 'business email' : 'email'}`}
+                placeholder={`Enter your ${userType === 'vendor' ? 'business email' : 'email or phone'}`}
                 style={{
                   width: '100%',
                   padding: '14px 16px',
@@ -464,6 +523,7 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
                 }}
                 onFocus={(e) => e.target.style.borderColor = '#7C2A62'}
                 onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
+                disabled={isLoading}
               />
             </div>
 
@@ -497,10 +557,12 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
                   }}
                   onFocus={(e) => e.target.style.borderColor = '#7C2A62'}
                   onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
+                  onKeyDown={handlePasswordToggleKeyPress}
                   style={{
                     position: 'absolute',
                     right: '12px',
@@ -510,19 +572,20 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
                     border: 'none',
                     cursor: 'pointer',
                     color: '#666',
-                    fontSize: '18px',
                     padding: '4px',
                     borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: '30px',
-                    height: '30px'
+                    width: '32px',
+                    height: '32px',
+                    transition: 'all 0.2s ease'
                   }}
-                  onMouseOver={(e) => e.target.style.backgroundColor = '#f1f1f1'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                  onMouseOver={(e) => !isLoading && (e.target.style.backgroundColor = '#F7D9EB', e.target.style.color = '#7C2A62')}
+                  onMouseOut={(e) => !isLoading && (e.target.style.backgroundColor = 'transparent', e.target.style.color = '#666')}
+                  disabled={isLoading}
                 >
-                  {showPassword ? '' : ''}
+                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
               </div>
             </div>
@@ -547,20 +610,30 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                   style={{
-                    margin: 0
+                    margin: 0,
+                    accentColor: '#7C2A62'
                   }}
+                  disabled={isLoading}
                 />
                 <span>Remember me</span>
               </label>
               
               <span 
                 onClick={() => !isLoading && setShowForgotPassword(true)}
+                onKeyDown={(e) => !isLoading && (e.key === 'Enter' || e.key === ' ') && setShowForgotPassword(true)}
                 style={{
                   color: '#7C2A62',
                   fontSize: '14px',
                   fontWeight: '500',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  padding: '4px 8px',
+                  borderRadius: '4px'
                 }}
+                onMouseOver={(e) => !isLoading && (e.target.style.color = '#5a1a4a', e.target.style.backgroundColor = '#F7D9EB')}
+                onMouseOut={(e) => !isLoading && (e.target.style.color = '#7C2A62', e.target.style.backgroundColor = 'transparent')}
+                tabIndex={0}
+                role="button"
               >
                 Forgot Password?
               </span>
@@ -591,7 +664,13 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
             </button>
           </form>
 
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            justifyContent: 'center', 
+            alignItems: 'center',
+            gap: '15px'
+          }}>
             <p style={{
               color: '#666666',
               fontSize: '14px',
@@ -600,15 +679,48 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
             }}>
               Don't have an account? <span 
                 onClick={() => !isLoading && onSwitchToSignup()}
+                onKeyDown={(e) => !isLoading && (e.key === 'Enter' || e.key === ' ') && onSwitchToSignup()}
                 style={{
                   color: '#7C2A62',
                   fontWeight: '600',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  marginLeft: '4px'
                 }}
+                onMouseOver={(e) => !isLoading && (e.target.style.color = '#5a1a4a', e.target.style.backgroundColor = '#F7D9EB')}
+                onMouseOut={(e) => !isLoading && (e.target.style.color = '#7C2A62', e.target.style.backgroundColor = 'transparent')}
+                tabIndex={0}
+                role="button"
               >
                 Sign up
               </span>
             </p>
+
+            {/* Back to Home Button - Moved below signup */}
+            <button 
+              onClick={onBackToHome}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: 'transparent',
+                color: '#7C2A62',
+                border: '2px solid #7C2A62',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                width: 'auto',
+                minWidth: '140px'
+              }}
+              onMouseOver={(e) => !isLoading && (e.target.style.backgroundColor = '#7C2A62', e.target.style.color = 'white')}
+              onMouseOut={(e) => !isLoading && (e.target.style.backgroundColor = 'transparent', e.target.style.color = '#7C2A62')}
+              disabled={isLoading}
+            >
+              ← Back to Home
+            </button>
           </div>
         </div>
       </div>
@@ -626,12 +738,48 @@ const Login = ({ onSwitchToSignup, onLoginSuccess }) => {
             }
           }
           
+          @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+          }
+
+          button:disabled {
+            animation: pulse 1.5s ease-in-out infinite;
+          }
+          
           @media (max-width: 768px) {
             .main-card {
               flex-direction: column;
             }
-            .image-side {
-              display: none;
+            .left-section {
+              min-height: 300px;
+            }
+          }
+
+          @media (max-width: 480px) {
+            .back-home-btn {
+              font-size: 11px;
+              padding: 6px 10px;
+            }
+            
+            .left-section {
+              padding: 20px 15px;
+              min-height: 250px;
+            }
+            
+            .right-section {
+              padding: 25px 15px;
+            }
+            
+            .role-buttons {
+              flex-direction: column;
+              align-items: center;
+            }
+            
+            .role-btn {
+              width: 200px;
+              justify-content: center;
             }
           }
         `}

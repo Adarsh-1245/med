@@ -74,7 +74,7 @@ const PatientsContent = ({ dashboardData, state, actions }) => {
   return (
     <div style={styles.mainContent}>
       <div style={styles.header}>
-        <div>
+        <div style={styles.headerLeft}>
           <h1 style={styles.greeting}>Patients</h1>
           <p style={styles.subtitle}>Access patient history and medical records</p>
         </div>
@@ -100,24 +100,31 @@ const PatientsContent = ({ dashboardData, state, actions }) => {
 
 const styles = {
   mainContent: {
-    padding: '30px'
+    padding: '30px',
+    textAlign: 'left'
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: '30px'
+    marginBottom: '30px',
+    textAlign: 'left'
+  },
+  headerLeft: {
+    textAlign: 'left'
   },
   greeting: {
     fontSize: '28px',
     fontWeight: '700',
     color: '#1f2937',
-    margin: '0 0 8px 0'
+    margin: '0 0 8px 0',
+    textAlign: 'left'
   },
   subtitle: {
     fontSize: '16px',
     color: '#6b7280',
-    margin: 0
+    margin: 0,
+    textAlign: 'left'
   },
   searchBox: {
     marginBottom: '0'
@@ -133,20 +140,23 @@ const styles = {
   patientsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-    gap: '20px'
+    gap: '20px',
+    textAlign: 'left'
   },
   patientCard: {
     backgroundColor: 'white',
     padding: '20px',
     borderRadius: '12px',
     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    border: '1px solid #e5e7eb'
+    border: '1px solid #e5e7eb',
+    textAlign: 'left'
   },
   patientHeader: {
     display: 'flex',
     alignItems: 'center',
     gap: '16px',
-    marginBottom: '16px'
+    marginBottom: '16px',
+    textAlign: 'left'
   },
   profileIconLarge: {
     width: '60px',
@@ -159,56 +169,67 @@ const styles = {
     fontSize: '20px'
   },
   patientBasicInfo: {
-    flex: 1
+    flex: 1,
+    textAlign: 'left'
   },
   patientName: {
     fontSize: '18px',
     fontWeight: '600',
     color: '#1f2937',
-    margin: '0 0 4px 0'
+    margin: '0 0 4px 0',
+    textAlign: 'left'
   },
   patientContact: {
     fontSize: '14px',
     color: '#6b7280',
-    margin: '4px 0'
+    margin: '4px 0',
+    textAlign: 'left'
   },
   patientEmail: {
     fontSize: '12px',
     color: '#9CA3AF',
-    margin: 0
+    margin: 0,
+    textAlign: 'left'
   },
   patientDetails: {
-    marginBottom: '16px'
+    marginBottom: '16px',
+    textAlign: 'left'
   },
   detailRow: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '8px'
+    marginBottom: '8px',
+    textAlign: 'left'
   },
   detailLabel: {
     fontSize: '14px',
     color: '#6b7280',
-    fontWeight: '500'
+    fontWeight: '500',
+    textAlign: 'left'
   },
   detailValue: {
     fontSize: '14px',
     color: '#1f2937',
-    fontWeight: '600'
+    fontWeight: '600',
+    textAlign: 'right'
   },
   conditionsSection: {
-    marginBottom: '16px'
+    marginBottom: '16px',
+    textAlign: 'left'
   },
   conditionsLabel: {
     fontSize: '14px',
     color: '#6b7280',
     marginBottom: '8px',
-    display: 'block'
+    display: 'block',
+    textAlign: 'left'
   },
   conditionsList: {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: '6px'
+    gap: '6px',
+    textAlign: 'left'
   },
   conditionTag: {
     backgroundColor: '#F7D9EB',
@@ -221,7 +242,8 @@ const styles = {
   patientActions: {
     display: 'flex',
     gap: '8px',
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
+    textAlign: 'left'
   },
   primaryButton: {
     backgroundColor: '#7C2A62',

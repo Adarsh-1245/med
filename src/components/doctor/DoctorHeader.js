@@ -15,22 +15,14 @@ const DoctorHeader = ({
 
   const getPageTitle = () => {
     const titles = {
-      dashboard: 'Dashboard',
-      appointments: 'Appointments',
-      patients: 'Patients',
-      earnings: 'Earnings',
-      messages: 'Messages'
+  
     };
-    return titles[activePage] || 'Dashboard';
+    return titles[activePage] || '';
   };
 
   const getPageSubtitle = () => {
     const subtitles = {
-      dashboard: "Here's your daily overview and schedule",
-      appointments: 'Manage your appointments and consultations',
-      patients: 'Access patient history and medical records',
-      earnings: 'Consultation fee logs and payouts overview',
-      messages: 'Communicate with your patients'
+     
     };
     return subtitles[activePage] || '';
   };

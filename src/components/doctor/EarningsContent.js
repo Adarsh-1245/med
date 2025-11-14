@@ -46,7 +46,7 @@ const EarningsContent = ({ dashboardData, state, actions }) => {
   return (
     <div style={styles.mainContent}>
       <div style={styles.header}>
-        <div>
+        <div style={styles.headerLeft}>
           <h1 style={styles.greeting}>Earnings</h1>
           <p style={styles.subtitle}>Consultation fee logs and payouts overview</p>
         </div>
@@ -110,10 +110,10 @@ const EarningsContent = ({ dashboardData, state, actions }) => {
           {earningsData.history.map((earning, index) => (
             <div key={index} style={styles.earningItem}>
               <div style={styles.earningDate}>
-                <strong>{earning.date || earning.week || earning.month}</strong>
-                <span>{earning.consultations} consultations</span>
+                <strong style={styles.earningDateText}>{earning.date || earning.week || earning.month}</strong>
+                <span style={styles.earningConsultations}>{earning.consultations} consultations</span>
               </div>
-              <div style={styles.earningAmount}>
+              <div style={styles.earningAmountItem}>
                 {formatIndianCurrency(earning.amount)}
               </div>
             </div>
@@ -126,24 +126,31 @@ const EarningsContent = ({ dashboardData, state, actions }) => {
 
 const styles = {
   mainContent: {
-    padding: '30px'
+    padding: '30px',
+    textAlign: 'left'
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: '30px'
+    marginBottom: '30px',
+    textAlign: 'left'
+  },
+  headerLeft: {
+    textAlign: 'left'
   },
   greeting: {
     fontSize: '28px',
     fontWeight: '700',
     color: '#1f2937',
-    margin: '0 0 8px 0'
+    margin: '0 0 8px 0',
+    textAlign: 'left'
   },
   subtitle: {
     fontSize: '16px',
     color: '#6b7280',
-    margin: 0
+    margin: 0,
+    textAlign: 'left'
   },
   earningFilters: {
     display: 'flex',
@@ -171,43 +178,50 @@ const styles = {
     padding: '24px',
     borderRadius: '12px',
     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    marginBottom: '24px'
+    marginBottom: '24px',
+    textAlign: 'left'
   },
   earningStats: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '20px'
+    gap: '20px',
+    textAlign: 'left'
   },
   earningStat: {
-    textAlign: 'center'
+    textAlign: 'left'
   },
   earningAmount: {
     fontSize: '24px',
     fontWeight: '700',
     color: '#7C2A62',
-    margin: '0 0 8px 0'
+    margin: '0 0 8px 0',
+    textAlign: 'left'
   },
   earningLabel: {
     fontSize: '14px',
     color: '#6b7280',
-    margin: 0
+    margin: 0,
+    textAlign: 'left'
   },
   earningsHistory: {
     backgroundColor: 'white',
     padding: '24px',
     borderRadius: '12px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    textAlign: 'left'
   },
   sectionTitle: {
     fontSize: '20px',
     fontWeight: '600',
     color: '#1f2937',
-    margin: '0 0 20px 0'
+    margin: '0 0 20px 0',
+    textAlign: 'left'
   },
   earningsList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '12px'
+    gap: '12px',
+    textAlign: 'left'
   },
   earningItem: {
     display: 'flex',
@@ -215,12 +229,30 @@ const styles = {
     alignItems: 'center',
     padding: '16px',
     border: '1px solid #e5e7eb',
-    borderRadius: '8px'
+    borderRadius: '8px',
+    textAlign: 'left'
   },
   earningDate: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '4px'
+    gap: '4px',
+    textAlign: 'left'
+  },
+  earningDateText: {
+    textAlign: 'left',
+    fontSize: '16px',
+    color: '#1f2937'
+  },
+  earningConsultations: {
+    textAlign: 'left',
+    fontSize: '14px',
+    color: '#6b7280'
+  },
+  earningAmountItem: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#7C2A62',
+    textAlign: 'right'
   }
 };
 

@@ -176,19 +176,10 @@ const Dashboard = () => {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         border: `1px solid ${accentColor}`,
         cursor: 'pointer'
       }}
       onClick={() => handleKpiClick(type)}
-      onMouseOver={(e) => {
-        e.target.style.transform = 'translateY(-5px)';
-        e.target.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.2)';
-      }}
-      onMouseOut={(e) => {
-        e.target.style.transform = 'translateY(0)';
-        e.target.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
-      }}
     >
       <div>
         <h3 style={{
@@ -307,16 +298,7 @@ const Dashboard = () => {
             borderRadius: '5px',
             cursor: 'pointer',
             fontSize: '12px',
-            fontWeight: '500',
-            transition: 'all 0.2s ease'
-          }}
-          onMouseOver={(e) => {
-            e.target.style.backgroundColor = '#6a2452';
-            e.target.style.transform = 'translateY(-1px)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.backgroundColor = primaryColor;
-            e.target.style.transform = 'translateY(0)';
+            fontWeight: '500'
           }}
         >
           Back to Dashboard
@@ -410,16 +392,7 @@ const Dashboard = () => {
             borderRadius: '5px',
             cursor: 'pointer',
             fontSize: '12px',
-            fontWeight: '500',
-            transition: 'all 0.2s ease'
-          }}
-          onMouseOver={(e) => {
-            e.target.style.backgroundColor = '#6a2452';
-            e.target.style.transform = 'translateY(-1px)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.backgroundColor = primaryColor;
-            e.target.style.transform = 'translateY(0)';
+            fontWeight: '500'
           }}
         >
           Back to Dashboard
@@ -487,18 +460,9 @@ const Dashboard = () => {
         background: accentColor,
         borderRadius: '8px',
         border: `1px solid ${primaryColor}20`,
-        cursor: 'pointer',
-        transition: 'all 0.2s ease'
+        cursor: 'pointer'
       }}
       onClick={() => handlePerformanceMetricClick(metric)}
-      onMouseOver={(e) => {
-        e.target.style.transform = 'translateY(-2px)';
-        e.target.style.boxShadow = '0 4px 12px rgba(124, 42, 98, 0.2)';
-      }}
-      onMouseOut={(e) => {
-        e.target.style.transform = 'translateY(0)';
-        e.target.style.boxShadow = 'none';
-      }}
     >
       <h4 style={{
         margin: '0 0 10px 0',
@@ -519,6 +483,288 @@ const Dashboard = () => {
         color: change.startsWith('+') || change.startsWith('-') ? 
           (change.includes('-') ? '#27ae60' : '#e74c3c') : primaryColor
       }}>{change}</div>
+    </div>
+  );
+
+  // Enhanced Flowchart Component matching the Mermaid structure
+  const Flowchart = () => (
+    <div style={{
+      background: 'white',
+      padding: '25px',
+      borderRadius: '12px',
+      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)',
+      border: `1px solid ${accentColor}`,
+      marginBottom: '30px'
+    }}>
+      <h2 style={{
+        color: primaryColor,
+        margin: '0 0 25px 0',
+        fontSize: '22px',
+        fontWeight: '700',
+        textAlign: 'center'
+      }}>Platform Service Flow</h2>
+      
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        position: 'relative'
+      }}>
+
+        {/* Platform Overview */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          position: 'relative'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            padding: '20px 30px',
+            borderRadius: '12px',
+            textAlign: 'center',
+            minWidth: '200px',
+            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: '18px'
+          }}>
+            Platform System
+          </div>
+        </div>
+
+        {/* Down Arrow */}
+        <div style={{ textAlign: 'center', fontSize: '24px', color: primaryColor }}>↓</div>
+
+        {/* User Type Decision */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          position: 'relative'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            padding: '20px',
+            borderRadius: '50px',
+            textAlign: 'center',
+            minWidth: '150px',
+            boxShadow: '0 4px 12px rgba(240, 147, 251, 0.3)',
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: '16px',
+            border: '3px solid white'
+          }}>
+            User Type?
+          </div>
+        </div>
+
+        {/* User Type Options */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-around',
+          alignItems: 'flex-start',
+          gap: '20px',
+          marginTop: '10px'
+        }}>
+          {/* End User Path */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: primaryColor, marginBottom: '10px' }}>End User</div>
+            <div style={{ fontSize: '24px', color: primaryColor, marginBottom: '10px' }}>↓</div>
+            <div style={{
+              background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+              padding: '15px',
+              borderRadius: '10px',
+              textAlign: 'center',
+              width: '100%',
+              boxShadow: '0 4px 8px rgba(79, 172, 254, 0.3)',
+              color: 'white'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 'bold' }}>TOTAL USERS</div>
+              <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{kpis.totalUsers.toLocaleString()}</div>
+            </div>
+          </div>
+
+          {/* Service Provider Path */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: primaryColor, marginBottom: '10px' }}>Service Provider</div>
+            <div style={{ fontSize: '24px', color: primaryColor, marginBottom: '10px' }}>↓</div>
+            <div style={{
+              background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+              padding: '15px',
+              borderRadius: '10px',
+              textAlign: 'center',
+              width: '100%',
+              boxShadow: '0 4px 8px rgba(67, 233, 123, 0.3)',
+              color: 'white'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 'bold' }}>TOTAL VENDORS</div>
+              <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{kpis.totalVendors.toLocaleString()}</div>
+            </div>
+          </div>
+
+          {/* Expert/Professional Path */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: primaryColor, marginBottom: '10px' }}>Expert/Professional</div>
+            <div style={{ fontSize: '24px', color: primaryColor, marginBottom: '10px' }}>↓</div>
+            <div style={{
+              background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+              padding: '15px',
+              borderRadius: '10px',
+              textAlign: 'center',
+              width: '100%',
+              boxShadow: '0 4px 8px rgba(255, 154, 158, 0.3)',
+              color: 'white'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 'bold' }}>TOTAL DOCTORS</div>
+              <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{kpis.totalDoctors.toLocaleString()}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* End User Service Flow */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '15px',
+          marginTop: '20px'
+        }}>
+          <div style={{ fontSize: '24px', color: primaryColor }}>↓</div>
+          
+          <div style={{
+            background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+            padding: '15px 25px',
+            borderRadius: '10px',
+            textAlign: 'center',
+            width: '80%',
+            boxShadow: '0 4px 8px rgba(168, 237, 234, 0.3)',
+            color: textColor,
+            fontWeight: '600'
+          }}>
+            Request a Service<br />
+            <span style={{ fontSize: '12px', fontWeight: 'normal' }}>e.g., Book Appointment, Order</span>
+          </div>
+
+          <div style={{ fontSize: '24px', color: primaryColor }}>↓</div>
+
+          {/* Service Type Decision */}
+          <div style={{
+            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            padding: '15px',
+            borderRadius: '50px',
+            textAlign: 'center',
+            minWidth: '150px',
+            boxShadow: '0 4px 12px rgba(240, 147, 251, 0.3)',
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: '16px',
+            border: '3px solid white'
+          }}>
+            Service Type?
+          </div>
+
+          {/* Service Type Options */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-around',
+            alignItems: 'flex-start',
+            gap: '20px',
+            width: '100%',
+            marginTop: '15px'
+          }}>
+            {/* Medical Path */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ fontSize: '14px', fontWeight: 'bold', color: primaryColor, marginBottom: '10px' }}>Medical</div>
+              <div style={{ fontSize: '24px', color: primaryColor, marginBottom: '10px' }}>↓</div>
+              <div style={{
+                background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                padding: '15px',
+                borderRadius: '10px',
+                textAlign: 'center',
+                width: '100%',
+                boxShadow: '0 4px 8px rgba(79, 172, 254, 0.3)',
+                color: 'white',
+                fontWeight: '600'
+              }}>
+                Connect to a Doctor
+              </div>
+              <div style={{ fontSize: '24px', color: primaryColor, marginTop: '10px' }}>↓</div>
+              <div style={{
+                background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+                padding: '15px',
+                borderRadius: '10px',
+                textAlign: 'center',
+                width: '100%',
+                boxShadow: '0 4px 8px rgba(255, 154, 158, 0.3)',
+                color: 'white',
+                fontWeight: '600'
+              }}>
+                Provide Service<br />
+                <span style={{ fontSize: '12px', fontWeight: 'normal' }}>e.g., Consultation</span>
+              </div>
+            </div>
+
+            {/* Other/Product Path */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ fontSize: '14px', fontWeight: 'bold', color: primaryColor, marginBottom: '10px' }}>Other/Product</div>
+              <div style={{ fontSize: '24px', color: primaryColor, marginBottom: '10px' }}>↓</div>
+              <div style={{
+                background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                padding: '15px',
+                borderRadius: '10px',
+                textAlign: 'center',
+                width: '100%',
+                boxShadow: '0 4px 8px rgba(67, 233, 123, 0.3)',
+                color: 'white',
+                fontWeight: '600'
+              }}>
+                Connect to a Vendor
+              </div>
+              <div style={{ fontSize: '24px', color: primaryColor, marginTop: '10px' }}>↓</div>
+              <div style={{
+                background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                padding: '15px',
+                borderRadius: '10px',
+                textAlign: 'center',
+                width: '100%',
+                boxShadow: '0 4px 8px rgba(67, 233, 123, 0.3)',
+                color: 'white',
+                fontWeight: '600'
+              }}>
+                Provide Service<br />
+                <span style={{ fontSize: '12px', fontWeight: 'normal' }}>e.g., Fulfill Order</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Service Completion */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: '20px',
+            width: '100%'
+          }}>
+            <div style={{ fontSize: '24px', color: primaryColor, margin: '0 20px' }}>→</div>
+            <div style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              padding: '20px 30px',
+              borderRadius: '12px',
+              textAlign: 'center',
+              minWidth: '180px',
+              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+              color: 'white',
+              fontWeight: 'bold',
+              fontSize: '18px'
+            }}>
+              Service Completed
+            </div>
+            <div style={{ fontSize: '24px', color: primaryColor, margin: '0 20px' }}>←</div>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 
@@ -602,6 +848,9 @@ const Dashboard = () => {
           type="deliveryAgents"
         />
       </div>
+
+      {/* Flowchart Section */}
+      <Flowchart />
 
       <div style={{
         display: 'grid',
@@ -709,16 +958,7 @@ const Dashboard = () => {
                 borderRadius: '5px',
                 cursor: 'pointer',
                 fontSize: '12px',
-                fontWeight: '500',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseOver={(e) => {
-                e.target.style.backgroundColor = '#6a2452';
-                e.target.style.transform = 'translateY(-1px)';
-              }}
-              onMouseOut={(e) => {
-                e.target.style.backgroundColor = primaryColor;
-                e.target.style.transform = 'translateY(0)';
+                fontWeight: '500'
               }}
             >
               View All
@@ -798,21 +1038,8 @@ const Dashboard = () => {
               border: `2px solid ${primaryColor}30`,
               borderRadius: '8px',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
               color: primaryColor,
               fontWeight: '500'
-            }}
-            onMouseOver={(e) => {
-              e.target.style.backgroundColor = primaryColor;
-              e.target.style.color = 'white';
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 4px 12px rgba(124, 42, 98, 0.3)';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.backgroundColor = accentColor;
-              e.target.style.color = primaryColor;
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = 'none';
             }}
           >
             <span style={{ fontSize: '20px' }}>📊</span>
@@ -830,21 +1057,8 @@ const Dashboard = () => {
               border: `2px solid ${primaryColor}30`,
               borderRadius: '8px',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
               color: primaryColor,
               fontWeight: '500'
-            }}
-            onMouseOver={(e) => {
-              e.target.style.backgroundColor = primaryColor;
-              e.target.style.color = 'white';
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 4px 12px rgba(124, 42, 98, 0.3)';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.backgroundColor = accentColor;
-              e.target.style.color = primaryColor;
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = 'none';
             }}
           >
             <span style={{ fontSize: '20px' }}>👥</span>
@@ -862,21 +1076,8 @@ const Dashboard = () => {
               border: `2px solid ${primaryColor}30`,
               borderRadius: '8px',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
               color: primaryColor,
               fontWeight: '500'
-            }}
-            onMouseOver={(e) => {
-              e.target.style.backgroundColor = primaryColor;
-              e.target.style.color = 'white';
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 4px 12px rgba(124, 42, 98, 0.3)';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.backgroundColor = accentColor;
-              e.target.style.color = primaryColor;
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = 'none';
             }}
           >
             <span style={{ fontSize: '20px' }}>🏪</span>
@@ -894,21 +1095,8 @@ const Dashboard = () => {
               border: `2px solid ${primaryColor}30`,
               borderRadius: '8px',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
               color: primaryColor,
               fontWeight: '500'
-            }}
-            onMouseOver={(e) => {
-              e.target.style.backgroundColor = primaryColor;
-              e.target.style.color = 'white';
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 4px 12px rgba(124, 42, 98, 0.3)';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.backgroundColor = accentColor;
-              e.target.style.color = primaryColor;
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = 'none';
             }}
           >
             <span style={{ fontSize: '20px' }}>🔔</span>

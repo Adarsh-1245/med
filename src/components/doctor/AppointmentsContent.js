@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 const AppointmentsContent = ({ dashboardData, state, actions }) => {
   const { appointmentFilter, appointments } = state;
@@ -14,6 +14,60 @@ const AppointmentsContent = ({ dashboardData, state, actions }) => {
     handleAddNotes
   } = actions;
 
+  // State for real-time messaging features
+  const [messageStatus, setMessageStatus] = useState({});
+  const [unreadCounts, setUnreadCounts] = useState({});
+  const [onlineStatus, setOnlineStatus] = useState({});
+
+  // Simulate real-time updates for messaging
+  useEffect(() => {
+    // Initialize status for all patients
+    const initialStatus = {};
+    const initialUnread = {};
+    const initialOnline = {};
+    
+    dashboardData.patients?.forEach(patient => {
+      initialStatus[patient.id] = 'idle';
+      initialUnread[patient.id] = Math.floor(Math.random() * 3);
+      initialOnline[patient.id] = Math.random() > 0.3;
+    });
+    
+    setMessageStatus(initialStatus);
+    setUnreadCounts(initialUnread);
+    setOnlineStatus(initialOnline);
+
+    // Simulate real-time status updates
+    const statusInterval = setInterval(() => {
+      setMessageStatus(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(patientId => {
+          const random = Math.random();
+          if (random < 0.7) {
+            updated[patientId] = 'online';
+          } else if (random < 0.85) {
+            updated[patientId] = 'typing';
+          } else {
+            updated[patientId] = 'offline';
+          }
+        });
+        return updated;
+      });
+
+      // Simulate receiving new messages
+      setUnreadCounts(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(patientId => {
+          if (Math.random() < 0.1) {
+            updated[patientId] = (updated[patientId] || 0) + 1;
+          }
+        });
+        return updated;
+      });
+    }, 8000);
+
+    return () => clearInterval(statusInterval);
+  }, [dashboardData.patients]);
+
   const getFilteredAppointments = () => {
     switch (appointmentFilter) {
       case 'pending': return appointments.pending;
@@ -24,138 +78,210 @@ const AppointmentsContent = ({ dashboardData, state, actions }) => {
     }
   };
 
-  const AppointmentCard = ({ appointment }) => (
-    <div style={styles.appointmentCard}>
-      <div style={styles.appointmentHeader}>
-        <div style={styles.appointmentPatient}>
-          <div style={styles.profileIcon}>👤</div>
-          <div>
-            <h3 style={styles.appointmentName}>{appointment.patientName}</h3>
-            <p style={styles.appointmentMeta}>Age: {appointment.age} • {appointment.type || 'Consultation'}</p>
+  const getPatientFromAppointment = (appointment) => {
+    return dashboardData.patients?.find(p => 
+      p.name === appointment.patientName || p.id === appointment.patientId
+    );
+  };
+
+  const getMessageButtonStatus = (patient) => {
+    if (!patient) return null;
+    
+    const status = messageStatus[patient.id];
+    const unreadCount = unreadCounts[patient.id] || 0;
+    const isOnline = onlineStatus[patient.id];
+    
+    return { status, unreadCount, isOnline };
+  };
+
+  const handleMessageClick = (appointment) => {
+    const patient = getPatientFromAppointment(appointment);
+    if (patient) {
+      // Clear unread count when opening conversation
+      setUnreadCounts(prev => ({
+        ...prev,
+        [patient.id]: 0
+      }));
+      
+      // Call the existing handleStartConversation function
+      handleStartConversation(patient);
+    }
+  };
+
+  const MessageButton = ({ appointment }) => {
+    const patient = getPatientFromAppointment(appointment);
+    const messageStatus = getMessageButtonStatus(patient);
+    
+    if (!patient) return null;
+
+    const { status, unreadCount, isOnline } = messageStatus;
+    
+    const getButtonStyle = () => {
+      const baseStyle = { ...styles.secondaryButton };
+      
+      if (unreadCount > 0) {
+        return {
+          ...baseStyle,
+          backgroundColor: '#FEF3C7',
+          borderColor: '#F59E0B',
+          color: '#92400E',
+          position: 'relative'
+        };
+      }
+      
+      return { ...baseStyle, position: 'relative' };
+    };
+
+    return (
+      <button 
+        style={getButtonStyle()}
+        onClick={() => handleMessageClick(appointment)}
+        title={`Message ${patient.name} (${isOnline ? 'Online' : 'Offline'})`}
+      >
+        <div style={styles.messageButtonContent}>
+          <span>💬 Message</span>
+          {(unreadCount > 0 || status === 'typing') && (
+            <div style={styles.messageIndicators}>
+              {unreadCount > 0 && (
+                <span style={styles.unreadBadge}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+              )}
+              {status === 'typing' && (
+                <span style={styles.typingIndicator} title="Typing...">✍️</span>
+              )}
+            </div>
+          )}
+          <span style={styles.statusIndicator} title={isOnline ? 'Online' : 'Offline'}>
+            {isOnline ? '🟢' : '⚫'}
+          </span>
+        </div>
+      </button>
+    );
+  };
+
+  const AppointmentCard = ({ appointment }) => {
+    const patient = getPatientFromAppointment(appointment);
+    const messageStatus = getMessageButtonStatus(patient);
+
+    return (
+      <div style={styles.appointmentCard}>
+        <div style={styles.appointmentHeader}>
+          <div style={styles.appointmentPatient}>
+            <div style={styles.profileIcon}>
+              <span>👤</span>
+              {/* Online status indicator */}
+              {messageStatus?.isOnline && (
+                <div style={styles.onlineStatus}></div>
+              )}
+            </div>
+            <div style={styles.patientInfo}>
+              <h3 style={styles.appointmentName}>
+                {appointment.patientName}
+                {messageStatus?.status === 'typing' && (
+                  <span style={styles.typingBadge} title="Patient is typing...">✍️</span>
+                )}
+              </h3>
+              <p style={styles.appointmentMeta}>Age: {appointment.age} • {appointment.type || 'Consultation'}</p>
+            </div>
+          </div>
+          <div style={styles.appointmentTime}>
+            <strong>{appointment.time}</strong>
+            <span>{appointment.date}</span>
+            {appointmentFilter === 'pending' && appointment.requestedDate && (
+              <span style={styles.requestedDate}>Requested: {appointment.requestedDate}</span>
+            )}
+            {appointmentFilter === 'rescheduled' && appointment.originalDate && (
+              <span style={styles.rescheduledInfo}>Originally: {appointment.originalDate}</span>
+            )}
+            {appointmentFilter === 'cancelled' && appointment.cancelledDate && (
+              <span style={styles.cancelledInfo}>Cancelled: {appointment.cancelledDate}</span>
+            )}
           </div>
         </div>
-        <div style={styles.appointmentTime}>
-          <strong>{appointment.time}</strong>
-          <span>{appointment.date}</span>
-          {appointmentFilter === 'pending' && appointment.requestedDate && (
-            <span style={styles.requestedDate}>Requested: {appointment.requestedDate}</span>
+        
+        <div style={styles.appointmentDetails}>
+          <p style={styles.appointmentIssue}><strong>Reason:</strong> {appointment.issue}</p>
+          <p style={styles.appointmentDuration}><strong>Duration:</strong> {appointment.duration}</p>
+          {appointment.priority && (
+            <span style={{
+              ...styles.priorityBadge,
+              ...(appointment.priority === 'high' && styles.highPriorityBadge)
+            }}>
+              {appointment.priority}
+            </span>
           )}
-          {appointmentFilter === 'rescheduled' && appointment.originalDate && (
-            <span style={styles.rescheduledInfo}>Originally: {appointment.originalDate}</span>
+          {appointmentFilter === 'rescheduled' && appointment.reason && (
+            <p style={styles.rescheduledReason}><strong>Reschedule Reason:</strong> {appointment.reason}</p>
           )}
-          {appointmentFilter === 'cancelled' && appointment.cancelledDate && (
-            <span style={styles.cancelledInfo}>Cancelled: {appointment.cancelledDate}</span>
+          {appointmentFilter === 'cancelled' && appointment.reason && (
+            <p style={styles.cancelledReason}><strong>Cancellation Reason:</strong> {appointment.reason}</p>
+          )}
+        </div>
+
+        <div style={styles.appointmentActions}>
+          {appointmentFilter === 'pending' ? (
+            <>
+              <button 
+                style={styles.successButton}
+                onClick={() => handleApproveAppointment(appointment.id)}
+              >
+                Approve
+              </button>
+              <button 
+                style={styles.dangerButton}
+                onClick={() => handleRejectAppointment(appointment.id)}
+              >
+                Reject
+              </button>
+              <MessageButton appointment={appointment} />
+            </>
+          ) : appointmentFilter === 'upcoming' ? (
+            <>
+              <button 
+                style={styles.primaryButton}
+                onClick={() => handleStartConsultation(appointment.id)}
+              >
+                Start Consultation
+              </button>
+              <button 
+                style={styles.secondaryButton}
+                onClick={() => handleRescheduleAppointment(appointment.id)}
+              >
+                Reschedule
+              </button>
+              <button 
+                style={styles.dangerButton}
+                onClick={() => handleCancelAppointment(appointment.id)}
+              >
+                Cancel
+              </button>
+              <MessageButton appointment={appointment} />
+            </>
+          ) : (
+            <>
+              <button 
+                style={styles.primaryButton}
+                onClick={() => handleViewFullHistory(appointment.patientName)}
+              >
+                View Full History
+              </button>
+              <button 
+                style={styles.secondaryButton}
+                onClick={() => handleAddNotes(appointment.patientName)}
+              >
+                Add Notes
+              </button>
+              <MessageButton appointment={appointment} />
+            </>
           )}
         </div>
       </div>
-      
-      <div style={styles.appointmentDetails}>
-        <p style={styles.appointmentIssue}><strong>Reason:</strong> {appointment.issue}</p>
-        <p style={styles.appointmentDuration}><strong>Duration:</strong> {appointment.duration}</p>
-        {appointment.priority && (
-          <span style={{
-            ...styles.priorityBadge,
-            ...(appointment.priority === 'high' && styles.highPriorityBadge)
-          }}>
-            {appointment.priority}
-          </span>
-        )}
-        {appointmentFilter === 'rescheduled' && appointment.reason && (
-          <p style={styles.rescheduledReason}><strong>Reschedule Reason:</strong> {appointment.reason}</p>
-        )}
-        {appointmentFilter === 'cancelled' && appointment.reason && (
-          <p style={styles.cancelledReason}><strong>Cancellation Reason:</strong> {appointment.reason}</p>
-        )}
-      </div>
-
-      <div style={styles.appointmentActions}>
-        {appointmentFilter === 'pending' ? (
-          <>
-            <button 
-              style={styles.successButton}
-              onClick={() => handleApproveAppointment(appointment.id)}
-            >
-              Approve
-            </button>
-            <button 
-              style={styles.dangerButton}
-              onClick={() => handleRejectAppointment(appointment.id)}
-            >
-              Reject
-            </button>
-            <button 
-              style={styles.secondaryButton}
-              onClick={() => {
-                const patient = dashboardData.patients.find(p => p.name === appointment.patientName);
-                if (patient) handleStartConversation(patient);
-              }}
-            >
-              Message
-            </button>
-          </>
-        ) : appointmentFilter === 'upcoming' ? (
-          <>
-            <button 
-              style={styles.primaryButton}
-              onClick={() => handleStartConsultation(appointment.id)}
-            >
-              Start Consultation
-            </button>
-            <button 
-              style={styles.secondaryButton}
-              onClick={() => handleRescheduleAppointment(appointment.id)}
-            >
-              Reschedule
-            </button>
-            <button 
-              style={styles.dangerButton}
-              onClick={() => handleCancelAppointment(appointment.id)}
-            >
-              Cancel
-            </button>
-            <button 
-              style={styles.secondaryButton}
-              onClick={() => {
-                const patient = dashboardData.patients.find(p => p.name === appointment.patientName);
-                if (patient) handleStartConversation(patient);
-              }}
-            >
-              Message
-            </button>
-          </>
-        ) : (
-          <>
-            <button 
-              style={styles.primaryButton}
-              onClick={() => handleViewFullHistory(appointment.patientName)}
-            >
-              View Full History
-            </button>
-            <button 
-              style={styles.secondaryButton}
-              onClick={() => handleAddNotes(appointment.patientName)}
-            >
-              Add Notes
-            </button>
-            <button 
-              style={styles.secondaryButton}
-              onClick={() => {
-                const patient = dashboardData.patients.find(p => p.name === appointment.patientName);
-                if (patient) handleStartConversation(patient);
-              }}
-            >
-              Message
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div style={styles.mainContent}>
       <div style={styles.header}>
-        <div>
+        <div style={styles.headerLeft}>
           <h1 style={styles.greeting}>Appointments</h1>
           <p style={styles.subtitle}>Manage your upcoming, rescheduled and cancelled consultations</p>
         </div>
@@ -210,24 +336,31 @@ const AppointmentsContent = ({ dashboardData, state, actions }) => {
 
 const styles = {
   mainContent: {
-    padding: '30px'
+    padding: '30px',
+    textAlign: 'left'
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: '30px'
+    marginBottom: '30px',
+    textAlign: 'left'
+  },
+  headerLeft: {
+    textAlign: 'left'
   },
   greeting: {
     fontSize: '28px',
     fontWeight: '700',
     color: '#1f2937',
-    margin: '0 0 8px 0'
+    margin: '0 0 8px 0',
+    textAlign: 'left'
   },
   subtitle: {
     fontSize: '16px',
     color: '#6b7280',
-    margin: 0
+    margin: 0,
+    textAlign: 'left'
   },
   filterTabs: {
     display: 'flex',
@@ -253,27 +386,35 @@ const styles = {
   appointmentsContainer: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '16px'
+    gap: '16px',
+    textAlign: 'left'
   },
   appointmentCard: {
     backgroundColor: 'white',
     padding: '20px',
     borderRadius: '12px',
     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    border: '1px solid #e5e7eb'
+    border: '1px solid #e5e7eb',
+    textAlign: 'left'
   },
   appointmentHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: '16px'
+    marginBottom: '16px',
+    textAlign: 'left'
   },
   appointmentPatient: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px'
+    gap: '12px',
+    textAlign: 'left'
+  },
+  patientInfo: {
+    textAlign: 'left'
   },
   profileIcon: {
+    position: 'relative',
     width: '40px',
     height: '40px',
     backgroundColor: '#F7D9EB',
@@ -287,12 +428,14 @@ const styles = {
     fontSize: '18px',
     fontWeight: '600',
     color: '#1f2937',
-    margin: '0 0 4px 0'
+    margin: '0 0 4px 0',
+    textAlign: 'left'
   },
   appointmentMeta: {
     fontSize: '14px',
     color: '#6b7280',
-    margin: 0
+    margin: 0,
+    textAlign: 'left'
   },
   appointmentTime: {
     textAlign: 'right',
@@ -316,29 +459,34 @@ const styles = {
     fontStyle: 'italic'
   },
   appointmentDetails: {
-    marginBottom: '16px'
+    marginBottom: '16px',
+    textAlign: 'left'
   },
   appointmentIssue: {
     fontSize: '14px',
     color: '#6b7280',
-    margin: '0 0 8px 0'
+    margin: '0 0 8px 0',
+    textAlign: 'left'
   },
   appointmentDuration: {
     fontSize: '14px',
     color: '#6b7280',
-    margin: '0 0 8px 0'
+    margin: '0 0 8px 0',
+    textAlign: 'left'
   },
   rescheduledReason: {
     fontSize: '14px',
     color: '#F59E0B',
     margin: '0 0 8px 0',
-    fontStyle: 'italic'
+    fontStyle: 'italic',
+    textAlign: 'left'
   },
   cancelledReason: {
     fontSize: '14px',
     color: '#EF4444',
     margin: '0 0 8px 0',
-    fontStyle: 'italic'
+    fontStyle: 'italic',
+    textAlign: 'left'
   },
   priorityBadge: {
     backgroundColor: '#F59E0B',
@@ -346,7 +494,8 @@ const styles = {
     padding: '4px 8px',
     borderRadius: '12px',
     fontSize: '12px',
-    fontWeight: '500'
+    fontWeight: '500',
+    display: 'inline-block'
   },
   highPriorityBadge: {
     backgroundColor: '#EF4444'
@@ -354,7 +503,8 @@ const styles = {
   appointmentActions: {
     display: 'flex',
     gap: '8px',
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
+    textAlign: 'left'
   },
   primaryButton: {
     backgroundColor: '#7C2A62',
@@ -395,6 +545,50 @@ const styles = {
     fontSize: '14px',
     fontWeight: '600',
     cursor: 'pointer'
+  },
+  // New styles for enhanced messaging features
+  messageButtonContent: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    position: 'relative'
+  },
+  messageIndicators: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px'
+  },
+  unreadBadge: {
+    backgroundColor: '#EF4444',
+    color: 'white',
+    borderRadius: '50%',
+    width: '18px',
+    height: '18px',
+    fontSize: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 'bold'
+  },
+  typingIndicator: {
+    fontSize: '12px'
+  },
+  statusIndicator: {
+    fontSize: '8px'
+  },
+  onlineStatus: {
+    position: 'absolute',
+    bottom: '2px',
+    right: '2px',
+    width: '8px',
+    height: '8px',
+    backgroundColor: '#10B981',
+    borderRadius: '50%',
+    border: '2px solid white'
+  },
+  typingBadge: {
+    marginLeft: '8px',
+    fontSize: '12px'
   }
 };
 

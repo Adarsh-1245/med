@@ -35,7 +35,7 @@ const MessagesContent = ({ state, actions, dashboardData }) => {
   return (
     <div style={styles.mainContent}>
       <div style={styles.header}>
-        <div>
+        <div style={styles.headerLeft}>
           <h1 style={styles.greeting}>Messages</h1>
           <p style={styles.subtitle}>Communicate with your patients</p>
         </div>
@@ -102,24 +102,31 @@ const MessagesContent = ({ state, actions, dashboardData }) => {
 
 const styles = {
   mainContent: {
-    padding: '30px'
+    padding: '30px',
+    textAlign: 'left'
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: '30px'
+    marginBottom: '30px',
+    textAlign: 'left'
+  },
+  headerLeft: {
+    textAlign: 'left'
   },
   greeting: {
     fontSize: '28px',
     fontWeight: '700',
     color: '#1f2937',
-    margin: '0 0 8px 0'
+    margin: '0 0 8px 0',
+    textAlign: 'left'
   },
   subtitle: {
     fontSize: '16px',
     color: '#6b7280',
-    margin: 0
+    margin: 0,
+    textAlign: 'left'
   },
   messagesStats: {
     display: 'flex',
@@ -145,24 +152,28 @@ const styles = {
     color: '#6b7280'
   },
   messagesOverview: {
-    marginTop: '20px'
+    marginTop: '20px',
+    textAlign: 'left'
   },
   conversationsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
-    gap: '20px'
+    gap: '20px',
+    textAlign: 'left'
   },
   conversationCard: {
     backgroundColor: 'white',
     padding: '20px',
     borderRadius: '12px',
     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    border: '1px solid #e5e7eb'
+    border: '1px solid #e5e7eb',
+    textAlign: 'left'
   },
   conversationCardHeader: {
     display: 'flex',
     alignItems: 'flex-start',
-    marginBottom: '16px'
+    marginBottom: '16px',
+    textAlign: 'left'
   },
   conversationCardAvatar: {
     position: 'relative',
@@ -170,13 +181,15 @@ const styles = {
     marginRight: '12px'
   },
   conversationCardInfo: {
-    flex: 1
+    flex: 1,
+    textAlign: 'left'
   },
   conversationCardName: {
     fontSize: '16px',
     fontWeight: '600',
     color: '#1f2937',
-    margin: '0 0 4px 0'
+    margin: '0 0 4px 0',
+    textAlign: 'left'
   },
   conversationCardLastMessage: {
     fontSize: '14px',
@@ -185,7 +198,8 @@ const styles = {
     display: '-webkit-box',
     WebkitLineClamp: 2,
     WebkitBoxOrient: 'vertical',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    textAlign: 'left'
   },
   conversationCardTime: {
     fontSize: '12px',
@@ -193,7 +207,8 @@ const styles = {
   },
   conversationCardActions: {
     display: 'flex',
-    gap: '8px'
+    gap: '8px',
+    textAlign: 'left'
   },
   primaryButton: {
     backgroundColor: '#7C2A62',
