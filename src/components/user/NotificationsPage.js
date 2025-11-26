@@ -7,13 +7,9 @@ const NotificationsPage = ({
   onViewAll,
   markAsRead,
   markAllAsRead,
-  deleteNotification,
-  loadMoreNotifications
+  deleteNotification
 }) => {
   const [localNotifications, setLocalNotifications] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
   const notificationsRef = useRef(null);
 
   // Initialize local notifications when props change
@@ -23,24 +19,27 @@ const NotificationsPage = ({
     }
   }, [notifications]);
 
-  // Handle click outside to close
+  // Handle click outside to close - STABLE VERSION
   useEffect(() => {
+    if (!showNotifications) return;
+
     const handleClickOutside = (event) => {
       if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
         onClose();
       }
     };
 
-    if (showNotifications) {
+    // Add event listener with slight delay to avoid immediate trigger
+    const timer = setTimeout(() => {
       document.addEventListener('mousedown', handleClickOutside);
-    }
+    }, 100);
 
     return () => {
+      clearTimeout(timer);
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showNotifications, onClose]);
 
-  // Add safety checks
   if (!showNotifications) {
     return null;
   }
@@ -52,38 +51,6 @@ const NotificationsPage = ({
   const handleViewAll = () => {
     if (onViewAll) {
       onViewAll();
-    }
-  };
-
-  const handleLoadMore = async () => {
-    if (isLoading || !hasMore) return;
-
-    setIsLoading(true);
-    try {
-      if (loadMoreNotifications) {
-        const nextPage = currentPage + 1;
-        const newNotifications = await loadMoreNotifications(nextPage);
-        
-        if (newNotifications && newNotifications.length > 0) {
-          setLocalNotifications(prev => [...prev, ...newNotifications]);
-          setCurrentPage(nextPage);
-        } else {
-          setHasMore(false);
-        }
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const mockNotifications = generateMockNotifications(currentPage * 5, 5);
-        setLocalNotifications(prev => [...prev, ...mockNotifications]);
-        setCurrentPage(prev => prev + 1);
-        
-        if (currentPage >= 3) {
-          setHasMore(false);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading more notifications:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -127,6 +94,7 @@ const NotificationsPage = ({
       payment: '💳',
       security: '🔒',
       promotion: '🎁',
+      appointment: '👨‍⚕️',
       default: '🔔'
     };
     return icons[type] || icons.default;
@@ -223,8 +191,6 @@ const NotificationsPage = ({
       display: 'flex',
       padding: '16px 20px',
       borderBottom: '1px solid #f3f4f6',
-      transition: 'background-color 0.3s ease',
-      position: 'relative',
       backgroundColor: 'transparent',
       cursor: 'pointer'
     },
@@ -276,11 +242,6 @@ const NotificationsPage = ({
       textAlign: 'center',
       color: '#6b7280'
     },
-    loadingState: {
-      padding: '20px',
-      textAlign: 'center',
-      color: '#6b7280'
-    },
     notificationsFooter: {
       padding: '16px 20px',
       borderTop: '1px solid #e5e7eb',
@@ -295,58 +256,14 @@ const NotificationsPage = ({
       borderRadius: '6px',
       cursor: 'pointer',
       fontWeight: '500',
-      fontSize: '14px',
-      transition: 'background-color 0.2s ease'
-    },
-    loadMoreButton: {
-      width: '100%',
-      padding: '10px',
-      backgroundColor: 'transparent',
-      color: '#7C2A62',
-      border: '1px solid #7C2A62',
-      borderRadius: '6px',
-      cursor: 'pointer',
-      fontWeight: '500',
-      fontSize: '14px',
-      marginBottom: '10px'
-    },
-    loadMoreButtonDisabled: {
-      opacity: 0.6,
-      cursor: 'not-allowed'
+      fontSize: '14px'
     }
-  };
-
-  const generateMockNotifications = (startId, count) => {
-    const types = ['order', 'system', 'customer', 'payment', 'promotion'];
-    const messages = [
-      'Your order #ORD-12345 has been shipped',
-      'System maintenance scheduled for tonight',
-      'New customer registration completed',
-      'Payment of $149.99 received successfully',
-      'Special promotion: 20% off all items this weekend',
-      'Your account password was changed',
-      'New review received for your product',
-      'Inventory low for product "Wireless Earbuds"',
-      'Weekly sales report is ready',
-      'Security alert: New login from unknown device'
-    ];
-
-    return Array.from({ length: count }, (_, i) => ({
-      id: `notification-${startId + i}`,
-      title: `Notification ${startId + i + 1}`,
-      message: messages[Math.floor(Math.random() * messages.length)],
-      type: types[Math.floor(Math.random() * types.length)],
-      time: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-      read: false
-    }));
   };
 
   return (
     <>
-      {/* Overlay for catching outside clicks */}
       <div style={styles.overlay} />
       
-      {/* Notifications Popup */}
       <div ref={notificationsRef} style={styles.notificationsPage}>
         <div style={styles.notificationsHeader}>
           <div>
@@ -409,7 +326,7 @@ const NotificationsPage = ({
                       {notification.message || 'No message'}
                     </p>
                     <span style={styles.notificationTime}>
-                      {formatTime(notification.time)}
+                      {formatTime(notification.timestamp || notification.time)}
                     </span>
                   </div>
                 </div>

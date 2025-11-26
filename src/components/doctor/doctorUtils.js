@@ -235,8 +235,8 @@ export const navigationItems = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
   { id: 'appointments', label: 'Appointments', icon: '📅' },
   { id: 'patients', label: 'Patients', icon: '👥' },
-  { id: 'earnings', label: 'Earnings', icon: '💰' }
-  // Removed messages from navigation
+  { id: 'earnings', label: 'Earnings', icon: '💰' },
+  { id: 'timeslots', label: 'Time Slots', icon: '⏰' }
 ];
 
 // Custom Hook for Window Size Detection
@@ -283,6 +283,7 @@ export const useDoctorState = (user) => {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [timeslots, setTimeslots] = useState([]);
 
   const windowSize = useWindowSize();
 
@@ -437,7 +438,9 @@ export const useDoctorState = (user) => {
     setFormErrors,
     isSidebarOpen,
     setIsSidebarOpen,
-    windowSize
+    windowSize,
+    timeslots,
+    setTimeslots
   };
 };
 
@@ -463,7 +466,9 @@ export const useDoctorActions = (state) => {
     setShowLogoutConfirm,
     setIsSidebarOpen,
     windowSize,
-    setActivePage
+    setActivePage,
+    timeslots,
+    setTimeslots
   } = state;
 
   const getUnreadMessagesCount = () => {
@@ -495,8 +500,6 @@ export const useDoctorActions = (state) => {
     if (windowSize && windowSize.width <= 768) {
       setIsSidebarOpen(false);
     }
-    
-    handleMarkAsRead(patient.name);
   };
 
   const handleMarkAsRead = (patientName) => {
@@ -541,7 +544,11 @@ export const useDoctorActions = (state) => {
       if (windowSize && windowSize.width <= 768) {
         showNotification('Consultation Started', `Started consultation with ${appointment.patientName}`);
       }
+      
+      // Return the appointment for the current consultation state
+      return appointment;
     }
+    return null;
   };
 
   const handleCancelAppointment = (appointmentId) => {
@@ -804,6 +811,36 @@ export const useDoctorActions = (state) => {
     }
   };
 
+  // Timeslot Management Actions
+  const addTimeslot = (slot) => {
+    setTimeslots(prev => [...prev, slot]);
+    showNotification('Time Slot Added', `Added slot for ${slot.date} at ${slot.startTime}`);
+  };
+
+  const updateTimeslot = (updatedSlot) => {
+    setTimeslots(prev => 
+      prev.map(slot => 
+        slot.id === updatedSlot.id ? updatedSlot : slot
+      )
+    );
+    showNotification('Time Slot Updated', `Updated slot for ${updatedSlot.date}`);
+  };
+
+  const deleteTimeslot = (slotId) => {
+    setTimeslots(prev => prev.filter(slot => slot.id !== slotId));
+    showNotification('Time Slot Deleted', 'Time slot has been removed');
+  };
+
+  const toggleTimeslotAvailability = (slotId) => {
+    setTimeslots(prev =>
+      prev.map(slot =>
+        slot.id === slotId 
+          ? { ...slot, isAvailable: !slot.isAvailable }
+          : slot
+      )
+    );
+  };
+
   // Complete form validation
   const validateForm = (formData) => {
     const errors = {};
@@ -888,6 +925,10 @@ export const useDoctorActions = (state) => {
     handleMarkAllNotificationsAsRead,
     handleClearAllNotifications,
     showNotification,
-    validateForm
+    validateForm,
+    addTimeslot,
+    updateTimeslot,
+    deleteTimeslot,
+    toggleTimeslotAvailability
   };
 };

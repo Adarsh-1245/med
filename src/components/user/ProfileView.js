@@ -36,26 +36,49 @@ const ProfileView = ({ setActiveView }) => {
 
   // Compact Profile-specific styles
   const styles = {
-    // Profile Container
+    // Profile Container with proper spacing
     profileContainer: {
       marginTop: '120px',
-      padding: '1rem',
+      padding: '2rem 1rem 1rem 1rem',
       maxWidth: '800px',
       marginLeft: 'auto',
       marginRight: 'auto',
       minHeight: 'calc(100vh - 120px)',
       backgroundColor: '#f8fafc',
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+      position: 'relative',
+      zIndex: 1,
     },
 
-    // Page Header - Compact
+    // Success Message Styles
+    successMessage: {
+      backgroundColor: '#E8F5E8',
+      color: '#2E7D32',
+      padding: '1rem 1.5rem',
+      borderRadius: '12px',
+      marginBottom: '1.5rem',
+      border: '2px solid #4CAF50',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.75rem',
+      fontWeight: '600',
+      fontSize: '0.95rem',
+      boxShadow: '0 4px 12px rgba(76, 175, 80, 0.2)',
+      animation: 'slideDown 0.3s ease-out',
+    },
+    successIcon: {
+      fontSize: '1.5rem',
+    },
+
+    // Page Header - Compact with proper spacing
     pageHeader: {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      gap: '0.75rem',
-      marginBottom: '1.5rem',
+      gap: '1rem',
+      marginBottom: '2rem',
       textAlign: 'center',
+      position: 'relative',
     },
     backButton: {
       padding: '0.5rem 1rem',
@@ -68,6 +91,9 @@ const ProfileView = ({ setActiveView }) => {
       fontWeight: '600',
       transition: 'all 0.3s ease',
       alignSelf: 'flex-start',
+      position: 'relative',
+      zIndex: 2,
+      marginBottom: '1rem',
     },
     headerContent: {
       display: 'flex',
@@ -265,38 +291,38 @@ const ProfileView = ({ setActiveView }) => {
       borderColor: '#F7D9EB',
     },
 
-// Phone Input Styles - Larger Input
-phoneInputContainer: {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.5rem',
-  backgroundColor: 'white',
-},
-phonePrefix: {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.5rem',
-  padding: '0.75rem',
-  backgroundColor: '#f8f5ff',
-  borderRadius: '8px',
-  fontWeight: '600',
-  color: '#7C2A62',
-  fontSize: '0.9rem',
-  border: '1px solid #F7D9EB',
-  minWidth: '50px', // Added fixed width for consistency
-},
-phoneInput: {
-  padding: '0.75rem',
-  border: '1px solid #F7D9EB',
-  borderRadius: '8px',
-  fontSize: '1.1rem', // Increased font size
-  transition: 'all 0.3s ease',
-  cursor: 'text',
-  fontFamily: 'inherit',
-  flex: '1', // Take remaining space
-  minWidth: '200px', // Minimum width for better visibility
-  height: '20px', // Fixed height for consistency
-},
+    // Phone Input Styles - Larger Input
+    phoneInputContainer: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+      backgroundColor: 'white',
+    },
+    phonePrefix: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+      padding: '0.75rem',
+      backgroundColor: '#f8f5ff',
+      borderRadius: '8px',
+      fontWeight: '600',
+      color: '#7C2A62',
+      fontSize: '0.9rem',
+      border: '1px solid #F7D9EB',
+      minWidth: '50px',
+    },
+    phoneInput: {
+      padding: '0.75rem',
+      border: '1px solid #F7D9EB',
+      borderRadius: '8px',
+      fontSize: '1.1rem',
+      transition: 'all 0.3s ease',
+      cursor: 'text',
+      fontFamily: 'inherit',
+      flex: '1',
+      minWidth: '200px',
+      height: '20px',
+    },
 
     // Action Buttons - Compact
     actionButtons: {
@@ -361,6 +387,28 @@ phoneInput: {
       border: '1px solid #2196F3',
     },
   };
+
+  // Add CSS animation for success message
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   // Real-time profile sync from context
   useEffect(() => {
@@ -614,11 +662,15 @@ phoneInput: {
 
       await updateProfile(updatedProfile);
       
-      setSaveStatus('✅ Profile updated successfully!');
+      // Show success message
+      setSaveStatus('success');
       setLocalIsFormTouched(false);
       setIsEditMode(false);
       
-      setTimeout(() => setSaveStatus(''), 3000);
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => {
+        setSaveStatus('');
+      }, 5000);
     } catch (error) {
       console.error('Profile update error:', error);
       setSaveStatus('❌ Error updating profile. Please try again.');
@@ -684,6 +736,14 @@ phoneInput: {
 
   return (
     <div style={styles.profileContainer}>
+      {/* Success Message */}
+      {saveStatus === 'success' && (
+        <div style={styles.successMessage}>
+          <span style={styles.successIcon}>✅</span>
+          <span>Profile updated successfully!</span>
+        </div>
+      )}
+
       {/* Compact Header */}
       <div style={styles.pageHeader}>
         <button 
@@ -787,7 +847,7 @@ phoneInput: {
       </div>
 
       {/* Save Status Display */}
-      {saveStatus && (
+      {saveStatus && saveStatus !== 'success' && (
         <div style={getSaveStatusStyle()}>
           {saveStatus}
         </div>
@@ -834,7 +894,7 @@ phoneInput: {
             )}
           </div>
 
-                  {/* Editable Phone Field - Larger Input */}
+          {/* Editable Phone Field - Larger Input */}
           <div style={styles.formGroup}>
             <label style={styles.formLabel}>Phone *</label>
             <div style={styles.phoneInputContainer}>
@@ -996,7 +1056,7 @@ phoneInput: {
                 }
               }}
             >
-              {isSubmitting ? "🔄 Saving..." : "💾 Save Changes"}
+              {isSubmitting ? "🔄 Saving..." : "Save Changes"}
             </button>
             <button
               type="button"
@@ -1012,7 +1072,7 @@ phoneInput: {
                 e.target.style.color = '#7C2A62';
               }}
             >
-              ❌ Cancel
+              Cancel
             </button>
           </div>
         )}

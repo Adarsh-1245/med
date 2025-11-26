@@ -716,7 +716,7 @@ const AboutUs = ({ onNavigateToAuth }) => {
           <div style={styles.header}>
             <h2 style={styles.sectionTitle}>About QuickMed</h2>
             <p style={styles.sectionSubtitle}>
-              Revolutionizing healthcare delivery since 2020
+              Revolutionizing healthcare delivery since 2025
             </p>
           </div>
 

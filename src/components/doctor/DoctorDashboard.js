@@ -6,6 +6,7 @@ import AppointmentsContent from './AppointmentsContent';
 import PatientsContent from './PatientsContent';
 import EarningsContent from './EarningsContent';
 import MessagesContent from './MessagesContent';
+import TimeSlotsContent from './TimeSlotsContent';
 import DoctorModals from './DoctorModals';
 import { 
   useDoctorState, 
@@ -37,7 +38,8 @@ const DoctorDashboard = ({ user, onLogout }) => {
     patientMessages,
     selectedPatient,
     formErrors,
-    windowSize
+    windowSize,
+    timeslots
   } = state;
 
   // Get actions
@@ -61,7 +63,8 @@ const DoctorDashboard = ({ user, onLogout }) => {
     setPatientMessages: state.setPatientMessages,
     setFormErrors: state.setFormErrors,
     setSelectedPatient: state.setSelectedPatient,
-    setIsSidebarOpen: state.setIsSidebarOpen
+    setIsSidebarOpen: state.setIsSidebarOpen,
+    setTimeslots: state.setTimeslots
   });
 
   const {
@@ -81,7 +84,11 @@ const DoctorDashboard = ({ user, onLogout }) => {
     handleMarkAllNotificationsAsRead,
     handleClearAllNotifications,
     showNotification,
-    validateForm
+    validateForm,
+    addTimeslot,
+    updateTimeslot,
+    deleteTimeslot,
+    toggleTimeslotAvailability
   } = actions;
 
   const renderMainContent = () => {
@@ -96,6 +103,14 @@ const DoctorDashboard = ({ user, onLogout }) => {
       setConsultationDetails: state.setConsultationDetails
     };
 
+    const timeslotActions = {
+      addTimeslot,
+      updateTimeslot,
+      deleteTimeslot,
+      toggleTimeslotAvailability,
+      setTimeslots: state.setTimeslots
+    };
+
     const contentProps = {
       dashboardData,
       state: {
@@ -106,7 +121,8 @@ const DoctorDashboard = ({ user, onLogout }) => {
         earningFilter,
         appointments,
         patientMessages,
-        userProfile
+        userProfile,
+        timeslots
       },
       actions: {
         setActivePage: state.setActivePage,
@@ -117,7 +133,8 @@ const DoctorDashboard = ({ user, onLogout }) => {
         setConsultationDetails: state.setConsultationDetails,
         getUnreadMessagesCount,
         getUnreadNotificationsCount,
-        ...commonActions
+        ...commonActions,
+        ...timeslotActions
       }
     };
 
@@ -132,6 +149,8 @@ const DoctorDashboard = ({ user, onLogout }) => {
         return <EarningsContent {...contentProps} />;
       case 'messages':
         return <MessagesContent {...contentProps} />;
+      case 'timeslots':
+        return <TimeSlotsContent {...contentProps} />;
       default:
         return <DashboardContent {...contentProps} />;
     }

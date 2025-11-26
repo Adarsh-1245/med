@@ -12,8 +12,7 @@ const LogoutConfirmation = ({ onConfirm, onCancel }) => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 1000,
-      padding: '16px',
+      zIndex: 1000
     },
     logoutModal: {
       backgroundColor: 'white',
@@ -78,76 +77,26 @@ const LogoutConfirmation = ({ onConfirm, onCancel }) => {
     }
   };
 
-  // Mobile responsive styles
-  const mobileStyles = {
-    modalOverlay: {
-      ...styles.modalOverlay,
-      padding: '8px',
-      alignItems: 'center'
-    },
-    logoutModal: {
-      ...styles.logoutModal,
-      width: '95vw',
-    },
-    logoutModalHeader: {
-      ...styles.logoutModalHeader,
-      padding: '20px 20px 0 20px'
-    },
-    logoutModalTitle: {
-      ...styles.logoutModalTitle,
-      fontSize: '16px'
-    },
-    logoutModalContent: {
-      ...styles.logoutModalContent,
-      padding: '20px'
-    },
-    logoutModalText: {
-      ...styles.logoutModalText,
-      fontSize: '13px'
-    },
-    logoutModalActions: {
-      ...styles.logoutModalActions,
-      padding: '16px 20px 20px 20px',
-      flexDirection: 'column',
-      gap: '8px'
-    },
-    logoutCancelButton: {
-      ...styles.logoutCancelButton,
-      width: '100%',
-      padding: '10px',
-      fontSize: '14px'
-    },
-    logoutConfirmButton: {
-      ...styles.logoutConfirmButton,
-      width: '100%',
-      padding: '10px',
-      fontSize: '14px'
-    }
-  };
-
-  const isMobile = window.innerWidth < 768;
-  const currentStyles = isMobile ? mobileStyles : styles;
-
   return (
-    <div style={currentStyles.modalOverlay}>
-      <div style={currentStyles.logoutModal}>
-        <div style={currentStyles.logoutModalHeader}>
-          <h3 style={currentStyles.logoutModalTitle}>Confirm Logout</h3>
+    <div style={styles.modalOverlay}>
+      <div style={styles.logoutModal}>
+        <div style={styles.logoutModalHeader}>
+          <h3 style={styles.logoutModalTitle}>Confirm Logout</h3>
         </div>
-        <div style={currentStyles.logoutModalContent}>
-          <p style={currentStyles.logoutModalText}>
+        <div style={styles.logoutModalContent}>
+          <p style={styles.logoutModalText}>
             Are you sure you want to logout from your QuickMed account?
           </p>
         </div>
-        <div style={currentStyles.logoutModalActions}>
+        <div style={styles.logoutModalActions}>
           <button
-            style={currentStyles.logoutCancelButton}
+            style={styles.logoutCancelButton}
             onClick={onCancel}
           >
             Cancel
           </button>
           <button
-            style={currentStyles.logoutConfirmButton}
+            style={styles.logoutConfirmButton}
             onClick={onConfirm}
           >
             Yes, Logout

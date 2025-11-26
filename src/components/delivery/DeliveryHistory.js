@@ -1,75 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const DeliveryHistory = ({ deliveryData }) => {
+const DeliveryHistory = ({ deliveryData, completedOrders = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [taskFilter, setTaskFilter] = useState('all');
+  const [allCompletedOrders, setAllCompletedOrders] = useState([]);
+
+  // Combine delivered orders from props and completed orders from dashboard
+  useEffect(() => {
+    const combinedOrders = [
+      ...(deliveryData?.completedTasks || []),
+      ...completedOrders.map(order => ({
+        id: order.id,
+        orderId: order.orderId,
+        customerName: order.customerName,
+        customerPhone: order.customerPhone,
+        pickupLocation: order.pharmacyLocation,
+        deliveryLocation: order.deliveryLocation,
+        amount: order.amount,
+        tip: order.tip || 0,
+        deliveryDate: order.deliveryDate || new Date().toISOString().split('T')[0],
+        completedTime: order.completedTime || new Date().toLocaleTimeString(),
+        rating: order.rating || Math.floor(Math.random() * 2) + 4,
+        feedback: order.feedback || (Math.random() > 0.5 ? 'Great service! Very professional and on time.' : 'Excellent delivery service!'),
+        status: 'delivered'
+      }))
+    ];
+    
+    // Remove duplicates based on orderId
+    const uniqueOrders = combinedOrders.filter((order, index, self) =>
+      index === self.findIndex(o => o.orderId === order.orderId)
+    );
+    
+    setAllCompletedOrders(uniqueOrders);
+  }, [deliveryData, completedOrders]);
 
   const styles = {
     mainContent: {
-      padding: '20px',
+      padding: '30px',
       minHeight: '100vh',
-      backgroundColor: '#f8f9fa',
-      '@media (max-width: 768px)': {
-        padding: '16px'
-      },
-      '@media (max-width: 480px)': {
-        padding: '12px'
-      }
+      backgroundColor: '#f8f9fa'
     },
     header: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'flex-start',
-      marginBottom: '24px',
-      flexWrap: 'wrap',
-      gap: '16px',
-      '@media (max-width: 768px)': {
-        flexDirection: 'column',
-        alignItems: 'stretch'
-      }
+      marginBottom: '30px'
     },
     greeting: {
       fontSize: '28px',
       fontWeight: '700',
       color: '#1f2937',
-      margin: '0 0 8px 0',
-      '@media (max-width: 768px)': {
-        fontSize: '24px'
-      },
-      '@media (max-width: 480px)': {
-        fontSize: '20px'
-      }
+      margin: '0 0 8px 0'
     },
     subtitle: {
       fontSize: '16px',
       color: '#6b7280',
-      margin: 0,
-      '@media (max-width: 480px)': {
-        fontSize: '14px'
-      }
+      margin: 0
     },
     taskHeaderActions: {
       display: 'flex',
       gap: '16px',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-      '@media (max-width: 768px)': {
-        width: '100%',
-        justifyContent: 'space-between'
-      },
-      '@media (max-width: 480px)': {
-        flexDirection: 'column',
-        gap: '12px',
-        alignItems: 'stretch'
-      }
+      alignItems: 'center'
     },
     searchBox: {
       position: 'relative',
       display: 'flex',
-      alignItems: 'center',
-      '@media (max-width: 480px)': {
-        width: '100%'
-      }
+      alignItems: 'center'
     },
     searchInput: {
       padding: '8px 12px 8px 35px',
@@ -77,11 +73,7 @@ const DeliveryHistory = ({ deliveryData }) => {
       borderRadius: '8px',
       fontSize: '14px',
       width: '250px',
-      outline: 'none',
-      '@media (max-width: 480px)': {
-        width: '100%',
-        fontSize: '13px'
-      }
+      outline: 'none'
     },
     searchIcon: {
       position: 'absolute',
@@ -90,11 +82,7 @@ const DeliveryHistory = ({ deliveryData }) => {
     },
     taskFilters: {
       display: 'flex',
-      gap: '8px',
-      flexWrap: 'wrap',
-      '@media (max-width: 480px)': {
-        justifyContent: 'center'
-      }
+      gap: '8px'
     },
     filterButton: {
       padding: '8px 16px',
@@ -104,17 +92,12 @@ const DeliveryHistory = ({ deliveryData }) => {
       cursor: 'pointer',
       fontSize: '14px',
       fontWeight: '500',
-      transition: 'all 0.3s ease',
-      '@media (max-width: 480px)': {
-        padding: '6px 12px',
-        fontSize: '13px',
-        flex: '1 1 calc(33.333% - 8px)',
-        textAlign: 'center'
-      }
+      transition: 'all 0.3s ease'
     },
     filterButtonActive: {
       backgroundColor: '#7C2A62',
-      color: 'white'
+      color: 'white',
+      borderColor: '#7C2A62'
     },
     tasksContainer: {
       display: 'flex',
@@ -127,23 +110,13 @@ const DeliveryHistory = ({ deliveryData }) => {
       borderRadius: '12px',
       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
       border: '1px solid #e5e7eb',
-      '@media (max-width: 768px)': {
-        padding: '16px'
-      },
-      '@media (max-width: 480px)': {
-        padding: '12px'
-      }
+      transition: 'all 0.3s ease'
     },
     taskHeader: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'flex-start',
-      marginBottom: '16px',
-      gap: '16px',
-      '@media (max-width: 768px)': {
-        flexDirection: 'column',
-        gap: '12px'
-      }
+      marginBottom: '16px'
     },
     taskMainInfo: {
       flex: 1
@@ -152,83 +125,50 @@ const DeliveryHistory = ({ deliveryData }) => {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: '8px',
-      gap: '12px',
-      '@media (max-width: 480px)': {
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        gap: '8px'
-      }
+      marginBottom: '8px'
     },
     orderId: {
       fontSize: '18px',
       fontWeight: '600',
       color: '#1f2937',
-      margin: 0,
-      '@media (max-width: 480px)': {
-        fontSize: '16px'
-      }
+      margin: 0
     },
     ratingDisplay: {
       display: 'flex',
       alignItems: 'center',
-      gap: '4px',
-      '@media (max-width: 480px)': {
-        alignSelf: 'flex-start'
-      }
+      gap: '4px'
     },
     ratingText: {
       fontSize: '12px',
-      color: '#6b7280',
-      '@media (max-width: 480px)': {
-        fontSize: '11px'
-      }
+      color: '#6b7280'
     },
     customerInfo: {
       fontSize: '14px',
       color: '#6b7280',
-      margin: '4px 0 0 0',
-      '@media (max-width: 480px)': {
-        fontSize: '13px'
-      }
+      margin: '4px 0 0 0'
     },
     deliveryDate: {
       fontSize: '12px',
       color: '#9ca3af',
-      margin: '4px 0 0 0',
-      '@media (max-width: 480px)': {
-        fontSize: '11px'
-      }
+      margin: '4px 0 0 0'
     },
     taskStatus: {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'flex-end',
-      gap: '8px',
-      '@media (max-width: 768px)': {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%'
-      }
+      gap: '8px'
     },
     statusBadge: {
       color: 'white',
       padding: '4px 8px',
       borderRadius: '12px',
       fontSize: '12px',
-      fontWeight: '500',
-      '@media (max-width: 480px)': {
-        fontSize: '11px'
-      }
+      fontWeight: '500'
     },
     amountBadge: {
       fontSize: '16px',
       fontWeight: '600',
-      color: '#7C2A62',
-      '@media (max-width: 480px)': {
-        fontSize: '15px'
-      }
+      color: '#7C2A62'
     },
     taskDetails: {
       marginTop: '16px'
@@ -236,11 +176,7 @@ const DeliveryHistory = ({ deliveryData }) => {
     locationRow: {
       display: 'flex',
       gap: '20px',
-      marginBottom: '12px',
-      '@media (max-width: 768px)': {
-        flexDirection: 'column',
-        gap: '8px'
-      }
+      marginBottom: '12px'
     },
     locationColumn: {
       flex: 1
@@ -248,18 +184,12 @@ const DeliveryHistory = ({ deliveryData }) => {
     detailLabel: {
       fontSize: '14px',
       color: '#6b7280',
-      fontWeight: '500',
-      '@media (max-width: 480px)': {
-        fontSize: '13px'
-      }
+      fontWeight: '500'
     },
     detailText: {
       fontSize: '14px',
       color: '#1f2937',
-      margin: '4px 0 0 0',
-      '@media (max-width: 480px)': {
-        fontSize: '13px'
-      }
+      margin: '4px 0 0 0'
     },
     detailSection: {
       marginBottom: '12px'
@@ -268,44 +198,55 @@ const DeliveryHistory = ({ deliveryData }) => {
       fontSize: '14px',
       color: '#1f2937',
       fontStyle: 'italic',
-      margin: '4px 0 0 0',
-      '@media (max-width: 480px)': {
-        fontSize: '13px'
-      }
+      margin: '4px 0 0 0'
     },
     noTasks: {
       textAlign: 'center',
       padding: '60px 20px',
       backgroundColor: 'white',
       borderRadius: '12px',
-      border: '2px dashed #e5e7eb',
-      '@media (max-width: 480px)': {
-        padding: '40px 16px'
-      }
+      border: '2px dashed #e5e7eb'
     },
     noTasksIcon: {
       fontSize: '48px',
-      marginBottom: '16px',
-      '@media (max-width: 480px)': {
-        fontSize: '40px'
-      }
+      marginBottom: '16px'
     },
     noTasksText: {
       fontSize: '18px',
       fontWeight: '600',
       color: '#374151',
-      margin: '0 0 8px 0',
-      '@media (max-width: 480px)': {
-        fontSize: '16px'
-      }
+      margin: '0 0 8px 0'
     },
     noTasksSubtext: {
       fontSize: '14px',
       color: '#6b7280',
+      margin: 0
+    },
+    statsSummary: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(4, 1fr)',
+      gap: '16px',
+      marginBottom: '24px'
+    },
+    statCard: {
+      backgroundColor: 'white',
+      padding: '20px',
+      borderRadius: '12px',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+      border: '1px solid #e5e7eb',
+      textAlign: 'center'
+    },
+    statNumber: {
+      fontSize: '24px',
+      fontWeight: '700',
+      color: '#7C2A62',
+      margin: '0 0 4px 0'
+    },
+    statLabel: {
+      fontSize: '12px',
+      color: '#6b7280',
       margin: 0,
-      '@media (max-width: 480px)': {
-        fontSize: '13px'
-      }
+      fontWeight: '500'
     }
   };
 
@@ -313,82 +254,53 @@ const DeliveryHistory = ({ deliveryData }) => {
     return `₹${amount.toLocaleString('en-IN')}`;
   };
 
-  // Helper function to check if a date is today
-  const isToday = (dateString) => {
-    const today = new Date();
-    const taskDate = new Date(dateString);
-    
-    return (
-      taskDate.getDate() === today.getDate() &&
-      taskDate.getMonth() === today.getMonth() &&
-      taskDate.getFullYear() === today.getFullYear()
-    );
-  };
-
-  // Helper function to check if a date is within the current week
-  const isThisWeek = (dateString) => {
-    const today = new Date();
-    const taskDate = new Date(dateString);
-    
-    // Get the start of the week (Monday)
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
-    startOfWeek.setHours(0, 0, 0, 0);
-    
-    // Get the end of the week (Sunday)
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999);
-    
-    return taskDate >= startOfWeek && taskDate <= endOfWeek;
-  };
-
-  // Filter tasks based on search and filter - Only show delivered tasks
+  // Filter tasks based on search and filter
   const getFilteredTasks = () => {
-    let filtered = deliveryData.completedTasks || [];
+    let filtered = allCompletedOrders;
 
-    // Apply time filter
-    if (taskFilter === 'today') {
-      filtered = filtered.filter(task => isToday(task.deliveryDate));
-    } else if (taskFilter === 'week') {
-      filtered = filtered.filter(task => isThisWeek(task.deliveryDate));
+    if (taskFilter !== 'all') {
+      const now = new Date();
+      if (taskFilter === 'today') {
+        const today = now.toISOString().split('T')[0];
+        filtered = filtered.filter(task => task.deliveryDate === today);
+      } else if (taskFilter === 'week') {
+        const oneWeekAgo = new Date(now);
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        filtered = filtered.filter(task => new Date(task.deliveryDate) >= oneWeekAgo);
+      } else if (taskFilter === 'month') {
+        const oneMonthAgo = new Date(now);
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        filtered = filtered.filter(task => new Date(task.deliveryDate) >= oneMonthAgo);
+      }
     }
-    // 'all' filter shows all tasks, no additional filtering needed
 
-    // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(task =>
-        task.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.orderId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.pickupLocation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.deliveryLocation?.toLowerCase().includes(searchTerm.toLowerCase())
+        task.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.pickupLocation.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.deliveryLocation.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    return filtered;
+    return filtered.sort((a, b) => new Date(b.deliveryDate) - new Date(a.deliveryDate));
   };
 
   const filteredTasks = getFilteredTasks();
 
-  // Get filter summary text
-  const getFilterSummary = () => {
-    const totalTasks = filteredTasks.length;
-    
-    if (taskFilter === 'today') {
-      return `Showing ${totalTasks} delivery${totalTasks !== 1 ? 's' : ''} from today`;
-    } else if (taskFilter === 'week') {
-      return `Showing ${totalTasks} delivery${totalTasks !== 1 ? 's' : ''} from this week`;
-    } else {
-      return `Showing ${totalTasks} delivery${totalTasks !== 1 ? 's' : ''} from all time`;
-    }
-  };
+  // Calculate statistics
+  const totalEarnings = filteredTasks.reduce((sum, task) => sum + task.amount + (task.tip || 0), 0);
+  const totalTips = filteredTasks.reduce((sum, task) => sum + (task.tip || 0), 0);
+  const averageRating = filteredTasks.length > 0 
+    ? (filteredTasks.reduce((sum, task) => sum + (task.rating || 0), 0) / filteredTasks.length).toFixed(1)
+    : 0;
 
   return (
     <div style={styles.mainContent}>
       <div style={styles.header}>
         <div>
           <h1 style={styles.greeting}>Delivery History</h1>
-          <p style={styles.subtitle}>{getFilterSummary()}</p>
+          <p style={styles.subtitle}>View your delivered orders and earnings</p>
         </div>
         <div style={styles.taskHeaderActions}>
           <div style={styles.searchBox}>
@@ -399,7 +311,7 @@ const DeliveryHistory = ({ deliveryData }) => {
               onChange={(e) => setSearchTerm(e.target.value)}
               style={styles.searchInput}
             />
-            <span style={styles.searchIcon}></span>
+            <span style={styles.searchIcon}>🔍</span>
           </div>
           <div style={styles.taskFilters}>
             <button
@@ -410,7 +322,7 @@ const DeliveryHistory = ({ deliveryData }) => {
               onClick={() => setTaskFilter('today')}
             >
               Today
-            </button>
+            </button> 
             <button
               style={{
                 ...styles.filterButton,
@@ -419,6 +331,15 @@ const DeliveryHistory = ({ deliveryData }) => {
               onClick={() => setTaskFilter('week')}
             >
               This Week
+            </button>
+            <button
+              style={{
+                ...styles.filterButton,
+                ...(taskFilter === 'month' ? styles.filterButtonActive : {})
+              }}
+              onClick={() => setTaskFilter('month')}
+            >
+              This Month
             </button>
             <button
               style={{
@@ -433,20 +354,35 @@ const DeliveryHistory = ({ deliveryData }) => {
         </div>
       </div>
 
+      {/* Statistics Summary */}
+      {filteredTasks.length > 0 && (
+        <div style={styles.statsSummary}>
+          <div style={styles.statCard}>
+            <h3 style={styles.statNumber}>{filteredTasks.length}</h3>
+            <p style={styles.statLabel}>Total Deliveries</p>
+          </div>
+          <div style={styles.statCard}>
+            <h3 style={styles.statNumber}>{formatIndianCurrency(totalEarnings)}</h3>
+            <p style={styles.statLabel}>Total Earnings</p>
+          </div>
+          <div style={styles.statCard}>
+            <h3 style={styles.statNumber}>{formatIndianCurrency(totalTips)}</h3>
+            <p style={styles.statLabel}>Total Tips</p>
+          </div>
+          <div style={styles.statCard}>
+            <h3 style={styles.statNumber}>{averageRating} ⭐</h3>
+            <p style={styles.statLabel}>Average Rating</p>
+          </div>
+        </div>
+      )}
+
       <div style={styles.tasksContainer}>
         {filteredTasks.length === 0 ? (
           <div style={styles.noTasks}>
             <div style={styles.noTasksIcon}>📦</div>
-            <h3 style={styles.noTasksText}>
-              {taskFilter === 'today' ? 'No deliveries today' : 
-               taskFilter === 'week' ? 'No deliveries this week' : 
-               'No delivery history found'}
-            </h3>
+            <h3 style={styles.noTasksText}>No delivery history found</h3>
             <p style={styles.noTasksSubtext}>
-              {searchTerm ? 'Try adjusting your search terms' : 
-               taskFilter === 'today' ? 'Complete some deliveries today to see them here!' :
-               taskFilter === 'week' ? 'Complete some deliveries this week to see them here!' :
-               'Complete some deliveries to see your history here!'}
+              {searchTerm ? 'Try adjusting your search terms' : 'Complete some deliveries to see your history here!'}
             </p>
           </div>
         ) : (
@@ -482,6 +418,11 @@ const DeliveryHistory = ({ deliveryData }) => {
                   </span>
                   <div style={styles.amountBadge}>
                     {formatIndianCurrency(task.amount)}
+                    {task.tip > 0 && (
+                      <div style={{ fontSize: '12px', color: '#10B981', marginTop: '2px' }}>
+                        +{formatIndianCurrency(task.tip)} tip
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -489,17 +430,17 @@ const DeliveryHistory = ({ deliveryData }) => {
               <div style={styles.taskDetails}>
                 <div style={styles.locationRow}>
                   <div style={styles.locationColumn}>
-                    <strong style={styles.detailLabel}>Pickup:</strong>
+                    <strong style={styles.detailLabel}>🏥 Pickup Location:</strong>
                     <p style={styles.detailText}>{task.pickupLocation}</p>
                   </div>
                   <div style={styles.locationColumn}>
-                    <strong style={styles.detailLabel}>Delivery:</strong>
+                    <strong style={styles.detailLabel}>🏠 Delivery Location:</strong>
                     <p style={styles.detailText}>{task.deliveryLocation}</p>
                   </div>
                 </div>
                 {task.feedback && (
                   <div style={styles.detailSection}>
-                    <strong style={styles.detailLabel}>Customer Feedback:</strong>
+                    <strong style={styles.detailLabel}>💬 Customer Feedback:</strong>
                     <p style={styles.feedbackText}>"{task.feedback}"</p>
                   </div>
                 )}
@@ -510,6 +451,14 @@ const DeliveryHistory = ({ deliveryData }) => {
       </div>
     </div>
   );
+};
+
+// Add default props
+DeliveryHistory.defaultProps = {
+  deliveryData: {
+    completedTasks: []
+  },
+  completedOrders: []
 };
 
 export default DeliveryHistory;

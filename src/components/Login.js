@@ -226,6 +226,7 @@ const Login = ({ onSwitchToSignup, onLoginSuccess, onBackToHome }) => {
     }
   };
 
+  // Custom Eye Icon Components
   const EyeIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -326,7 +327,7 @@ const Login = ({ onSwitchToSignup, onLoginSuccess, onBackToHome }) => {
           
           <div className="content-wrapper">
             <div className="user-icon">
-              {userType === 'user' }
+              {userType === 'user'}
               {userType === 'vendor'}
               {userType === 'delivery'}
               {userType === 'doctor'}
@@ -399,6 +400,7 @@ const Login = ({ onSwitchToSignup, onLoginSuccess, onBackToHome }) => {
                   onKeyDown={handlePasswordToggleKeyPress}
                   className="password-toggle"
                   disabled={isLoading}
+                  tabIndex={0}
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
@@ -517,11 +519,14 @@ const Login = ({ onSwitchToSignup, onLoginSuccess, onBackToHome }) => {
         .back-home-btn:hover:not(:disabled) {
           background-color: #7C2A62;
           color: white;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(124, 42, 98, 0.3);
         }
 
         .back-home-btn:disabled {
           opacity: 0.7;
           cursor: not-allowed;
+          transform: none;
         }
 
         /* Toast Message */
@@ -599,6 +604,12 @@ const Login = ({ onSwitchToSignup, onLoginSuccess, onBackToHome }) => {
           font-weight: 500;
           cursor: pointer;
           flex: 1;
+          transition: all 0.2s ease;
+        }
+
+        .cancel-btn:hover:not(:disabled) {
+          background-color: #E5E7EB;
+          transform: translateY(-1px);
         }
 
         .submit-btn {
@@ -612,10 +623,19 @@ const Login = ({ onSwitchToSignup, onLoginSuccess, onBackToHome }) => {
           cursor: pointer;
           flex: 1;
           opacity: 1;
+          transition: all 0.2s ease;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+          background-color: #5a1a4a;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(124, 42, 98, 0.3);
         }
 
         .submit-btn:disabled {
           opacity: 0.7;
+          cursor: not-allowed;
+          transform: none;
         }
 
         /* Main Card Container */
@@ -711,16 +731,20 @@ const Login = ({ onSwitchToSignup, onLoginSuccess, onBackToHome }) => {
         .user-type-btn.active {
           border-color: white;
           background-color: rgba(255,255,255,0.2);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
         .user-type-btn:hover:not(:disabled) {
           border-color: rgba(255,255,255,0.6);
           background-color: rgba(255,255,255,0.1);
+          transform: translateY(-2px);
         }
 
         .user-type-btn:disabled {
           opacity: 0.7;
           cursor: not-allowed;
+          transform: none;
         }
 
         .btn-icon {
@@ -782,11 +806,13 @@ const Login = ({ onSwitchToSignup, onLoginSuccess, onBackToHome }) => {
 
         .input-group input:focus {
           border-color: #7C2A62;
+          box-shadow: 0 0 0 3px rgba(124, 42, 98, 0.1);
         }
 
         .input-group input:disabled {
           opacity: 0.7;
           cursor: not-allowed;
+          background-color: #F9FAFB;
         }
 
         .password-input-wrapper {
@@ -815,11 +841,13 @@ const Login = ({ onSwitchToSignup, onLoginSuccess, onBackToHome }) => {
         .password-toggle:hover:not(:disabled) {
           background-color: #F7D9EB;
           color: #7C2A62;
+          transform: translateY(-50%) scale(1.1);
         }
 
         .password-toggle:disabled {
           opacity: 0.7;
           cursor: not-allowed;
+          transform: translateY(-50%);
         }
 
         .form-options {
@@ -836,11 +864,17 @@ const Login = ({ onSwitchToSignup, onLoginSuccess, onBackToHome }) => {
           cursor: pointer;
           font-size: 14px;
           color: #333333;
+          transition: color 0.2s ease;
+        }
+
+        .remember-me:hover {
+          color: #7C2A62;
         }
 
         .remember-me input {
           margin: 0;
           accent-color: #7C2A62;
+          cursor: pointer;
         }
 
         .forgot-password-link {
@@ -851,11 +885,14 @@ const Login = ({ onSwitchToSignup, onLoginSuccess, onBackToHome }) => {
           transition: all 0.2s ease;
           padding: 4px 8px;
           border-radius: 4px;
+          text-decoration: none;
+          display: inline-block;
         }
 
         .forgot-password-link:hover {
           color: #5a1a4a;
           background-color: #F7D9EB;
+          transform: translateY(-1px);
         }
 
         .login-btn {
@@ -876,12 +913,15 @@ const Login = ({ onSwitchToSignup, onLoginSuccess, onBackToHome }) => {
 
         .login-btn:hover:not(:disabled) {
           background-color: #5a1a4a;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(124, 42, 98, 0.4);
         }
 
         .login-btn:disabled {
           opacity: 0.7;
           cursor: not-allowed;
           animation: pulse 1.5s ease-in-out infinite;
+          transform: none;
         }
 
         .signup-section {
@@ -907,11 +947,14 @@ const Login = ({ onSwitchToSignup, onLoginSuccess, onBackToHome }) => {
           padding: 2px 6px;
           border-radius: 4px;
           margin-left: 4px;
+          text-decoration: none;
+          display: inline-block;
         }
 
         .signup-link:hover {
           color: #5a1a4a;
           background-color: #F7D9EB;
+          transform: translateY(-1px);
         }
 
         /* Animations */

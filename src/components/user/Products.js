@@ -11,8 +11,6 @@ const Products = ({
   setActiveView 
 }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [showProductDetails, setShowProductDetails] = useState(false);
 
   // Color constants
   const colors = {
@@ -101,7 +99,7 @@ const Products = ({
     },
     // NEW: Health message styles
     healthMessage: {
-      flex: 0.8,
+      flex: 0.7,
       padding: '15px 20px',
       backgroundColor: colors.accent,
       color: colors.primary,
@@ -239,17 +237,6 @@ const Products = ({
       fontSize: '1.6rem', // Larger price
       fontWeight: 'bold'
     },
-    viewDetailsButton: {
-      padding: '10px 10px', // Larger button
-      backgroundColor: 'transparent',
-      color: colors.primary,
-      border: `2px solid ${colors.primary}`,
-      borderRadius: '8px', // Slightly larger
-      cursor: 'pointer',
-      fontSize: '0.95rem', // Slightly larger
-      fontWeight: '500',
-      transition: 'all 0.3s ease'
-    },
     // UPDATED: Smaller Add to Cart button
     addToCartButton: {
       padding: '10px 0px', // SMALLER: Reduced from 14px to 10px
@@ -308,188 +295,6 @@ const Products = ({
       fontWeight: 'bold',
       color: colors.primary,
       minWidth: '35px', // SMALLER: Reduced from 40px to 35px
-      textAlign: 'center'
-    },
-    modalOverlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.7)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1000,
-      padding: '20px'
-    },
-    productModal: {
-      backgroundColor: colors.white,
-      borderRadius: '15px',
-      maxWidth: '800px',
-      width: '100%',
-      maxHeight: '90vh',
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-      boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
-    },
-    modalHeader: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '20px 25px',
-      borderBottom: `2px solid ${colors.accent}`,
-      backgroundColor: colors.primary,
-      color: colors.white,
-      position: 'relative'
-    },
-    modalTitle: {
-      fontSize: '1.5rem',
-      fontWeight: 'bold',
-      margin: 0
-    },
-    // UPDATED: Decreased close button width
-    closeButton: {
-      background: 'none',
-      border: 'none',
-      color: colors.white,
-      fontSize: '1.5rem', // Smaller font size
-      cursor: 'pointer',
-      padding: 0,
-      width: '30px', // Decreased from 40px to 30px
-      height: '30px', // Decreased from 40px to 30px
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: '50%',
-      transition: 'background-color 0.3s ease'
-    },
-    modalContent: {
-      padding: '25px',
-      overflowY: 'auto',
-      flex: 1
-    },
-    modalImageSection: {
-      display: 'flex',
-      gap: '20px',
-      marginBottom: '25px',
-      alignItems: 'flex-start'
-    },
-    modalImage: {
-      fontSize: '4rem',
-      padding: '20px',
-      backgroundColor: colors.accent,
-      borderRadius: '10px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    },
-    modalBasicInfo: {
-      flex: 1
-    },
-    modalBrand: {
-      color: colors.primary,
-      fontSize: '1.3rem',
-      fontWeight: 'bold',
-      marginBottom: '5px'
-    },
-    modalCategory: {
-      color: colors.gray,
-      fontSize: '1rem',
-      marginBottom: '10px'
-    },
-    modalPrice: {
-      color: colors.primary,
-      fontSize: '2rem',
-      fontWeight: 'bold',
-      marginBottom: '10px'
-    },
-    modalRating: {
-      color: colors.gray,
-      fontSize: '1rem'
-    },
-    modalDetails: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '20px'
-    },
-    detailSection: {
-      marginBottom: '15px'
-    },
-    detailTitle: {
-      color: colors.primary,
-      fontSize: '1.1rem',
-      fontWeight: 'bold',
-      marginBottom: '10px',
-      borderBottom: `2px solid ${colors.accent}`,
-      paddingBottom: '5px'
-    },
-    detailText: {
-      color: colors.darkGray,
-      fontSize: '0.95rem',
-      lineHeight: '1.5',
-      margin: 0
-    },
-    detailList: {
-      margin: 0,
-      paddingLeft: '20px'
-    },
-    detailListItem: {
-      color: colors.darkGray,
-      fontSize: '0.95rem',
-      lineHeight: '1.5',
-      marginBottom: '5px'
-    },
-    modalActions: {
-      display: 'flex',
-      gap: '15px',
-      padding: '20px 25px',
-      borderTop: `2px solid ${colors.accent}`,
-      backgroundColor: colors.lightGray
-    },
-    closeModalButton: {
-      padding: '12px 25px',
-      backgroundColor: colors.gray,
-      color: colors.white,
-      border: 'none',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      fontSize: '1rem',
-      fontWeight: '600',
-      transition: 'all 0.3s ease',
-      flex: 0.2
-    },
-    modalQuantityControls: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '20px',
-      margin: '20px 0',
-      padding: '15px',
-      backgroundColor: colors.accent,
-      borderRadius: '10px'
-    },
-    modalQuantityButton: {
-      width: '45px',
-      height: '45px',
-      border: `2px solid ${colors.primary}`,
-      backgroundColor: colors.white,
-      color: colors.primary,
-      borderRadius: '50%',
-      cursor: 'pointer',
-      fontSize: '1.5rem',
-      fontWeight: 'bold',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      transition: 'all 0.3s ease'
-    },
-    modalQuantityDisplay: {
-      fontSize: '1.5rem',
-      fontWeight: 'bold',
-      color: colors.primary,
-      minWidth: '50px',
       textAlign: 'center'
     }
   };
@@ -893,6 +698,271 @@ const Products = ({
       stock: 45,
       rating: 4.4,
       reviews: 167
+    },
+    // NEW EMERGENCY MEDICINES ADDED BELOW
+    {
+      id: 13,
+      name: 'Dolo 650mg',
+      brand: 'Micro Labs',
+      price: 28,
+      vendor: 'Emergency Pharmacy',
+      category: 'Emergency',
+      description: 'Fast-acting paracetamol for fever and pain relief',
+      detailedDescription: 'Dolo 650 is a trusted paracetamol formulation that provides quick relief from fever, headache, body ache, and other mild to moderate pain conditions. Specially designed for rapid action.',
+      uses: [
+        'High fever reduction',
+        'Severe headache relief',
+        'Body pain and muscle aches',
+        'Dental pain and migraines'
+      ],
+      dosage: 'One tablet every 4-6 hours, maximum 4 tablets in 24 hours',
+      sideEffects: [
+        'Rare when taken as directed',
+        'Liver damage in overdose',
+        'Allergic skin reactions'
+      ],
+      precautions: [
+        'Do not exceed recommended dose',
+        'Consult for liver conditions',
+        'Avoid alcohol completely',
+        'Emergency use for high fever'
+      ],
+      image: '',
+      prescriptionRequired: false,
+      stock: 120,
+      rating: 4.8,
+      reviews: 425
+    },
+    {
+      id: 14,
+      name: 'Asthalin Inhaler',
+      brand: 'Cipla',
+      price: 145,
+      vendor: 'Emergency Pharmacy',
+      category: 'Emergency',
+      description: 'Emergency relief for asthma and breathing difficulties',
+      detailedDescription: 'Asthalin inhaler contains Salbutamol which provides immediate relief from asthma attacks, bronchospasm, and breathing difficulties by relaxing muscles in the airways.',
+      uses: [
+        'Asthma attacks',
+        'Bronchospasm relief',
+        'Exercise-induced asthma',
+        'Chronic obstructive pulmonary disease'
+      ],
+      dosage: '1-2 puffs as needed during attack, maximum 8 puffs in 24 hours',
+      sideEffects: [
+        'Tremors',
+        'Headache',
+        'Rapid heartbeat',
+        'Muscle cramps'
+      ],
+      precautions: [
+        'PRESCRIPTION REQUIRED',
+        'Not for regular use',
+        'Seek emergency help if no relief',
+        'Carry at all times if asthmatic'
+      ],
+      image: '',
+      prescriptionRequired: true,
+      stock: 35,
+      rating: 4.6,
+      reviews: 278
+    },
+    {
+      id: 15,
+      name: 'ORS Powder',
+      brand: 'Electral',
+      price: 15,
+      vendor: 'WellCare Store',
+      category: 'Emergency',
+      description: 'Oral rehydration solution for dehydration emergency',
+      detailedDescription: 'Electral ORS helps restore fluid and electrolyte balance during dehydration caused by diarrhea, vomiting, excessive sweating, or fever. Essential for preventing dehydration complications.',
+      uses: [
+        'Diarrhea and vomiting',
+        'Heat stroke',
+        'Food poisoning',
+        'Post-operative hydration'
+      ],
+      dosage: 'One sachet in 200ml clean water, as needed based on condition',
+      sideEffects: [
+        'Rare when prepared correctly',
+        'Nausea if taken too quickly'
+      ],
+      precautions: [
+        'Use clean water for preparation',
+        'Consume within 24 hours',
+        'Seek doctor if severe dehydration',
+        'Essential for children and elderly'
+      ],
+      image: '',
+      prescriptionRequired: false,
+      stock: 200,
+      rating: 4.9,
+      reviews: 512
+    },
+    {
+      id: 16,
+      name: 'Avomine 25mg',
+      brand: 'Sanofi',
+      price: 42,
+      vendor: 'City Pharmacy',
+      category: 'Emergency',
+      description: 'Emergency motion sickness and vomiting control',
+      detailedDescription: 'Avomine (Promethazine) is highly effective for preventing and treating motion sickness, nausea, vomiting, and vertigo. Works by blocking signals to the vomiting center in the brain.',
+      uses: [
+        'Motion sickness prevention',
+        'Severe nausea and vomiting',
+        'Vertigo and dizziness',
+        'Migraine-associated nausea'
+      ],
+      dosage: 'One tablet 1-2 hours before travel, or as needed for nausea',
+      sideEffects: [
+        'Drowsiness',
+        'Dry mouth',
+        'Blurred vision',
+        'Dizziness'
+      ],
+      precautions: [
+        'May cause drowsiness - avoid driving',
+        'Avoid alcohol',
+        'Not for children under 2 years',
+        'Take before symptoms start for best effect'
+      ],
+      image: '',
+      prescriptionRequired: false,
+      stock: 65,
+      rating: 4.5,
+      reviews: 189
+    },
+    {
+      id: 17,
+      name: 'Burnol Cream',
+      brand: 'Johnson & Johnson',
+      price: 55,
+      vendor: 'HealthPlus Medicines',
+      category: 'Emergency',
+      description: 'First aid antiseptic cream for burns and wounds',
+      detailedDescription: 'Burnol cream provides immediate relief from burns, scalds, and minor wounds. Contains antiseptic properties to prevent infection while promoting healing of damaged skin.',
+      uses: [
+        'Thermal burns and scalds',
+        'Minor cuts and wounds',
+        'Sunburn relief',
+        'Skin abrasions'
+      ],
+      dosage: 'Apply generously on affected area 2-3 times daily',
+      sideEffects: [
+        'Mild stinging on application',
+        'Skin irritation in sensitive individuals'
+      ],
+      precautions: [
+        'For external use only',
+        'Not for deep or infected wounds',
+        'Seek doctor for severe burns',
+        'Keep in first aid kit'
+      ],
+      image: '',
+      prescriptionRequired: false,
+      stock: 80,
+      rating: 4.7,
+      reviews: 234
+    },
+    {
+      id: 18,
+      name: 'Digene Tablet',
+      brand: 'Abbott',
+      price: 12,
+      vendor: 'Emergency Pharmacy',
+      category: 'Emergency',
+      description: 'Instant relief from acidity and indigestion',
+      detailedDescription: 'Digene tablets provide fast relief from acidity, heartburn, indigestion, and gas. Antacid formulation that neutralizes excess stomach acid immediately upon consumption.',
+      uses: [
+        'Acidity and heartburn',
+        'Indigestion and bloating',
+        'Gas and flatulence',
+        'Stomach discomfort'
+      ],
+      dosage: '1-2 tablets to be chewed as needed, maximum 12 tablets in 24 hours',
+      sideEffects: [
+        'Chalky taste',
+        'Constipation with overuse',
+        'Stomach cramps'
+      ],
+      precautions: [
+        'Not for long-term regular use',
+        'Consult if symptoms persist',
+        'Take after meals if chronic acidity',
+        'Keep handy for emergency relief'
+      ],
+      image: '',
+      prescriptionRequired: false,
+      stock: 150,
+      rating: 4.4,
+      reviews: 367
+    },
+    {
+      id: 19,
+      name: 'Betadine Solution',
+      brand: 'Win-Medicare',
+      price: 85,
+      vendor: 'City Pharmacy',
+      category: 'Emergency',
+      description: 'Antiseptic solution for wound disinfection',
+      detailedDescription: 'Betadine solution contains povidone-iodine that effectively kills bacteria, viruses, and fungi. Essential for first aid to prevent infection in cuts, wounds, and abrasions.',
+      uses: [
+        'Wound disinfection',
+        'Pre-surgical skin preparation',
+        'Burn care',
+        'Minor skin infections'
+      ],
+      dosage: 'Apply directly to affected area 2-3 times daily',
+      sideEffects: [
+        'Mild stinging',
+        'Temporary skin discoloration',
+        'Allergic reactions in iodine-sensitive individuals'
+      ],
+      precautions: [
+        'For external use only',
+        'Avoid contact with eyes',
+        'Do not use on deep wounds without medical supervision',
+        'Essential first aid item'
+      ],
+      image: '',
+      prescriptionRequired: false,
+      stock: 45,
+      rating: 4.6,
+      reviews: 198
+    },
+    {
+      id: 20,
+      name: 'Volini Spray',
+      brand: 'Sanofi',
+      price: 220,
+      vendor: 'HealthPlus Medicines',
+      category: 'Emergency',
+      description: 'Instant pain relief spray for muscle and joint injuries',
+      detailedDescription: 'Volini spray provides immediate cooling relief from muscle pain, sprains, strains, and joint pain. Easy-to-use spray formulation for quick application during sports injuries or accidents.',
+      uses: [
+        'Muscle sprains and strains',
+        'Joint pain and inflammation',
+        'Sports injuries',
+        'Back pain and stiffness'
+      ],
+      dosage: 'Spray on affected area 3-4 times daily from 15cm distance',
+      sideEffects: [
+        'Cooling sensation',
+        'Mild skin irritation',
+        'Redness in sensitive skin'
+      ],
+      precautions: [
+        'For external use only',
+        'Avoid broken skin',
+        'Do not inhale spray',
+        'Keep away from heat and flame'
+      ],
+      image: '',
+      prescriptionRequired: false,
+      stock: 30,
+      rating: 4.5,
+      reviews: 156
     }
   ];
 
@@ -906,16 +976,6 @@ const Products = ({
     return matchesSearch && matchesCategory;
   });
 
-  const viewProductDetails = (product) => {
-    setSelectedProduct(product);
-    setShowProductDetails(true);
-  };
-
-  const closeProductDetails = () => {
-    setShowProductDetails(false);
-    setSelectedProduct(null);
-  };
-
   const addToCartWithNotification = (product) => {
     addToCart(product);
     // You can add a toast notification here if needed
@@ -925,13 +985,6 @@ const Products = ({
   const getProductQuantity = (productId) => {
     const cartItem = cart.find(item => item.id === productId);
     return cartItem ? cartItem.quantity : 0;
-  };
-
-  // Handle click outside modal to close
-  const handleModalOverlayClick = (e) => {
-    if (e.target === e.currentTarget) {
-      closeProductDetails();
-    }
   };
 
   // NEW: Handle back to home page
@@ -979,7 +1032,8 @@ const Products = ({
           />
           {/* NEW: Health Priority Message */}
           <div style={styles.healthMessage}>
-For your safety and well-being, we provide only quality medicines from trusted sources, properly stored for maximum efficacy.           </div>
+            For your safety and well-being, we provide only quality medicines from trusted sources, properly stored for maximum efficacy.
+          </div>
         </div>
 
         <div style={styles.categoryFilter}>
@@ -1040,14 +1094,9 @@ For your safety and well-being, we provide only quality medicines from trusted s
 
                   <div style={styles.productPriceSection}>
                     <span style={styles.productPrice}>₹{product.price}</span>
-                    <button
-                      style={styles.viewDetailsButton}
-                      onClick={() => viewProductDetails(product)}
-                    >
-                      View Details
-                    </button>
                   </div>
 
+                  {/* Quantity Controls - Only show if product is in cart */}
                   {quantityInCart > 0 ? (
                     <div style={styles.quantityControls}>
                       <button
@@ -1086,10 +1135,25 @@ For your safety and well-being, we provide only quality medicines from trusted s
                       </button>
                     </div>
                   ) : (
+                    // Add to Cart Button - Only show if product is not in cart
                     <button
                       style={product.stock > 0 ? styles.addToCartButton : styles.disabledButton}
                       onClick={() => product.stock > 0 && addToCartWithNotification(product)}
                       disabled={product.stock === 0}
+                      onMouseEnter={(e) => {
+                        if (product.stock > 0) {
+                          e.target.style.backgroundColor = colors.accent;
+                          e.target.style.color = colors.primary;
+                          e.target.style.transform = 'translateY(-2px)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (product.stock > 0) {
+                          e.target.style.backgroundColor = colors.primary;
+                          e.target.style.color = colors.white;
+                          e.target.style.transform = 'translateY(0)';
+                        }
+                      }}
                     >
                       {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
                     </button>
@@ -1100,172 +1164,6 @@ For your safety and well-being, we provide only quality medicines from trusted s
           })}
         </div>
       </section>
-
-      {/* Product Details Modal */}
-      {showProductDetails && selectedProduct && (
-        <div style={styles.modalOverlay} onClick={handleModalOverlayClick}>
-          <div style={styles.productModal}>
-            <div style={styles.modalHeader}>
-              <h2 style={styles.modalTitle}>{selectedProduct.name}</h2>
-              <button style={styles.closeButton} onClick={closeProductDetails}>
-                ×
-              </button>
-            </div>
-
-            <div style={styles.modalContent}>
-              <div style={styles.modalImageSection}>
-                <div style={styles.modalImage}>
-                  {selectedProduct.image}
-                </div>
-                <div style={styles.modalBasicInfo}>
-                  <h3 style={styles.modalBrand}>{selectedProduct.brand}</h3>
-                  <p style={styles.modalCategory}>{selectedProduct.category}</p>
-                  <div style={styles.modalPrice}>₹{selectedProduct.price}</div>
-                  <div style={styles.modalRating}>
-                    ⭐ {selectedProduct.rating} ({selectedProduct.reviews} reviews)
-                  </div>
-                </div>
-              </div>
-
-              {/* Quantity Controls in Modal */}
-              <div style={styles.modalQuantityControls}>
-                <button
-                  style={styles.modalQuantityButton}
-                  onClick={() => {
-                    const currentQuantity = getProductQuantity(selectedProduct.id);
-                    if (currentQuantity > 0) {
-                      updateQuantity(selectedProduct.id, currentQuantity - 1);
-                    }
-                  }}
-                  onMouseEnter={(e) => {
-                    const currentQuantity = getProductQuantity(selectedProduct.id);
-                    if (currentQuantity > 0) {
-                      e.target.style.backgroundColor = colors.primary;
-                      e.target.style.color = colors.white;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    const currentQuantity = getProductQuantity(selectedProduct.id);
-                    if (currentQuantity > 0) {
-                      e.target.style.backgroundColor = colors.white;
-                      e.target.style.color = colors.primary;
-                    }
-                  }}
-                >
-                  −
-                </button>
-                <span style={styles.modalQuantityDisplay}>
-                  {getProductQuantity(selectedProduct.id)}
-                </span>
-                <button
-                  style={styles.modalQuantityButton}
-                  onClick={() => {
-                    const currentQuantity = getProductQuantity(selectedProduct.id);
-                    if (currentQuantity < selectedProduct.stock) {
-                      updateQuantity(selectedProduct.id, currentQuantity + 1);
-                    }
-                  }}
-                  disabled={getProductQuantity(selectedProduct.id) >= selectedProduct.stock}
-                  onMouseEnter={(e) => {
-                    const currentQuantity = getProductQuantity(selectedProduct.id);
-                    if (currentQuantity < selectedProduct.stock) {
-                      e.target.style.backgroundColor = colors.primary;
-                      e.target.style.color = colors.white;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    const currentQuantity = getProductQuantity(selectedProduct.id);
-                    if (currentQuantity < selectedProduct.stock) {
-                      e.target.style.backgroundColor = colors.white;
-                      e.target.style.color = colors.primary;
-                    }
-                  }}
-                >
-                  +
-                </button>
-              </div>
-
-              <div style={styles.modalDetails}>
-                <div style={styles.detailSection}>
-                  <h4 style={styles.detailTitle}>Description</h4>
-                  <p style={styles.detailText}>{selectedProduct.detailedDescription}</p>
-                </div>
-
-                <div style={styles.detailSection}>
-                  <h4 style={styles.detailTitle}>Uses</h4>
-                  <ul style={styles.detailList}>
-                    {selectedProduct.uses.map((use, index) => (
-                      <li key={index} style={styles.detailListItem}>{use}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div style={styles.detailSection}>
-                  <h4 style={styles.detailTitle}>Dosage</h4>
-                  <p style={styles.detailText}>{selectedProduct.dosage}</p>
-                </div>
-
-                <div style={styles.detailSection}>
-                  <h4 style={styles.detailTitle}>Side Effects</h4>
-                  <ul style={styles.detailList}>
-                    {selectedProduct.sideEffects.map((effect, index) => (
-                      <li key={index} style={styles.detailListItem}>{effect}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div style={styles.detailSection}>
-                  <h4 style={styles.detailTitle}>Precautions</h4>
-                  <ul style={styles.detailList}>
-                    {selectedProduct.precautions.map((precaution, index) => (
-                      <li key={index} style={styles.detailListItem}>{precaution}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                {selectedProduct.features && (
-                  <div style={styles.detailSection}>
-                    <h4 style={styles.detailTitle}>Features</h4>
-                    <ul style={styles.detailList}>
-                      {selectedProduct.features.map((feature, index) => (
-                        <li key={index} style={styles.detailListItem}>{feature}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {selectedProduct.keyIngredients && (
-                  <div style={styles.detailSection}>
-                    <h4 style={styles.detailTitle}>Key Ingredients</h4>
-                    <ul style={styles.detailList}>
-                      {selectedProduct.keyIngredients.map((ingredient, index) => (
-                        <li key={index} style={styles.detailListItem}>{ingredient}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div style={styles.modalActions}>
-              <button
-                style={selectedProduct.stock > 0 ? styles.addToCartButton : styles.disabledButton}
-                onClick={() => {
-                  if (selectedProduct.stock > 0 && getProductQuantity(selectedProduct.id) === 0) {
-                    addToCartWithNotification(selectedProduct);
-                  }
-                }}
-                disabled={selectedProduct.stock === 0 || getProductQuantity(selectedProduct.id) > 0}
-              >
-                {getProductQuantity(selectedProduct.id) > 0 ? 'Added to Cart' : 'Add to Cart'}
-              </button>
-              <button style={styles.closeModalButton} onClick={closeProductDetails}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }; 

@@ -8,63 +8,205 @@ const AppointmentsContent = ({ dashboardData, state, actions }) => {
     handleCancelAppointment,
     handleApproveAppointment,
     handleRejectAppointment,
-    handleStartConversation,
     handleViewFullHistory,
     handleAddNotes
   } = actions;
 
   const isMobile = window.innerWidth <= 768;
 
-  // State for real-time messaging features
-  const [messageStatus, setMessageStatus] = useState({});
-  const [unreadCounts, setUnreadCounts] = useState({});
-  const [onlineStatus, setOnlineStatus] = useState({});
+  // State for time slots management
+  const [showTimeSlots, setShowTimeSlots] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [doctorTimeSlots, setDoctorTimeSlots] = useState([]);
+  const [selectedDate, setSelectedDate] = useState('');
 
-  // Simulate real-time updates for messaging
+  // State for video consultation
+  const [videoCallActive, setVideoCallActive] = useState(false);
+  const [currentConsultation, setCurrentConsultation] = useState(null);
+  const [callStatus, setCallStatus] = useState('connecting');
+
+  // Initialize doctor time slots with date-wise structure
   useEffect(() => {
-    const initialStatus = {};
-    const initialUnread = {};
-    const initialOnline = {};
+    const initialTimeSlots = generateDateWiseTimeSlots();
+    setDoctorTimeSlots(initialTimeSlots);
+    // Set default selected date to today
+    setSelectedDate(new Date().toISOString().split('T')[0]);
+  }, []);
+
+  // Generate date-wise time slots for the next 7 days
+  const generateDateWiseTimeSlots = () => {
+    const timeSlots = [];
+    const today = new Date();
     
-    dashboardData.patients?.forEach(patient => {
-      initialStatus[patient.id] = 'idle';
-      initialUnread[patient.id] = Math.floor(Math.random() * 3);
-      initialOnline[patient.id] = Math.random() > 0.3;
-    });
+    // Generate slots for next 7 days
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      const dateString = date.toISOString().split('T')[0];
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+      
+      // Skip Sundays
+      if (dayName === 'Sunday') continue;
+      
+      // Morning slots (9 AM - 12 PM)
+      for (let hour = 9; hour <= 12; hour++) {
+        timeSlots.push({
+          id: `${dateString}-morning-${hour}-00`,
+          date: dateString,
+          day: dayName,
+          time: `${hour}:00 - ${hour}:30`,
+          period: 'Morning',
+          available: Math.random() > 0.3,
+          booked: Math.random() > 0.7
+        });
+        timeSlots.push({
+          id: `${dateString}-morning-${hour}-30`,
+          date: dateString,
+          day: dayName,
+          time: `${hour}:30 - ${hour + 1}:00`,
+          period: 'Morning',
+          available: Math.random() > 0.3,
+          booked: Math.random() > 0.7
+        });
+      }
+      
+      // Evening slots (4 PM - 7 PM)
+      for (let hour = 16; hour <= 19; hour++) {
+        timeSlots.push({
+          id: `${dateString}-evening-${hour}-00`,
+          date: dateString,
+          day: dayName,
+          time: `${hour}:00 - ${hour}:30`,
+          period: 'Evening',
+          available: Math.random() > 0.4,
+          booked: Math.random() > 0.6
+        });
+        timeSlots.push({
+          id: `${dateString}-evening-${hour}-30`,
+          date: dateString,
+          day: dayName,
+          time: `${hour}:30 - ${hour + 1}:00`,
+          period: 'Evening',
+          available: Math.random() > 0.4,
+          booked: Math.random() > 0.6
+        });
+      }
+    }
     
-    setMessageStatus(initialStatus);
-    setUnreadCounts(initialUnread);
-    setOnlineStatus(initialOnline);
+    return timeSlots;
+  };
 
-    const statusInterval = setInterval(() => {
-      setMessageStatus(prev => {
-        const updated = { ...prev };
-        Object.keys(updated).forEach(patientId => {
-          const random = Math.random();
-          if (random < 0.7) {
-            updated[patientId] = 'online';
-          } else if (random < 0.85) {
-            updated[patientId] = 'typing';
-          } else {
-            updated[patientId] = 'offline';
-          }
-        });
-        return updated;
-      });
+  // Video Consultation Component
+  const VideoConsultation = () => {
+    if (!videoCallActive) return null;
 
-      setUnreadCounts(prev => {
-        const updated = { ...prev };
-        Object.keys(updated).forEach(patientId => {
-          if (Math.random() < 0.1) {
-            updated[patientId] = (updated[patientId] || 0) + 1;
-          }
-        });
-        return updated;
-      });
-    }, 8000);
+    const handleEndCall = () => {
+      setVideoCallActive(false);
+      setCurrentConsultation(null);
+      setCallStatus('disconnected');
+    };
 
-    return () => clearInterval(statusInterval);
-  }, [dashboardData.patients]);
+    const handleToggleVideo = () => {
+      // Toggle video functionality
+      alert('Video toggled');
+    };
+
+    const handleToggleAudio = () => {
+      // Toggle audio functionality
+      alert('Audio toggled');
+    };
+
+    return (
+      <div style={styles.videoCallOverlay}>
+        <div style={styles.videoCallContainer}>
+          <div style={styles.videoCallHeader}>
+            <div style={styles.callInfo}>
+              <h3 style={styles.callTitle}>
+                Video Consultation with {currentConsultation?.patientName}
+              </h3>
+              <p style={styles.callStatus}>
+                Status: <span style={{
+                  color: callStatus === 'connected' ? '#10B981' : 
+                         callStatus === 'connecting' ? '#F59E0B' : '#EF4444'
+                }}>{callStatus}</span>
+              </p>
+            </div>
+            <button style={styles.endCallButton} onClick={handleEndCall}>
+              📞 End Call
+            </button>
+          </div>
+
+          <div style={styles.videoGrid}>
+            {/* Patient Video */}
+            <div style={styles.videoFeed}>
+              <div style={styles.videoPlaceholder}>
+                <div style={styles.videoIcon}>👤</div>
+                <p style={styles.videoLabel}>{currentConsultation?.patientName}</p>
+                <p style={styles.videoStatus}>Live Video Feed</p>
+              </div>
+            </div>
+
+            {/* Doctor Video (Self View) */}
+            <div style={styles.selfView}>
+              <div style={styles.selfViewPlaceholder}>
+                <div style={styles.videoIcon}>👨‍⚕️</div>
+                <p style={styles.videoLabel}>You</p>
+                <p style={styles.videoStatus}>Self View</p>
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.callControls}>
+            <button style={styles.controlButton} onClick={handleToggleVideo}>
+              🎥 Video
+            </button>
+            <button style={styles.controlButton} onClick={handleToggleAudio}>
+              🎤 Audio
+            </button>
+            <button style={styles.controlButton}>
+              📺 Share Screen
+            </button>
+            <button style={styles.controlButton}>
+              💬 Chat
+            </button>
+            <button style={styles.recordButton}>
+              🔴 Record
+            </button>
+          </div>
+
+          {/* Consultation Tools during call */}
+          <div style={styles.callTools}>
+            <h4 style={styles.toolsTitle}>Quick Tools</h4>
+            <div style={styles.quickTools}>
+              <button style={styles.toolButton}>
+                💊 Prescription
+              </button>
+              <button style={styles.toolButton}>
+                📋 Medical History
+              </button>
+              <button style={styles.toolButton}>
+                🩺 Examination
+              </button>
+              <button style={styles.toolButton}>
+                📝 Notes
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const handleStartVideoConsultation = (appointment) => {
+    setCurrentConsultation(appointment);
+    setVideoCallActive(true);
+    setCallStatus('connecting');
+    
+    // Simulate call connection
+    setTimeout(() => {
+      setCallStatus('connected');
+    }, 2000);
+  };
 
   const getFilteredAppointments = () => {
     switch (appointmentFilter) {
@@ -81,80 +223,13 @@ const AppointmentsContent = ({ dashboardData, state, actions }) => {
     );
   };
 
-  const getMessageButtonStatus = (patient) => {
-    if (!patient) return null;
-    
-    const status = messageStatus[patient.id];
-    const unreadCount = unreadCounts[patient.id] || 0;
-    const isOnline = onlineStatus[patient.id];
-    
-    return { status, unreadCount, isOnline };
-  };
-
-  const handleMessageClick = (appointment) => {
-    const patient = getPatientFromAppointment(appointment);
-    if (patient) {
-      setUnreadCounts(prev => ({
-        ...prev,
-        [patient.id]: 0
-      }));
-      handleStartConversation(patient);
-    }
-  };
-
-  const MessageButton = ({ appointment }) => {
-    const patient = getPatientFromAppointment(appointment);
-    const messageStatus = getMessageButtonStatus(patient);
-    
-    if (!patient) return null;
-
-    const { status, unreadCount, isOnline } = messageStatus;
-    
-    const getButtonStyle = () => {
-      const baseStyle = { ...styles.secondaryButton };
-      
-      if (unreadCount > 0) {
-        return {
-          ...baseStyle,
-          backgroundColor: '#FEF3C7',
-          borderColor: '#F59E0B',
-          color: '#92400E',
-          position: 'relative'
-        };
-      }
-      
-      return { ...baseStyle, position: 'relative' };
-    };
-
-    return (
-      <button 
-        style={getButtonStyle()}
-        onClick={() => handleMessageClick(appointment)}
-        title={`Message ${patient.name} (${isOnline ? 'Online' : 'Offline'})`}
-      >
-        <div style={styles.messageButtonContent}>
-          <span>💬 Message</span>
-          {(unreadCount > 0 || status === 'typing') && (
-            <div style={styles.messageIndicators}>
-              {unreadCount > 0 && (
-                <span style={styles.unreadBadge}>{unreadCount > 9 ? '9+' : unreadCount}</span>
-              )}
-              {status === 'typing' && (
-                <span style={styles.typingIndicator} title="Typing...">✍️</span>
-              )}
-            </div>
-          )}
-          <span style={styles.statusIndicator} title={isOnline ? 'Online' : 'Offline'}>
-            {isOnline ? '🟢' : '⚫'}
-          </span>
-        </div>
-      </button>
-    );
+  const handleTimeSlotsClick = (appointment) => {
+    setSelectedAppointment(appointment);
+    setShowTimeSlots(true);
   };
 
   const AppointmentCard = ({ appointment }) => {
     const patient = getPatientFromAppointment(appointment);
-    const messageStatus = getMessageButtonStatus(patient);
 
     return (
       <div style={styles.appointmentCard}>
@@ -162,16 +237,10 @@ const AppointmentsContent = ({ dashboardData, state, actions }) => {
           <div style={styles.appointmentPatient}>
             <div style={styles.profileIcon}>
               <span>👤</span>
-              {messageStatus?.isOnline && (
-                <div style={styles.onlineStatus}></div>
-              )}
             </div>
             <div style={styles.patientInfo}>
               <h3 style={styles.appointmentName}>
                 {appointment.patientName}
-                {messageStatus?.status === 'typing' && (
-                  <span style={styles.typingBadge} title="Patient is typing...">✍️</span>
-                )}
               </h3>
               <p style={styles.appointmentMeta}>Age: {appointment.age} • {appointment.type || 'Consultation'}</p>
             </div>
@@ -214,18 +283,29 @@ const AppointmentsContent = ({ dashboardData, state, actions }) => {
                 Approve
               </button>
               <button 
+                style={styles.timeSlotsButton}
+                onClick={() => handleTimeSlotsClick(appointment)}
+              >
+                🕒 Time Slots
+              </button>
+              <button 
                 style={styles.dangerButton}
                 onClick={() => handleRejectAppointment(appointment.id)}
               >
                 Reject
               </button>
-              <MessageButton appointment={appointment} />
+              <button 
+                style={styles.secondaryButton}
+                onClick={() => handleAddNotes(appointment.patientName)}
+              >
+                Add Notes
+              </button>
             </>
           ) : appointmentFilter === 'upcoming' ? (
             <>
               <button 
                 style={styles.primaryButton}
-                onClick={() => handleStartConsultation(appointment.id)}
+                onClick={() => handleStartVideoConsultation(appointment)}
               >
                 Start Consultation
               </button>
@@ -235,7 +315,12 @@ const AppointmentsContent = ({ dashboardData, state, actions }) => {
               >
                 Cancel
               </button>
-              <MessageButton appointment={appointment} />
+              <button 
+                style={styles.secondaryButton}
+                onClick={() => handleAddNotes(appointment.patientName)}
+              >
+                Add Notes
+              </button>
             </>
           ) : (
             <>
@@ -251,7 +336,6 @@ const AppointmentsContent = ({ dashboardData, state, actions }) => {
               >
                 Add Notes
               </button>
-              <MessageButton appointment={appointment} />
             </>
           )}
         </div>
@@ -261,6 +345,8 @@ const AppointmentsContent = ({ dashboardData, state, actions }) => {
 
   return (
     <div style={styles.mainContent}>
+      <VideoConsultation />
+      
       <div style={styles.header}>
         <div style={styles.headerLeft}>
           <h1 style={styles.greeting}>Appointments</h1>
@@ -530,6 +616,17 @@ const styles = {
     cursor: 'pointer',
     minWidth: '90px'
   },
+  timeSlotsButton: {
+    backgroundColor: '#F59E0B',
+    color: 'white',
+    border: 'none',
+    padding: '8px 12px',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    minWidth: '100px'
+  },
   viewHistoryButton: {
     backgroundColor: '#7C2A62',
     color: 'white',
@@ -563,48 +660,141 @@ const styles = {
     cursor: 'pointer',
     minWidth: '80px'
   },
-  messageButtonContent: {
+  // Video Consultation Styles
+  videoCallOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    zIndex: 10000,
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
-    position: 'relative'
+    justifyContent: 'center'
   },
-  messageIndicators: {
+  videoCallContainer: {
+    backgroundColor: '#1f2937',
+    color: 'white',
+    borderRadius: '12px',
+    padding: '20px',
+    width: '95%',
+    height: '95%',
     display: 'flex',
-    alignItems: 'center',
-    gap: '4px'
+    flexDirection: 'column',
+    boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)'
   },
-  unreadBadge: {
+  videoCallHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '20px',
+    paddingBottom: '15px',
+    borderBottom: '1px solid #374151'
+  },
+  callInfo: {
+    flex: 1
+  },
+  callTitle: {
+    fontSize: '20px',
+    fontWeight: '600',
+    margin: '0 0 8px 0'
+  },
+  callStatus: {
+    fontSize: '14px',
+    color: '#9CA3AF',
+    margin: 0
+  },
+  endCallButton: {
     backgroundColor: '#EF4444',
     color: 'white',
-    borderRadius: '50%',
-    width: '18px',
-    height: '18px',
-    fontSize: '10px',
+    border: 'none',
+    padding: '12px 20px',
+    borderRadius: '8px',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer'
+  },
+  videoGrid: {
+    flex: 1,
+    display: 'grid',
+    gridTemplateColumns: '2fr 1fr',
+    gap: '20px',
+    marginBottom: '20px'
+  },
+  videoFeed: {
+    backgroundColor: '#374151',
+    borderRadius: '8px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontWeight: 'bold'
+    position: 'relative'
   },
-  typingIndicator: {
-    fontSize: '12px'
+  selfView: {
+    backgroundColor: '#374151',
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
-  statusIndicator: {
-    fontSize: '8px'
+  videoPlaceholder: {
+    textAlign: 'center',
+    padding: '40px'
   },
-  onlineStatus: {
-    position: 'absolute',
-    bottom: '2px',
-    right: '2px',
-    width: '8px',
-    height: '8px',
-    backgroundColor: '#10B981',
-    borderRadius: '50%',
-    border: '2px solid white'
+  selfViewPlaceholder: {
+    textAlign: 'center',
+    padding: '20px'
   },
-  typingBadge: {
-    marginLeft: '8px',
-    fontSize: '12px'
+  videoIcon: {
+    fontSize: '64px',
+    marginBottom: '16px'
+  },
+  videoLabel: {
+    fontSize: '18px',
+    fontWeight: '600',
+    marginBottom: '8px'
+  },
+  videoStatus: {
+    fontSize: '14px',
+    color: '#9CA3AF'
+  },
+  callControls: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '15px',
+    padding: '20px 0',
+    borderTop: '1px solid #374151'
+  },
+  controlButton: {
+    backgroundColor: '#374151',
+    color: 'white',
+    border: 'none',
+    padding: '12px 20px',
+    borderRadius: '8px',
+    fontSize: '14px',
+    cursor: 'pointer',
+    minWidth: '100px'
+  },
+  recordButton: {
+    backgroundColor: '#EF4444',
+    color: 'white',
+    border: 'none',
+    padding: '12px 20px',
+    borderRadius: '8px',
+    fontSize: '14px',
+    cursor: 'pointer',
+    minWidth: '100px'
+  },
+  callTools: {
+    padding: '20px',
+    backgroundColor: '#374151',
+    borderRadius: '8px',
+    marginTop: '10px'
+  },
+  quickTools: {
+    display: 'flex',
+    gap: '10px',
+    flexWrap: 'wrap'
   }
 };
 

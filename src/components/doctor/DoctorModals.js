@@ -39,13 +39,35 @@ const DoctorModals = ({ state, actions, onLogout, dashboardData }) => {
 
   const isMobile = windowSize ? windowSize.width <= 768 : window.innerWidth <= 768;
 
+  // Add state for patient history modal
+  const [showPatientHistory, setShowPatientHistory] = useState(false);
+  const [selectedPatientHistory, setSelectedPatientHistory] = useState(null);
+
+  // Enhanced handleViewFullHistory to show in modal
+  const handleViewFullHistoryModal = (patientName) => {
+    const patient = dashboardData.patients.find(p => p.name === patientName);
+    if (patient) {
+      setSelectedPatientHistory(patient);
+      setShowPatientHistory(true);
+    }
+  };
+
   if (!showProfileModal && !showNotificationsModal && !showMessagesModal && 
-      !showChatbotModal && !showLogoutConfirm && !consultationDetails) {
+      !showChatbotModal && !showLogoutConfirm && !consultationDetails && !showPatientHistory) {
     return null;
   }
 
   return (
     <>
+      {/* Patient History Modal */}
+      {showPatientHistory && (
+        <PatientHistoryModal
+          patient={selectedPatientHistory}
+          setShowPatientHistory={setShowPatientHistory}
+          isMobile={isMobile}
+        />
+      )}
+
       {/* Profile Modal */}
       {showProfileModal && (
         <ProfileModal
@@ -89,7 +111,7 @@ const DoctorModals = ({ state, actions, onLogout, dashboardData }) => {
           patientMessages={patientMessages}
           handleSendMessage={handleSendMessage}
           handleMarkAsRead={handleMarkAsRead}
-          handleViewFullHistory={handleViewFullHistory}
+          handleViewFullHistory={handleViewFullHistoryModal}
           handleAddNotes={handleAddNotes}
           dashboardData={dashboardData}
           isMobile={isMobile}
@@ -110,7 +132,7 @@ const DoctorModals = ({ state, actions, onLogout, dashboardData }) => {
         <ConsultationModal
           consultationDetails={consultationDetails}
           setConsultationDetails={setConsultationDetails}
-          handleViewFullHistory={handleViewFullHistory}
+          handleViewFullHistory={handleViewFullHistoryModal}
           handleAddNotes={handleAddNotes}
           handleStartConversation={handleStartConversation}
           dashboardData={dashboardData}
@@ -121,12 +143,107 @@ const DoctorModals = ({ state, actions, onLogout, dashboardData }) => {
   );
 };
 
+// Patient History Modal Component
+const PatientHistoryModal = ({ patient, setShowPatientHistory, isMobile }) => {
+  if (!patient) return null;
+
+  return (
+    <div style={modalStyles.overlay}>
+      <div style={{
+        ...modalStyles.modal,
+        width: isMobile ? '95%' : '90%',
+        maxWidth: '800px',
+        maxHeight: '90vh'
+      }}>
+        <div style={modalStyles.header}>
+          <h3 style={modalStyles.title}>
+            Medical History - {patient.name}
+          </h3>
+          <button 
+            style={modalStyles.closeButton}
+            onClick={() => setShowPatientHistory(false)}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div style={modalStyles.content}>
+          <div style={modalStyles.patientOverview}>
+            <div style={modalStyles.profileIconLarge}>👤</div>
+            <div style={modalStyles.patientBasicInfo}>
+              <h4 style={modalStyles.patientName}>{patient.name}</h4>
+              <div style={modalStyles.patientDetailsGrid}>
+                <div style={modalStyles.detailItem}>
+                  <span style={modalStyles.detailLabel}>Age:</span>
+                  <span style={modalStyles.detailValue}>{patient.age}</span>
+                </div>
+                <div style={modalStyles.detailItem}>
+                  <span style={modalStyles.detailLabel}>Blood Group:</span>
+                  <span style={modalStyles.detailValue}>{patient.bloodGroup}</span>
+                </div>
+                <div style={modalStyles.detailItem}>
+                  <span style={modalStyles.detailLabel}>Phone:</span>
+                  <span style={modalStyles.detailValue}>{patient.phone}</span>
+                </div>
+                <div style={modalStyles.detailItem}>
+                  <span style={modalStyles.detailLabel}>Last Visit:</span>
+                  <span style={modalStyles.detailValue}>{patient.lastVisit}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={modalStyles.medicalConditions}>
+            <h4 style={modalStyles.sectionTitle}>Medical Conditions</h4>
+            <div style={modalStyles.conditionsList}>
+              {patient.conditions.map((condition, index) => (
+                <span key={index} style={modalStyles.conditionTag}>
+                  {condition}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div style={modalStyles.medicalHistory}>
+            <h4 style={modalStyles.sectionTitle}>Consultation History</h4>
+            <div style={modalStyles.historyList}>
+              {patient.medicalHistory.map((record, index) => (
+                <div key={index} style={modalStyles.historyItem}>
+                  <div style={modalStyles.historyHeader}>
+                    <strong style={modalStyles.historyDate}>{record.date}</strong>
+                    <span style={modalStyles.historyStatus}>Completed</span>
+                  </div>
+                  <div style={modalStyles.historyDetails}>
+                    <p style={modalStyles.historyDiagnosis}>
+                      <strong>Diagnosis:</strong> {record.diagnosis}
+                    </p>
+                    <p style={modalStyles.historyPrescription}>
+                      <strong>Prescription:</strong> {record.prescription}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={modalStyles.emergencyInfo}>
+            <h4 style={modalStyles.sectionTitle}>Emergency Contact</h4>
+            <p style={modalStyles.emergencyContact}>
+              {patient.emergencyContact}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Chatbot Modal Component
 const ChatbotModal = ({ setShowChatbotModal, isMobile }) => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hello Doctor! I'm your Medical AI assistant. How can I help you with patient care today?",
+      text: "Hello Doctor! I'm your Medical AI assistant. 🤖 How can I help you with patient care today?",
       isBot: true,
       timestamp: new Date()
     }
@@ -187,13 +304,13 @@ const ChatbotModal = ({ setShowChatbotModal, isMobile }) => {
     // Simulate bot response
     setTimeout(() => {
       const botResponses = [
-        "I can help you with patient summaries, medication information, or clinical guidelines.",
-        "Based on the patient data, I recommend reviewing the latest lab results.",
-        "I can assist with medical literature searches or clinical decision support.",
-        "Would you like me to generate a patient education summary?",
-        "I can help analyze patient trends from your recent consultations.",
-        "I can provide information about drug interactions and side effects.",
-        "Let me help you with differential diagnosis based on symptoms."
+        "🤖 I can help you with patient summaries, medication information, or clinical guidelines.",
+        "🤖 Based on the patient data, I recommend reviewing the latest lab results.",
+        "🤖 I can assist with medical literature searches or clinical decision support.",
+        "🤖 Would you like me to generate a patient education summary?",
+        "🤖 I can help analyze patient trends from your recent consultations.",
+        "🤖 I can provide information about drug interactions and side effects.",
+        "🤖 Let me help you with differential diagnosis based on symptoms."
       ];
       
       const randomResponse = botResponses[Math.floor(Math.random() * botResponses.length)];
@@ -238,7 +355,7 @@ const ChatbotModal = ({ setShowChatbotModal, isMobile }) => {
       }}>
         <div style={modalStyles.header}>
           <div style={modalStyles.chatbotHeader}>
-            <div style={modalStyles.chatbotAvatar}>🩺</div>
+            <div style={modalStyles.chatbotAvatar}>🤖</div>
             <div>
               <h3 style={modalStyles.title}>Medical AI Assistant</h3>
               <p style={modalStyles.chatbotSubtitle}>Clinical support & patient care</p>
@@ -280,7 +397,7 @@ const ChatbotModal = ({ setShowChatbotModal, isMobile }) => {
                   <span></span>
                   <span></span>
                 </div>
-                <span style={modalStyles.typingText}>Medical AI is typing...</span>
+                <span style={modalStyles.typingText}>🤖 Medical AI is typing...</span>
               </div>
             )}
           </div>
@@ -311,7 +428,7 @@ const ChatbotModal = ({ setShowChatbotModal, isMobile }) => {
   );
 };
 
-// Profile Modal Component (Updated with Edit option inside)
+// Profile Modal Component
 const ProfileModal = ({ 
   userProfile, 
   setUserProfile, 
@@ -938,79 +1055,86 @@ const ConsultationModal = ({
   handleStartConversation,
   dashboardData,
   isMobile
-}) => (
-  <div style={modalStyles.overlay}>
-    <div style={{
-      ...modalStyles.modal,
-      width: isMobile ? '95%' : '500px'
-    }}>
-      <div style={modalStyles.header}>
-        <h3 style={modalStyles.title}>Consultation Details</h3>
-        <button 
-          style={modalStyles.closeButton}
-          onClick={() => setConsultationDetails(null)}
-        >
-          ✕
-        </button>
-      </div>
-      <div style={modalStyles.content}>
-        <div style={modalStyles.patientInfo}>
-          <div style={modalStyles.profileIcon}>👤</div>
-          <div>
-            <h4 style={modalStyles.patientName}>{consultationDetails.patientName}</h4>
-            <p style={modalStyles.patientAge}>Age: {consultationDetails.age}</p>
+}) => {
+  const handleViewHistory = () => {
+    handleViewFullHistory(consultationDetails.patientName);
+    setConsultationDetails(null);
+  };
+
+  return (
+    <div style={modalStyles.overlay}>
+      <div style={{
+        ...modalStyles.modal,
+        width: isMobile ? '95%' : '500px'
+      }}>
+        <div style={modalStyles.header}>
+          <h3 style={modalStyles.title}>Consultation Details</h3>
+          <button 
+            style={modalStyles.closeButton}
+            onClick={() => setConsultationDetails(null)}
+          >
+            ✕
+          </button>
+        </div>
+        <div style={modalStyles.content}>
+          <div style={modalStyles.patientInfo}>
+            <div style={modalStyles.profileIcon}>👤</div>
+            <div>
+              <h4 style={modalStyles.patientName}>{consultationDetails.patientName}</h4>
+              <p style={modalStyles.patientAge}>Age: {consultationDetails.age}</p>
+            </div>
           </div>
-        </div>
-        <div style={modalStyles.details}>
-          <p><strong>Date & Time:</strong> {consultationDetails.date} at {consultationDetails.time}</p>
-          <p><strong>Reason:</strong> {consultationDetails.issue}</p>
-          <p><strong>Status:</strong> {consultationDetails.status}</p>
-          {consultationDetails.prescription && (
-            <p><strong>Prescription:</strong> {consultationDetails.prescription}</p>
-          )}
-          {consultationDetails.notes && (
-            <p><strong>Doctor Notes:</strong> {consultationDetails.notes}</p>
-          )}
-        </div>
-        <div style={{
-          ...modalStyles.actions,
-          flexDirection: isMobile ? 'column' : 'row'
-        }}>
-          <button 
-            style={{
-              ...modalStyles.primaryButton,
-              ...(isMobile && { width: '100%' })
-            }}
-            onClick={() => handleViewFullHistory(consultationDetails.patientName)}
-          >
-            View Full History
-          </button>
-          <button 
-            style={{
-              ...modalStyles.secondaryButton,
-              ...(isMobile && { width: '100%' })
-            }}
-            onClick={() => handleAddNotes(consultationDetails.patientName)}
-          >
-            Add Notes
-          </button>
-          <button 
-            style={{
-              ...modalStyles.secondaryButton,
-              ...(isMobile && { width: '100%' })
-            }}
-            onClick={() => {
-              const patient = dashboardData.patients.find(p => p.name === consultationDetails.patientName);
-              if (patient) handleStartConversation(patient);
-            }}
-          >
-            Message Patient
-          </button>
+          <div style={modalStyles.details}>
+            <p><strong>Date & Time:</strong> {consultationDetails.date} at {consultationDetails.time}</p>
+            <p><strong>Reason:</strong> {consultationDetails.issue}</p>
+            <p><strong>Status:</strong> {consultationDetails.status}</p>
+            {consultationDetails.prescription && (
+              <p><strong>Prescription:</strong> {consultationDetails.prescription}</p>
+            )}
+            {consultationDetails.notes && (
+              <p><strong>Doctor Notes:</strong> {consultationDetails.notes}</p>
+            )}
+          </div>
+          <div style={{
+            ...modalStyles.actions,
+            flexDirection: isMobile ? 'column' : 'row'
+          }}>
+            <button 
+              style={{
+                ...modalStyles.primaryButton,
+                ...(isMobile && { width: '100%' })
+              }}
+              onClick={handleViewHistory}
+            >
+              View Full History
+            </button>
+            <button 
+              style={{
+                ...modalStyles.secondaryButton,
+                ...(isMobile && { width: '100%' })
+              }}
+              onClick={() => handleAddNotes(consultationDetails.patientName)}
+            >
+              Add Notes
+            </button>
+            <button 
+              style={{
+                ...modalStyles.secondaryButton,
+                ...(isMobile && { width: '100%' })
+              }}
+              onClick={() => {
+                const patient = dashboardData.patients.find(p => p.name === consultationDetails.patientName);
+                if (patient) handleStartConversation(patient);
+              }}
+            >
+              Message Patient
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Modal styles
 const modalStyles = {
@@ -1491,6 +1615,105 @@ const modalStyles = {
     fontWeight: '600',
     textAlign: 'right',
     maxWidth: '60%'
+  },
+  // Patient History Modal Styles
+  patientOverview: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '20px',
+    marginBottom: '24px',
+    padding: '16px',
+    backgroundColor: '#f8fafc',
+    borderRadius: '8px'
+  },
+  profileIconLarge: {
+    fontSize: '48px',
+    flexShrink: 0
+  },
+  patientBasicInfo: {
+    flex: 1
+  },
+  patientDetailsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '12px'
+  },
+  medicalConditions: {
+    marginBottom: '24px'
+  },
+  sectionTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#1f2937',
+    margin: '0 0 12px 0'
+  },
+  conditionsList: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '8px'
+  },
+  conditionTag: {
+    backgroundColor: '#F7D9EB',
+    color: '#7C2A62',
+    padding: '6px 12px',
+    borderRadius: '16px',
+    fontSize: '12px',
+    fontWeight: '500'
+  },
+  medicalHistory: {
+    marginBottom: '24px'
+  },
+  historyList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px'
+  },
+  historyItem: {
+    border: '1px solid #e5e7eb',
+    borderRadius: '8px',
+    padding: '16px'
+  },
+  historyHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '8px',
+    flexWrap: 'wrap',
+    gap: '8px'
+  },
+  historyDate: {
+    fontSize: '14px',
+    color: '#1f2937'
+  },
+  historyStatus: {
+    backgroundColor: '#10B981',
+    color: 'white',
+    padding: '4px 8px',
+    borderRadius: '12px',
+    fontSize: '11px',
+    fontWeight: '500'
+  },
+  historyDetails: {
+    fontSize: '14px',
+    color: '#6b7280'
+  },
+  historyDiagnosis: {
+    margin: '0 0 4px 0'
+  },
+  historyPrescription: {
+    margin: 0
+  },
+  emergencyInfo: {
+    padding: '16px',
+    backgroundColor: '#FEF3C7',
+    borderRadius: '8px',
+    border: '1px solid #F59E0B'
+  },
+  emergencyContact: {
+    margin: 0,
+    fontSize: '14px',
+    color: '#92400E',
+    fontWeight: '500'
   }
 };
 

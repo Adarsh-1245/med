@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Toast from './Toast';
 import LogoutConfirmation from './LogoutConfirmation';
 import AIChatBoard from './AIChatBoard';
+import ProfileImageUpload from './ProfileImageUpload';
 import Sidebar from './Sidebar';
 import NotificationsPanel from './NotificationsPanel';
 import TaskDetailsModal from './TaskDetailsModal';
@@ -9,7 +10,7 @@ import Dashboard from './Dashboard';
 import DeliveryHistory from './DeliveryHistory';
 import Earnings from './Earnings';
 import Performance from './Performance';
-
+import Profile from './Profile';
 
 // Notification sound
 const playNotificationSound = () => {
@@ -37,10 +38,9 @@ const DeliveryDashboard = ({ user, onLogout }) => {
   const [isOnline, setIsOnline] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
-  const [setShowProfileImageUpload] = useState(false);
+  const [showProfileImageUpload, setShowProfileImageUpload] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [toast, setToast] = useState(null);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
   // Refs for click outside detection
   const notificationsRef = useRef(null);
@@ -49,16 +49,6 @@ const DeliveryDashboard = ({ user, onLogout }) => {
   const showToast = (message, type = 'info') => {
     setToast({ message, type });
   };
-
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Generate unique ID for delivery agent
   const generateAgentId = () => {
@@ -517,8 +507,7 @@ const DeliveryDashboard = ({ user, onLogout }) => {
       getUnreadCount,
       toggleAIChat,
       setShowProfileImageUpload,
-      handleProfileImageChange,
-      setActivePage
+      handleProfileImageChange
     };
 
     switch (activePage) {
@@ -530,6 +519,8 @@ const DeliveryDashboard = ({ user, onLogout }) => {
         return <Earnings {...commonProps} />;
       case 'performance':
         return <Performance {...commonProps} />;
+      case 'profile':
+        return <Profile {...commonProps} />;
       default:
         return <Dashboard {...commonProps} />;
     }
@@ -540,12 +531,12 @@ const DeliveryDashboard = ({ user, onLogout }) => {
       display: 'flex',
       minHeight: '100vh',
       backgroundColor: '#f8fafc',
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
     },
     content: {
       flex: 1,
       marginLeft: '280px',
-      padding: '0',
+      padding: '0'
     },
     modalOverlay: {
       position: 'fixed',
@@ -557,33 +548,12 @@ const DeliveryDashboard = ({ user, onLogout }) => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 1000,
-      padding: '16px',
+      zIndex: 1000
     }
   };
-
-  // Mobile responsive styles
-  const mobileStyles = {
-    container: {
-      ...styles.container,
-      flexDirection: 'column'
-    },
-    content: {
-      ...styles.content,
-      marginLeft: '0',
-      marginTop: '60px'
-    },
-    modalOverlay: {
-      ...styles.modalOverlay,
-      padding: '8px',
-      alignItems: 'flex-end'
-    }
-  };
-
-  const currentStyles = isMobile ? mobileStyles : styles;
 
   return (
-    <div style={currentStyles.container}>
+    <div style={styles.container}>
       {/* Toast Notification */}
       {toast && (
         <Toast
@@ -607,6 +577,18 @@ const DeliveryDashboard = ({ user, onLogout }) => {
         onClose={() => setShowAIChat(false)}
         user={user}
       />
+
+      {/* Profile Image Upload Modal */}
+      {showProfileImageUpload && (
+        <div style={styles.modalOverlay}>
+          <ProfileImageUpload
+            currentImage={profileData.profileImage}
+            onImageChange={handleProfileImageChange}
+            onCancel={() => setShowProfileImageUpload(false)}
+          />
+        </div>
+      )}
+
       {/* Sidebar Navigation */}
       <Sidebar
         activePage={activePage}
@@ -615,10 +597,9 @@ const DeliveryDashboard = ({ user, onLogout }) => {
         isOnline={isOnline}
         onLogout={handleLogout}
         onToggleAIChat={toggleAIChat}
-        isMobile={isMobile}
       />
 
-      <div style={currentStyles.content}>
+      <div style={styles.content}>
         {renderMainContent()}
       </div>
 
@@ -629,7 +610,6 @@ const DeliveryDashboard = ({ user, onLogout }) => {
           notifications={notifications}
           onClose={toggleNotifications}
           onViewAll={handleViewAllNotifications}
-          isMobile={isMobile}
         />
       </div>
 
@@ -644,7 +624,6 @@ const DeliveryDashboard = ({ user, onLogout }) => {
           onMarkDelivered={markDelivered}
           onCancelDelivery={cancelDelivery}
           onAcceptDelivery={acceptDelivery}
-          isMobile={isMobile}
         />
       )}
     </div>

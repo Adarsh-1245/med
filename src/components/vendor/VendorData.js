@@ -1,15 +1,16 @@
 export const user = {
-  fullName: 'Dr. doctor',
-  email: 'doctor@gmail.com',
-  phone: '8877996655',
-  pharmacyName: 'City General Hospital',
-  licenseNumber: 'MED-2024-12345',
-  address: 'Medical Complex, Sector 15, Noida',
+  fullName: 'Rajesh Kumar',
+  email: 'rajesh.pharmacy@gmail.com',
+  phone: '9876543210',
+  pharmacyName: 'City Medical Store',
+  licenseNumber: 'PHARM-UP-2024-789',
+  gstNumber: '07AABCU9603R1ZM',
+  address: 'Shop No. 15, Medical Complex, Sector 15',
   city: 'Noida',
   state: 'Uttar Pradesh',
   pincode: '201301',
-  experience: '12 years',
-  role: 'General Physician'
+  openingTime: '08:00 AM',
+  closingTime: '10:00 PM'
 };
 
 export const initialData = {
@@ -166,8 +167,7 @@ export const navigationItems = [
   { id: 'stock', label: 'Stock Management', icon: '📦' },
   { id: 'orders', label: 'Orders', icon: '📋' },
   { id: 'prescriptions', label: 'Prescription Verification', icon: '🩺' },
-  { id: 'analytics', label: 'Analytics', icon: '📊' },
-  { id: 'profile', label: 'Profile', icon: '👤' }
+  { id: 'analytics', label: 'Analytics', icon: '📊' }
 ];
 
 export const stockFilters = [

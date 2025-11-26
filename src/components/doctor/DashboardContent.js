@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const DashboardContent = ({ dashboardData, state, actions }) => {
   const { timeRange, appointments } = state;
@@ -7,11 +7,26 @@ const DashboardContent = ({ dashboardData, state, actions }) => {
     setConsultationDetails, 
     handleStartConversation, 
     handleStartConsultation, 
-    handleCancelAppointment 
+    handleCancelAppointment,
+    handleAddNotes
   } = actions;
 
   const isMobile = window.innerWidth <= 768;
   const isTablet = window.innerWidth <= 1024;
+
+  // State for current consultation with enhanced functionality
+  const [currentConsultation, setCurrentConsultation] = useState(null);
+  const [activeTool, setActiveTool] = useState('prescription');
+  const [consultationNotes, setConsultationNotes] = useState('');
+  const [prescriptionData, setPrescriptionData] = useState({
+    medications: [],
+    dosage: '',
+    instructions: ''
+  });
+
+  // State for video consultation
+  const [videoCallActive, setVideoCallActive] = useState(false);
+  const [callStatus, setCallStatus] = useState('connecting');
 
   const AnalyticsCard = ({ icon, number, label, color }) => (
     <div style={styles.analyticsCard}>
@@ -47,12 +62,9 @@ const DashboardContent = ({ dashboardData, state, actions }) => {
         </button>
         <button
           style={styles.secondaryButton}
-          onClick={() => {
-            const patient = dashboardData.patients.find(p => p.name === consultation.patientName);
-            if (patient) handleStartConversation(patient);
-          }}
+          onClick={() => handleAddNotes(consultation.patientName)}
         >
-          Message
+          Add Notes
         </button>
       </div>
     </div>
@@ -88,7 +100,19 @@ const DashboardContent = ({ dashboardData, state, actions }) => {
       <div style={styles.upcomingActions}>
         <button 
           style={styles.primaryButton}
-          onClick={() => handleStartConsultation(appointment.id)}
+          onClick={() => {
+            const consultation = handleStartConsultation(appointment.id);
+            if (consultation) {
+              setCurrentConsultation(consultation);
+              setVideoCallActive(true);
+              setCallStatus('connecting');
+              
+              // Simulate call connection
+              setTimeout(() => {
+                setCallStatus('connected');
+              }, 2000);
+            }
+          }}
         >
           Start Consultation
         </button>
@@ -102,8 +126,324 @@ const DashboardContent = ({ dashboardData, state, actions }) => {
     </div>
   );
 
+  // Video Consultation Component
+  const VideoConsultation = () => {
+    if (!videoCallActive) return null;
+
+    const handleEndCall = () => {
+      setVideoCallActive(false);
+      setCurrentConsultation(null);
+      setCallStatus('disconnected');
+    };
+
+    const handleToggleVideo = () => {
+      // Toggle video functionality
+      alert('Video toggled');
+    };
+
+    const handleToggleAudio = () => {
+      // Toggle audio functionality
+      alert('Audio toggled');
+    };
+
+    return (
+      <div style={styles.videoCallOverlay}>
+        <div style={styles.videoCallContainer}>
+          <div style={styles.videoCallHeader}>
+            <div style={styles.callInfo}>
+              <h3 style={styles.callTitle}>
+                Video Consultation with {currentConsultation?.patientName}
+              </h3>
+              <p style={styles.callStatus}>
+                Status: <span style={{
+                  color: callStatus === 'connected' ? '#10B981' : 
+                         callStatus === 'connecting' ? '#F59E0B' : '#EF4444'
+                }}>{callStatus}</span>
+              </p>
+            </div>
+            <button style={styles.endCallButton} onClick={handleEndCall}>
+              📞 End Call
+            </button>
+          </div>
+
+          <div style={styles.videoGrid}>
+            {/* Patient Video */}
+            <div style={styles.videoFeed}>
+              <div style={styles.videoPlaceholder}>
+                <div style={styles.videoIcon}>👤</div>
+                <p style={styles.videoLabel}>{currentConsultation?.patientName}</p>
+                <p style={styles.videoStatus}>Live Video Feed</p>
+              </div>
+            </div>
+
+            {/* Doctor Video (Self View) */}
+            <div style={styles.selfView}>
+              <div style={styles.selfViewPlaceholder}>
+                <div style={styles.videoIcon}>👨‍⚕️</div>
+                <p style={styles.videoLabel}>You</p>
+                <p style={styles.videoStatus}>Self View</p>
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.callControls}>
+            <button style={styles.controlButton} onClick={handleToggleVideo}>
+              🎥 Video
+            </button>
+            <button style={styles.controlButton} onClick={handleToggleAudio}>
+              🎤 Audio
+            </button>
+            <button style={styles.controlButton}>
+              📺 Share Screen
+            </button>
+            <button style={styles.controlButton}>
+              💬 Chat
+            </button>
+            <button style={styles.recordButton}>
+              🔴 Record
+            </button>
+          </div>
+
+          {/* Consultation Tools during call */}
+          <div style={styles.callTools}>
+            <h4 style={styles.toolsTitle}>Quick Tools</h4>
+            <div style={styles.quickTools}>
+              <button style={styles.toolButton}>
+                💊 Prescription
+              </button>
+              <button style={styles.toolButton}>
+                📋 Medical History
+              </button>
+              <button style={styles.toolButton}>
+                🩺 Examination
+              </button>
+              <button style={styles.toolButton}>
+                📝 Notes
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Enhanced Current Consultation with functional tools
+  const CurrentConsultationCard = () => {
+    if (!currentConsultation || videoCallActive) return null;
+
+    const handleAddMedication = () => {
+      const medName = prompt('Enter medication name:');
+      if (medName) {
+        const dosage = prompt('Enter dosage:');
+        const instructions = prompt('Enter instructions:');
+        
+        setPrescriptionData(prev => ({
+          ...prev,
+          medications: [...prev.medications, {
+            name: medName,
+            dosage: dosage,
+            instructions: instructions,
+            id: Date.now()
+          }]
+        }));
+      }
+    };
+
+    const handleRemoveMedication = (medId) => {
+      setPrescriptionData(prev => ({
+        ...prev,
+        medications: prev.medications.filter(med => med.id !== medId)
+      }));
+    };
+
+    const handleSavePrescription = () => {
+      alert('Prescription saved successfully!');
+    };
+
+    const handleSaveNotes = () => {
+      alert('Consultation notes saved!');
+    };
+
+    const handleEndConsultation = () => {
+      if (window.confirm('Are you sure you want to end this consultation?')) {
+        setCurrentConsultation(null);
+        setActiveTool('prescription');
+        setConsultationNotes('');
+        setPrescriptionData({ medications: [], dosage: '', instructions: '' });
+        alert('Consultation ended successfully!');
+      }
+    };
+
+    const renderToolContent = () => {
+      switch (activeTool) {
+        case 'prescription':
+          return (
+            <div style={styles.toolContent}>
+              <div style={styles.toolHeader}>
+                <h4>Prescription Management</h4>
+                <button style={styles.smallButton} onClick={handleAddMedication}>
+                  + Add Medication
+                </button>
+              </div>
+              
+              {prescriptionData.medications.length > 0 ? (
+                <div style={styles.medicationsList}>
+                  {prescriptionData.medications.map(med => (
+                    <div key={med.id} style={styles.medicationItem}>
+                      <div style={styles.medicationInfo}>
+                        <strong>{med.name}</strong>
+                        <span>Dosage: {med.dosage}</span>
+                        <span>Instructions: {med.instructions}</span>
+                      </div>
+                      <button 
+                        style={styles.deleteButton}
+                        onClick={() => handleRemoveMedication(med.id)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={styles.noData}>No medications added yet.</p>
+              )}
+              
+              <button style={styles.primaryButton} onClick={handleSavePrescription}>
+                Save Prescription
+              </button>
+            </div>
+          );
+
+        case 'medicalHistory':
+          const patient = dashboardData.patients.find(p => p.name === currentConsultation.patientName);
+          return (
+            <div style={styles.toolContent}>
+              <h4>Medical History - {currentConsultation.patientName}</h4>
+              {patient ? (
+                <div style={styles.medicalHistory}>
+                  <div style={styles.historySection}>
+                    <h5>Basic Information</h5>
+                    <p>Age: {patient.age}</p>
+                    <p>Blood Group: {patient.bloodGroup}</p>
+                    <p>Conditions: {patient.conditions.join(', ')}</p>
+                  </div>
+                  
+                  <div style={styles.historySection}>
+                    <h5>Previous Consultations</h5>
+                    {patient.medicalHistory.map((record, index) => (
+                      <div key={index} style={styles.historyRecord}>
+                        <strong>{record.date}</strong>
+                        <p>Diagnosis: {record.diagnosis}</p>
+                        <p>Prescription: {record.prescription}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p>No medical history available.</p>
+              )}
+            </div>
+          );
+
+        case 'examination':
+          return (
+            <div style={styles.toolContent}>
+              <h4>Examination Notes</h4>
+              <textarea
+                style={styles.notesTextarea}
+                placeholder="Enter examination findings, vital signs, observations..."
+                rows="8"
+                value={consultationNotes}
+                onChange={(e) => setConsultationNotes(e.target.value)}
+              />
+              <button style={styles.primaryButton} onClick={handleSaveNotes}>
+                Save Examination Notes
+              </button>
+            </div>
+          );
+
+        default:
+          return null;
+      }
+    };
+
+    return (
+      <div style={styles.currentConsultationCard}>
+        <div style={styles.currentConsultationHeader}>
+          <div style={styles.currentConsultationIcon}>🩺</div>
+          <div style={styles.currentConsultationInfo}>
+            <h3 style={styles.currentConsultationTitle}>Ongoing Consultation</h3>
+            <p style={styles.currentConsultationPatient}>
+              With {currentConsultation.patientName} • Age: {currentConsultation.age}
+            </p>
+            <p style={styles.consultationReason}>Reason: {currentConsultation.issue}</p>
+          </div>
+          <button 
+            style={styles.endConsultationButton}
+            onClick={handleEndConsultation}
+          >
+            End Consultation
+          </button>
+        </div>
+        
+        <div style={styles.consultationTimer}>
+          <span style={styles.timerText}>Consultation in progress...</span>
+          <div style={styles.timerControls}>
+            <button style={styles.timerButton}>⏸️ Pause</button>
+            <button style={styles.timerButton}>⏹️ Stop</button>
+            <button style={styles.timerButton}>📝 Quick Notes</button>
+          </div>
+        </div>
+
+        <div style={styles.consultationTools}>
+          <h4 style={styles.toolsTitle}>Consultation Tools</h4>
+          <div style={styles.toolsGrid}>
+            <button 
+              style={{
+                ...styles.toolButton,
+                ...(activeTool === 'prescription' && styles.activeToolButton)
+              }}
+              onClick={() => setActiveTool('prescription')}
+            >
+              <span style={styles.toolIcon}>💊</span>
+              <span style={styles.toolLabel}>Prescription</span>
+            </button>
+            <button 
+              style={{
+                ...styles.toolButton,
+                ...(activeTool === 'medicalHistory' && styles.activeToolButton)
+              }}
+              onClick={() => setActiveTool('medicalHistory')}
+            >
+              <span style={styles.toolIcon}>📋</span>
+              <span style={styles.toolLabel}>Medical History</span>
+            </button>
+            <button 
+              style={{
+                ...styles.toolButton,
+                ...(activeTool === 'examination' && styles.activeToolButton)
+              }}
+              onClick={() => setActiveTool('examination')}
+            >
+              <span style={styles.toolIcon}>🩺</span>
+              <span style={styles.toolLabel}>Examination</span>
+            </button>
+          </div>
+
+          {/* Tool Content Area */}
+          <div style={styles.toolContentArea}>
+            {renderToolContent()}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div style={styles.mainContent}>
+      {/* Video Consultation Overlay */}
+      <VideoConsultation />
+
       {/* Analytics Grid */}
       <div style={{
         ...styles.analyticsGrid,
@@ -194,6 +534,9 @@ const DashboardContent = ({ dashboardData, state, actions }) => {
           </button>
         </div>
       )}
+
+      {/* Current Consultation Section */}
+      {currentConsultation && !videoCallActive && <CurrentConsultationCard />}
 
       <div style={{
         ...styles.contentGrid,
@@ -333,7 +676,7 @@ const styles = {
     gap: '10px'
   },
   sectionTitle: {
-    fontSize: 'clamp(18px, 2.5vw, 20px',
+    fontSize: 'clamp(18px, 2.5vw, 20px)',
     fontWeight: '600',
     color: '#1f2937',
     margin: 0
@@ -558,6 +901,350 @@ const styles = {
     fontSize: '12px',
     color: '#7C2A62',
     fontWeight: '500'
+  },
+  // Enhanced Current Consultation Styles
+  currentConsultationCard: {
+    backgroundColor: '#7C2A62',
+    color: 'white',
+    padding: '24px',
+    borderRadius: '12px',
+    marginBottom: '24px',
+    boxShadow: '0 4px 12px rgba(124, 42, 98, 0.3)'
+  },
+  currentConsultationHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    marginBottom: '20px',
+    flexWrap: 'wrap'
+  },
+  currentConsultationIcon: {
+    fontSize: '32px',
+    flexShrink: 0
+  },
+  currentConsultationInfo: {
+    flex: 1
+  },
+  currentConsultationTitle: {
+    fontSize: '20px',
+    fontWeight: '700',
+    margin: '0 0 4px 0',
+    color: 'white'
+  },
+  currentConsultationPatient: {
+    fontSize: '16px',
+    margin: '0 0 4px 0',
+    opacity: 0.9
+  },
+  consultationReason: {
+    fontSize: '14px',
+    margin: 0,
+    opacity: 0.8
+  },
+  endConsultationButton: {
+    backgroundColor: '#EF4444',
+    color: 'white',
+    border: 'none',
+    padding: '10px 16px',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    flexShrink: 0
+  },
+  consultationTimer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '20px',
+    padding: '16px',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: '8px',
+    flexWrap: 'wrap',
+    gap: '12px'
+  },
+  timerText: {
+    fontSize: '16px',
+    fontWeight: '600'
+  },
+  timerControls: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap'
+  },
+  timerButton: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    color: 'white',
+    border: 'none',
+    padding: '8px 12px',
+    borderRadius: '6px',
+    fontSize: '12px',
+    cursor: 'pointer',
+    backdropFilter: 'blur(10px)'
+  },
+  consultationTools: {
+    borderTop: '1px solid rgba(255,255,255,0.2)',
+    paddingTop: '20px'
+  },
+  toolsTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    margin: '0 0 16px 0',
+    color: 'white'
+  },
+  toolsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+    gap: '12px',
+    marginBottom: '20px'
+  },
+  toolButton: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    color: 'white',
+    border: 'none',
+    padding: '16px 12px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '8px',
+    transition: 'background-color 0.3s ease'
+  },
+  activeToolButton: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    border: '2px solid white'
+  },
+  toolIcon: {
+    fontSize: '20px'
+  },
+  toolLabel: {
+    fontSize: '12px',
+    fontWeight: '500'
+  },
+  toolContentArea: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: '8px',
+    padding: '20px',
+    minHeight: '200px'
+  },
+  toolContent: {
+    color: 'white'
+  },
+  toolHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16px',
+    flexWrap: 'wrap',
+    gap: '10px'
+  },
+  smallButton: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    color: 'white',
+    border: 'none',
+    padding: '8px 12px',
+    borderRadius: '6px',
+    fontSize: '12px',
+    cursor: 'pointer'
+  },
+  medicationsList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+    marginBottom: '16px'
+  },
+  medicationItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '12px',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: '6px',
+    flexWrap: 'wrap',
+    gap: '10px'
+  },
+  medicationInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+    flex: 1
+  },
+  deleteButton: {
+    backgroundColor: '#EF4444',
+    color: 'white',
+    border: 'none',
+    padding: '6px 10px',
+    borderRadius: '4px',
+    fontSize: '11px',
+    cursor: 'pointer'
+  },
+  noData: {
+    textAlign: 'center',
+    opacity: 0.7,
+    marginBottom: '16px'
+  },
+  medicalHistory: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px'
+  },
+  historySection: {
+    padding: '12px',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: '6px'
+  },
+  historyRecord: {
+    padding: '8px',
+    borderBottom: '1px solid rgba(255,255,255,0.1)',
+    marginBottom: '8px'
+  },
+  notesTextarea: {
+    width: '100%',
+    padding: '12px',
+    borderRadius: '6px',
+    border: '1px solid rgba(255,255,255,0.3)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    color: 'white',
+    fontSize: '14px',
+    marginBottom: '12px',
+    resize: 'vertical'
+  },
+  // Video Consultation Styles
+  videoCallOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    zIndex: 10000,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  videoCallContainer: {
+    backgroundColor: '#1f2937',
+    color: 'white',
+    borderRadius: '12px',
+    padding: '20px',
+    width: '95%',
+    height: '95%',
+    display: 'flex',
+    flexDirection: 'column',
+    boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)'
+  },
+  videoCallHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '20px',
+    paddingBottom: '15px',
+    borderBottom: '1px solid #374151'
+  },
+  callInfo: {
+    flex: 1
+  },
+  callTitle: {
+    fontSize: '20px',
+    fontWeight: '600',
+    margin: '0 0 8px 0'
+  },
+  callStatus: {
+    fontSize: '14px',
+    color: '#9CA3AF',
+    margin: 0
+  },
+  endCallButton: {
+    backgroundColor: '#EF4444',
+    color: 'white',
+    border: 'none',
+    padding: '12px 20px',
+    borderRadius: '8px',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer'
+  },
+  videoGrid: {
+    flex: 1,
+    display: 'grid',
+    gridTemplateColumns: '2fr 1fr',
+    gap: '20px',
+    marginBottom: '20px'
+  },
+  videoFeed: {
+    backgroundColor: '#374151',
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative'
+  },
+  selfView: {
+    backgroundColor: '#374151',
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  videoPlaceholder: {
+    textAlign: 'center',
+    padding: '40px'
+  },
+  selfViewPlaceholder: {
+    textAlign: 'center',
+    padding: '20px'
+  },
+  videoIcon: {
+    fontSize: '64px',
+    marginBottom: '16px'
+  },
+  videoLabel: {
+    fontSize: '18px',
+    fontWeight: '600',
+    marginBottom: '8px'
+  },
+  videoStatus: {
+    fontSize: '14px',
+    color: '#9CA3AF'
+  },
+  callControls: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '15px',
+    padding: '20px 0',
+    borderTop: '1px solid #374151'
+  },
+  controlButton: {
+    backgroundColor: '#374151',
+    color: 'white',
+    border: 'none',
+    padding: '12px 20px',
+    borderRadius: '8px',
+    fontSize: '14px',
+    cursor: 'pointer',
+    minWidth: '100px'
+  },
+  recordButton: {
+    backgroundColor: '#EF4444',
+    color: 'white',
+    border: 'none',
+    padding: '12px 20px',
+    borderRadius: '8px',
+    fontSize: '14px',
+    cursor: 'pointer',
+    minWidth: '100px'
+  },
+  callTools: {
+    padding: '20px',
+    backgroundColor: '#374151',
+    borderRadius: '8px',
+    marginTop: '10px'
+  },
+  quickTools: {
+    display: 'flex',
+    gap: '10px',
+    flexWrap: 'wrap'
   }
 };
 

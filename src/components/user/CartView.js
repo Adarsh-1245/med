@@ -68,11 +68,68 @@ const CartView = ({
     return new Intl.NumberFormat('en-IN').format(number);
   };
 
-  // Handle address form input changes
+  // Input validation functions
+  const validateFullName = (value) => {
+    // Only allow alphabets and spaces
+    return value.replace(/[^a-zA-Z\s]/g, '');
+  };
+
+  const validatePhone = (value) => {
+    // Only allow numbers 6,7,8,9 and limit to 10 digits
+    const numbersOnly = value.replace(/[^0-9]/g, '');
+    // Filter only numbers starting with 6,7,8,9
+    const validNumbers = numbersOnly.split('').filter((char, index) => {
+      if (index === 0) {
+        return ['6','7','8','9'].includes(char);
+      }
+      return true;
+    }).join('');
+    
+    return validNumbers.slice(0, 10);
+  };
+
+  const validateCity = (value) => {
+    // Only allow alphabets and spaces
+    return value.replace(/[^a-zA-Z\s]/g, '');
+  };
+
+  const validateState = (value) => {
+    // Only allow alphabets and spaces
+    return value.replace(/[^a-zA-Z\s]/g, '');
+  };
+
+  const validatePincode = (value) => {
+    // Only allow numbers and limit to 6 digits
+    return value.replace(/[^0-9]/g, '').slice(0, 6);
+  };
+
+  // Handle address form input changes with validation
   const handleAddressChange = (field, value) => {
+    let validatedValue = value;
+
+    switch (field) {
+      case 'fullName':
+        validatedValue = validateFullName(value);
+        break;
+      case 'phone':
+        validatedValue = validatePhone(value);
+        break;
+      case 'city':
+        validatedValue = validateCity(value);
+        break;
+      case 'state':
+        validatedValue = validateState(value);
+        break;
+      case 'pincode':
+        validatedValue = validatePincode(value);
+        break;
+      default:
+        validatedValue = value;
+    }
+
     setAddress(prev => ({
       ...prev,
-      [field]: value
+      [field]: validatedValue
     }));
   };
 
@@ -111,7 +168,7 @@ const CartView = ({
     <div style={{
       marginTop: '120px',
       padding: '1.5rem',
-      maxWidth: '1200px',
+      maxWidth: '1400px',
       marginLeft: 'auto',
       marginRight: 'auto',
       minHeight: '80vh',
@@ -128,7 +185,18 @@ const CartView = ({
         marginBottom: '2rem',
         textAlign: 'center',
         width: '100%',
+        position: 'relative',
       }}>
+        {/* Back Button - Left Edge */}
+        <div style={{
+          position: 'absolute',
+          left: 0,
+          top: '50%',
+          transform: 'translateY(-50%)',
+        }}>
+          <BackButton onClick={handleBackToMedicines} text="Back to Medicines" />
+        </div>
+        
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -136,7 +204,6 @@ const CartView = ({
           justifyContent: 'center',
           width: '100%',
         }}>
-          <BackButton onClick={handleBackToMedicines} text="Back to Medicines" />
           <h2 style={{
             color: '#7C2A62',
             fontSize: '2rem',
@@ -211,14 +278,16 @@ const CartView = ({
         )}
       </div>
       
-      {/* Main Content - Compact Layout */}
+      {/* Main Content - Side by Side Layout */}
       <div style={{
         display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
         width: '100%',
-        maxWidth: '900px',
-        gap: '1.5rem',
+        maxWidth: '1300px',
+        gap: '2rem',
+        flexWrap: 'wrap',
       }}>
         {cart.length === 0 ? (
           /* Empty Cart State - Compact */
@@ -280,22 +349,18 @@ const CartView = ({
             </button>
           </div>
         ) : (
-          /* Cart with Items - Compact Layout */
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
-            gap: '1.5rem',
-          }}>
-            {/* Cart Items Box - Compact */}
+          /* Cart with Items - Side by Side Layout */
+          <>
+            {/* Cart Items Box - Left Side */}
             <div style={{
               backgroundColor: 'white',
               padding: '2rem',
               borderRadius: '15px',
               boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
               border: '1px solid #F7D9EB',
-              width: '100%',
+              flex: '1 1 600px',
+              minWidth: '300px',
+              maxWidth: '800px',
             }}>
               <div style={{
                 borderBottom: '2px solid #F7D9EB',
@@ -321,6 +386,9 @@ const CartView = ({
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '1rem',
+                maxHeight: '600px',
+                overflowY: 'auto',
+                paddingRight: '0.5rem',
               }}>
                 {cart.map(item => (
                   <div key={item.id} style={{
@@ -489,15 +557,17 @@ const CartView = ({
               </div>
             </div>
 
-            {/* Order Summary Box - Compact */}
+            {/* Order Summary Box - Right Side */}
             <div style={{
               backgroundColor: 'white',
               padding: '2rem',
               borderRadius: '15px',
               boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
               border: '1px solid #F7D9EB',
-              width: '100%',
-              maxWidth: '500px',
+              flex: '0 1 400px',
+              minWidth: '350px',
+              position: 'sticky',
+              top: '140px',
             }}>
               <div style={{
                 display: 'flex',
@@ -529,134 +599,243 @@ const CartView = ({
                       color: '#7C2A62',
                       textAlign: 'center',
                     }}>🏠 Delivery Address</h4>
+                    
+                    {/* Full Name & Phone Number - Same Row */}
                     <div style={{
                       display: 'grid',
                       gridTemplateColumns: '1fr 1fr',
-                      gap: '0.75rem'
+                      gap: '0.75rem',
+                      marginBottom: '0.75rem'
                     }}>
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '0.8rem',
+                          fontWeight: '600',
+                          color: '#7C2A62',
+                          marginBottom: '0.25rem',
+                          marginLeft: '0.25rem'
+                        }}>
+                          Full Name *
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Enter full name"
+                          value={address.fullName}
+                          onChange={(e) => handleAddressChange('fullName', e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            border: '1px solid #F7D9EB',
+                            borderRadius: '8px',
+                            fontSize: '0.9rem',
+                            outline: 'none',
+                            transition: 'border-color 0.3s ease',
+                            backgroundColor: 'white',
+                            boxSizing: 'border-box',
+                          }}
+                          onFocus={(e) => e.target.style.borderColor = '#7C2A62'}
+                          onBlur={(e) => e.target.style.borderColor = '#F7D9EB'}
+                        />
+                      </div>
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '0.8rem',
+                          fontWeight: '600',
+                          color: '#7C2A62',
+                          marginBottom: '0.25rem',
+                          marginLeft: '0.25rem'
+                        }}>
+                          Phone Number *
+                        </label>
+                        <input
+                          type="tel"
+                          placeholder="6,7,8,9 numbers only"
+                          value={address.phone}
+                          onChange={(e) => handleAddressChange('phone', e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            border: '1px solid #F7D9EB',
+                            borderRadius: '8px',
+                            fontSize: '0.9rem',
+                            outline: 'none',
+                            transition: 'border-color 0.3s ease',
+                            backgroundColor: 'white',
+                            boxSizing: 'border-box',
+                          }}
+                          maxLength="10"
+                          onFocus={(e) => e.target.style.borderColor = '#7C2A62'}
+                          onBlur={(e) => e.target.style.borderColor = '#F7D9EB'}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Street Address - Full Width */}
+                    <div style={{ marginBottom: '0.75rem' }}>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.8rem',
+                        fontWeight: '600',
+                        color: '#7C2A62',
+                        marginBottom: '0.25rem',
+                        marginLeft: '0.25rem'
+                      }}>
+                        Street Address *
+                      </label>
                       <input
                         type="text"
-                        placeholder="Full Name *"
-                        value={address.fullName}
-                        onChange={(e) => handleAddressChange('fullName', e.target.value)}
-                        style={{
-                          padding: '0.75rem',
-                          border: '1px solid #F7D9EB',
-                          borderRadius: '8px',
-                          fontSize: '0.9rem',
-                          outline: 'none',
-                          transition: 'border-color 0.3s ease',
-                          gridColumn: 'span 1',
-                          backgroundColor: 'white',
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#7C2A62'}
-                        onBlur={(e) => e.target.style.borderColor = '#F7D9EB'}
-                      />
-                      <input
-                        type="tel"
-                        placeholder="Phone Number *"
-                        value={address.phone}
-                        onChange={(e) => handleAddressChange('phone', e.target.value)}
-                        style={{
-                          padding: '0.75rem',
-                          border: '1px solid #F7D9EB',
-                          borderRadius: '8px',
-                          fontSize: '0.9rem',
-                          outline: 'none',
-                          transition: 'border-color 0.3s ease',
-                          gridColumn: 'span 1',
-                          backgroundColor: 'white',
-                        }}
-                        maxLength="10"
-                        onFocus={(e) => e.target.style.borderColor = '#7C2A62'}
-                        onBlur={(e) => e.target.style.borderColor = '#F7D9EB'}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Street Address *"
+                        placeholder="Enter street address"
                         value={address.street}
                         onChange={(e) => handleAddressChange('street', e.target.value)}
                         style={{
+                          width: '100%',
                           padding: '0.75rem',
                           border: '1px solid #F7D9EB',
                           borderRadius: '8px',
                           fontSize: '0.9rem',
                           outline: 'none',
                           transition: 'border-color 0.3s ease',
-                          gridColumn: 'span 2',
                           backgroundColor: 'white',
+                          boxSizing: 'border-box',
                         }}
                         onFocus={(e) => e.target.style.borderColor = '#7C2A62'}
                         onBlur={(e) => e.target.style.borderColor = '#F7D9EB'}
                       />
+                    </div>
+
+                    {/* Landmark - Full Width */}
+                    <div style={{ marginBottom: '0.75rem' }}>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.8rem',
+                        fontWeight: '600',
+                        color: '#7C2A62',
+                        marginBottom: '0.25rem',
+                        marginLeft: '0.25rem'
+                      }}>
+                        Landmark (Optional)
+                      </label>
                       <input
                         type="text"
-                        placeholder="Landmark (Optional)"
+                        placeholder="Enter nearby landmark"
                         value={address.landmark}
                         onChange={(e) => handleAddressChange('landmark', e.target.value)}
                         style={{
+                          width: '100%',
                           padding: '0.75rem',
                           border: '1px solid #F7D9EB',
                           borderRadius: '8px',
                           fontSize: '0.9rem',
                           outline: 'none',
                           transition: 'border-color 0.3s ease',
-                          gridColumn: 'span 2',
                           backgroundColor: 'white',
+                          boxSizing: 'border-box',
                         }}
                         onFocus={(e) => e.target.style.borderColor = '#7C2A62'}
                         onBlur={(e) => e.target.style.borderColor = '#F7D9EB'}
                       />
+                    </div>
+
+                    {/* City & State - Same Row */}
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '0.75rem',
+                      marginBottom: '0.75rem'
+                    }}>
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '0.8rem',
+                          fontWeight: '600',
+                          color: '#7C2A62',
+                          marginBottom: '0.25rem',
+                          marginLeft: '0.25rem'
+                        }}>
+                          City *
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Enter city"
+                          value={address.city}
+                          onChange={(e) => handleAddressChange('city', e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            border: '1px solid #F7D9EB',
+                            borderRadius: '8px',
+                            fontSize: '0.9rem',
+                            outline: 'none',
+                            transition: 'border-color 0.3s ease',
+                            backgroundColor: 'white',
+                            boxSizing: 'border-box',
+                          }}
+                          onFocus={(e) => e.target.style.borderColor = '#7C2A62'}
+                          onBlur={(e) => e.target.style.borderColor = '#F7D9EB'}
+                        />
+                      </div>
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '0.8rem',
+                          fontWeight: '600',
+                          color: '#7C2A62',
+                          marginBottom: '0.25rem',
+                          marginLeft: '0.25rem'
+                        }}>
+                          State *
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Enter state"
+                          value={address.state}
+                          onChange={(e) => handleAddressChange('state', e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            border: '1px solid #F7D9EB',
+                            borderRadius: '8px',
+                            fontSize: '0.9rem',
+                            outline: 'none',
+                            transition: 'border-color 0.3s ease',
+                            backgroundColor: 'white',
+                            boxSizing: 'border-box',
+                          }}
+                          onFocus={(e) => e.target.style.borderColor = '#7C2A62'}
+                          onBlur={(e) => e.target.style.borderColor = '#F7D9EB'}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Pincode - Full Width */}
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.8rem',
+                        fontWeight: '600',
+                        color: '#7C2A62',
+                        marginBottom: '0.25rem',
+                        marginLeft: '0.25rem'
+                      }}>
+                        Pincode *
+                      </label>
                       <input
                         type="text"
-                        placeholder="City *"
-                        value={address.city}
-                        onChange={(e) => handleAddressChange('city', e.target.value)}
-                        style={{
-                          padding: '0.75rem',
-                          border: '1px solid #F7D9EB',
-                          borderRadius: '8px',
-                          fontSize: '0.9rem',
-                          outline: 'none',
-                          transition: 'border-color 0.3s ease',
-                          gridColumn: 'span 1',
-                          backgroundColor: 'white',
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#7C2A62'}
-                        onBlur={(e) => e.target.style.borderColor = '#F7D9EB'}
-                      />
-                      <input
-                        type="text"
-                        placeholder="State *"
-                        value={address.state}
-                        onChange={(e) => handleAddressChange('state', e.target.value)}
-                        style={{
-                          padding: '0.75rem',
-                          border: '1px solid #F7D9EB',
-                          borderRadius: '8px',
-                          fontSize: '0.9rem',
-                          outline: 'none',
-                          transition: 'border-color 0.3s ease',
-                          gridColumn: 'span 1',
-                          backgroundColor: 'white',
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#7C2A62'}
-                        onBlur={(e) => e.target.style.borderColor = '#F7D9EB'}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Pincode *"
+                        placeholder="6-digit numbers only"
                         value={address.pincode}
                         onChange={(e) => handleAddressChange('pincode', e.target.value)}
                         style={{
+                          width: '100%',
                           padding: '0.75rem',
                           border: '1px solid #F7D9EB',
                           borderRadius: '8px',
                           fontSize: '0.9rem',
                           outline: 'none',
                           transition: 'border-color 0.3s ease',
-                          gridColumn: 'span 2',
                           backgroundColor: 'white',
+                          boxSizing: 'border-box',
                         }}
                         maxLength="6"
                         onFocus={(e) => e.target.style.borderColor = '#7C2A62'}
@@ -792,7 +971,7 @@ const CartView = ({
                 )}
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
 

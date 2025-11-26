@@ -436,16 +436,6 @@ const Hero = ({ onSectionChange, onNavigateToAuth }) => {
       description: 'Send immediate message with your location and details',
       action: handleEmergencyMessage
     },
-    {
-      title: '📍 SMS with Location',
-      description: 'Share your exact location via SMS for faster assistance',
-      action: handleEmergencyLocation
-    },
-    {
-      title: '🎥 Video Consultation',
-      description: 'Instant video call with emergency doctor',
-      action: handleVideoConsultation
-    }
   ];
 
   // Responsive Styles

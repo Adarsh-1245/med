@@ -1,51 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState} from 'react';
 
 const Earnings = ({ deliveryData }) => {
   const [earningFilter, setEarningFilter] = useState('today');
+  const [showAllMonths, setShowAllMonths] = useState(false);
+  const [allMonthsData, setAllMonthsData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const styles = {
     mainContent: {
-      padding: '20px',
+      padding: '30px',
       minHeight: '100vh',
-      backgroundColor: '#f8f9fa',
-      '@media (max-width: 768px)': {
-        padding: '16px'
-      },
-      '@media (max-width: 480px)': {
-        padding: '12px'
-      }
+      backgroundColor: '#f8fafc'
     },
     header: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'flex-start',
-      marginBottom: '24px',
-      flexWrap: 'wrap',
-      gap: '16px',
-      '@media (max-width: 768px)': {
-        flexDirection: 'column',
-        alignItems: 'stretch'
-      }
+      marginBottom: '30px'
     },
     greeting: {
       fontSize: '28px',
       fontWeight: '700',
       color: '#1f2937',
-      margin: '0 0 8px 0',
-      '@media (max-width: 768px)': {
-        fontSize: '24px'
-      },
-      '@media (max-width: 480px)': {
-        fontSize: '20px'
-      }
+      margin: '0 0 8px 0'
     },
     subtitle: {
       fontSize: '16px',
       color: '#6b7280',
-      margin: 0,
-      '@media (max-width: 480px)': {
-        fontSize: '14px'
-      }
+      margin: 0
     },
     earningFilters: {
       display: 'flex',
@@ -54,12 +36,7 @@ const Earnings = ({ deliveryData }) => {
       padding: '4px',
       borderRadius: '8px',
       border: '1px solid #e5e7eb',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-      '@media (max-width: 480px)': {
-        width: '100%',
-        justifyContent: 'center'
-      }
+      alignItems: 'center'
     },
     earningFilter: {
       padding: '8px 16px',
@@ -72,24 +49,14 @@ const Earnings = ({ deliveryData }) => {
       transition: 'all 0.3s ease',
       display: 'flex',
       alignItems: 'center',
-      gap: '6px',
-      '@media (max-width: 480px)': {
-        padding: '6px 12px',
-        fontSize: '13px',
-        flex: '1 1 calc(50% - 8px)',
-        justifyContent: 'center'
-      }
+      gap: '6px'
     },
     earningFilterActive: {
       backgroundColor: '#7C2A62',
       color: 'white'
     },
     monthDropdown: {
-      marginLeft: '0',
-      '@media (max-width: 480px)': {
-        width: '100%',
-        marginTop: '8px'
-      }
+      marginLeft: '0'
     },
     monthSelect: {
       padding: '8px 12px',
@@ -97,57 +64,37 @@ const Earnings = ({ deliveryData }) => {
       borderRadius: '6px',
       fontSize: '14px',
       backgroundColor: 'white',
-      minWidth: '150px',
-      '@media (max-width: 480px)': {
-        width: '100%',
-        minWidth: 'auto'
-      }
+      minWidth: '150px'
     },
     earningsSummary: {
       backgroundColor: 'white',
-      padding: '20px',
+      padding: '24px',
       borderRadius: '12px',
       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      marginBottom: '20px',
-      '@media (max-width: 768px)': {
-        padding: '16px'
-      }
+      marginBottom: '24px'
     },
     earningStats: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-      gap: '16px',
-      '@media (max-width: 480px)': {
-        gridTemplateColumns: '1fr',
-        gap: '12px'
-      }
+      gridTemplateColumns: 'repeat(4, 1fr)',
+      gap: '20px'
     },
     earningStat: {
       textAlign: 'center',
       padding: '16px',
       backgroundColor: '#f8fafc',
-      borderRadius: '8px',
-      '@media (max-width: 480px)': {
-        padding: '12px'
-      }
+      borderRadius: '8px'
     },
     earningAmount: {
-      fontSize: '20px',
+      fontSize: '24px',
       fontWeight: '700',
       color: '#7C2A62',
-      margin: '0 0 8px 0',
-      '@media (max-width: 480px)': {
-        fontSize: '18px'
-      }
+      margin: '0 0 8px 0'
     },
     earningLabel: {
       fontSize: '14px',
       color: '#6b7280',
       margin: '0 0 12px 0',
-      fontWeight: '500',
-      '@media (max-width: 480px)': {
-        fontSize: '13px'
-      }
+      fontWeight: '500'
     },
     metricDetail: {
       display: 'flex',
@@ -159,56 +106,44 @@ const Earnings = ({ deliveryData }) => {
     metricValue: {
       fontSize: '16px',
       fontWeight: '600',
-      color: '#1f2937',
-      '@media (max-width: 480px)': {
-        fontSize: '15px'
-      }
+      color: '#1f2937'
     },
     metricLabel: {
       fontSize: '12px',
-      color: '#6b7280',
-      '@media (max-width: 480px)': {
-        fontSize: '11px'
-      }
+      color: '#6b7280'
     },
     sectionTitle: {
       fontSize: '20px',
       fontWeight: '600',
       color: '#1f2937',
-      margin: '0 0 16px 0',
-      '@media (max-width: 480px)': {
-        fontSize: '18px'
-      }
+      margin: '0 0 16px 0'
     },
     sectionHeader: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: '20px',
-      '@media (max-width: 480px)': {
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        gap: '8px'
-      }
+      marginBottom: '20px'
     },
     viewAll: {
       fontSize: '14px',
       color: '#7C2A62',
       fontWeight: '500',
       cursor: 'pointer',
-      '@media (max-width: 480px)': {
-        fontSize: '13px'
-      }
+      padding: '8px 16px',
+      border: '1px solid #7C2A62',
+      borderRadius: '6px',
+      transition: 'all 0.3s ease'
+    },
+    viewAllHover: {
+      backgroundColor: '#7C2A62',
+      color: 'white'
     },
     earningsHistory: {
       backgroundColor: 'white',
-      padding: '20px',
+      padding: '24px',
       borderRadius: '12px',
       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      marginBottom: '20px',
-      '@media (max-width: 768px)': {
-        padding: '16px'
-      }
+      marginBottom: '24px'
     },
     earningsList: {
       display: 'flex',
@@ -223,11 +158,11 @@ const Earnings = ({ deliveryData }) => {
       border: '1px solid #e5e7eb',
       borderRadius: '8px',
       transition: 'all 0.3s ease',
-      '@media (max-width: 480px)': {
-        flexDirection: 'column',
-        gap: '8px',
-        padding: '12px'
-      }
+      cursor: 'pointer'
+    },
+    earningItemHover: {
+      backgroundColor: '#f8fafc',
+      borderColor: '#7C2A62'
     },
     earningDate: {
       flex: 1
@@ -236,19 +171,12 @@ const Earnings = ({ deliveryData }) => {
       fontSize: '14px',
       color: '#1f2937',
       marginBottom: '8px',
-      display: 'block',
-      fontWeight: '600',
-      '@media (max-width: 480px)': {
-        fontSize: '13px'
-      }
+      display: 'block'
     },
     earningMeta: {
       display: 'flex',
       gap: '8px',
-      flexWrap: 'wrap',
-      '@media (max-width: 480px)': {
-        gap: '6px'
-      }
+      flexWrap: 'wrap'
     },
     metaBadge: {
       fontSize: '11px',
@@ -256,29 +184,62 @@ const Earnings = ({ deliveryData }) => {
       backgroundColor: '#f3f4f6',
       color: '#6b7280',
       borderRadius: '12px',
-      fontWeight: '500',
-      '@media (max-width: 480px)': {
-        fontSize: '10px',
-        padding: '3px 6px'
-      }
+      fontWeight: '500'
     },
     earningAmountItem: {
       fontSize: '16px',
       fontWeight: '600',
-      color: '#7C2A62',
-      '@media (max-width: 480px)': {
-        fontSize: '15px',
-        alignSelf: 'flex-end'
-      }
+      color: '#7C2A62'
+    },
+    loadingSpinner: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: '40px'
+    },
+    spinner: {
+      width: '40px',
+      height: '40px',
+      border: '4px solid #f3f4f6',
+      borderTop: '4px solid #7C2A62',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite'
+    },
+    noData: {
+      textAlign: 'center',
+      padding: '40px',
+      color: '#6b7280',
+      fontSize: '16px'
+    },
+    pagination: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: '16px',
+      marginTop: '20px',
+      padding: '16px'
+    },
+    paginationButton: {
+      padding: '8px 16px',
+      border: '1px solid #d1d5db',
+      backgroundColor: 'white',
+      borderRadius: '6px',
+      cursor: 'pointer',
+      fontSize: '14px',
+      transition: 'all 0.3s ease'
+    },
+    paginationButtonDisabled: {
+      opacity: 0.5,
+      cursor: 'not-allowed'
+    },
+    paginationInfo: {
+      fontSize: '14px',
+      color: '#6b7280'
     }
   };
 
-  const formatIndianCurrency = (amount) => {
-    return `₹${amount.toLocaleString('en-IN')}`;
-  };
-
   // Enhanced months data for earnings
-  const monthsData = [
+  const initialMonthsData = [
     { value: 'january', label: 'January 2025', earnings: 15200, deliveries: 230, cancelled: 5, year: 2025 },
     { value: 'december', label: 'December 2024', earnings: 14200, deliveries: 215, cancelled: 8, year: 2024 },
     { value: 'november', label: 'November 2024', earnings: 13200, deliveries: 198, cancelled: 12, year: 2024 },
@@ -287,9 +248,45 @@ const Earnings = ({ deliveryData }) => {
     { value: 'august', label: 'August 2024', earnings: 13500, deliveries: 205, cancelled: 7, year: 2024 }
   ];
 
+  // Extended data for "View All" functionality
+  const extendedMonthsData = [
+    ...initialMonthsData,
+    { value: 'july', label: 'July 2024', earnings: 12100, deliveries: 185, cancelled: 9, year: 2024 },
+    { value: 'june', label: 'June 2024', earnings: 11800, deliveries: 180, cancelled: 11, year: 2024 },
+    { value: 'may', label: 'May 2024', earnings: 12500, deliveries: 195, cancelled: 8, year: 2024 },
+    { value: 'april', label: 'April 2024', earnings: 11500, deliveries: 175, cancelled: 12, year: 2024 },
+    { value: 'march', label: 'March 2024', earnings: 12200, deliveries: 188, cancelled: 7, year: 2024 },
+    { value: 'february', label: 'February 2024', earnings: 11000, deliveries: 168, cancelled: 15, year: 2024 },
+    { value: 'january-2024', label: 'January 2024', earnings: 10500, deliveries: 162, cancelled: 13, year: 2024 },
+    { value: 'december-2023', label: 'December 2023', earnings: 9800, deliveries: 155, cancelled: 10, year: 2023 },
+    { value: 'november-2023', label: 'November 2023', earnings: 9200, deliveries: 145, cancelled: 12, year: 2023 },
+    { value: 'october-2023', label: 'October 2023', earnings: 8900, deliveries: 140, cancelled: 14, year: 2023 }
+  ];
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  // Simulate API call to fetch all months data
+  const fetchAllMonthsData = async () => {
+    setIsLoading(true);
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setAllMonthsData(extendedMonthsData);
+    setIsLoading(false);
+  };
+
+  // Handle View All click
+  const handleViewAllClick = () => {
+    if (!showAllMonths) {
+      fetchAllMonthsData();
+    }
+    setShowAllMonths(!showAllMonths);
+    setCurrentPage(1);
+  };
+
   // Calculate metrics based on current filter
   const getFilteredMetrics = () => {
-    const selectedMonth = monthsData.find(month => month.value === earningFilter);
+    const selectedMonth = initialMonthsData.find(month => month.value === earningFilter);
 
     switch (earningFilter) {
       case 'today':
@@ -313,7 +310,7 @@ const Earnings = ({ deliveryData }) => {
         };
       case 'month':
         // Current month data
-        const currentMonthData = monthsData[0];
+        const currentMonthData = initialMonthsData[0];
         return {
           totalEarnings: currentMonthData.earnings,
           totalDeliveries: currentMonthData.deliveries,
@@ -337,7 +334,7 @@ const Earnings = ({ deliveryData }) => {
           };
         } else {
           // Default to current month
-          const currentMonthData = monthsData[0];
+          const currentMonthData = initialMonthsData[0];
           return {
             totalEarnings: currentMonthData.earnings,
             totalDeliveries: currentMonthData.deliveries,
@@ -350,11 +347,45 @@ const Earnings = ({ deliveryData }) => {
     }
   };
 
+  const formatIndianCurrency = (amount) => {
+    return `₹${amount.toLocaleString('en-IN')}`;
+  };
+
   const metrics = getFilteredMetrics();
-  const selectedMonth = monthsData.find(month => month.value === earningFilter);
+  const selectedMonth = initialMonthsData.find(month => month.value === earningFilter);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(allMonthsData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentMonthsData = showAllMonths ? 
+    allMonthsData.slice(startIndex, endIndex) : 
+    initialMonthsData.slice(0, 6);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  // Add CSS animation for spinner
+  const spinnerStyles = `
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  `;
 
   return (
     <div style={styles.mainContent}>
+      <style>{spinnerStyles}</style>
+      
       <div style={styles.header}>
         <div>
           <h1 style={styles.greeting}>Earnings</h1>
@@ -386,7 +417,7 @@ const Earnings = ({ deliveryData }) => {
               style={styles.monthSelect}
             >
               <option value="" disabled>Select Month</option>
-              {monthsData.map(month => (
+              {initialMonthsData.map(month => (
                 <option key={month.value} value={month.value}>
                   {month.label}
                 </option>
@@ -477,34 +508,97 @@ const Earnings = ({ deliveryData }) => {
       {/* Recent Months Performance */}
       <div style={styles.earningsHistory}>
         <div style={styles.sectionHeader}>
-          <h3 style={styles.sectionTitle}>Recent Months Performance</h3>
-          <span style={styles.viewAll}>View All</span>
+          <h3 style={styles.sectionTitle}>
+            {showAllMonths ? 'Complete Earnings History' : 'Recent Months Performance'}
+          </h3>
+          <span 
+            style={styles.viewAll}
+            onClick={handleViewAllClick}
+          >
+            {showAllMonths ? 'Show Less' : 'View All'}
+          </span>
         </div>
-        <div style={styles.earningsList}>
-          {monthsData.slice(0, 6).map((month, index) => (
-            <div key={index} style={styles.earningItem}>
-              <div style={styles.earningDate}>
-                <strong style={styles.earningDateText}>
-                  {month.label}
-                </strong>
-                <div style={styles.earningMeta}>
-                  <span style={styles.metaBadge}>{month.deliveries} deliveries</span>
-                  <span style={styles.metaBadge}>{month.cancelled} cancelled</span>
-                  <span style={styles.metaBadge}>
-                    {month.value === 'january' ? '93%' :
-                     month.value === 'december' ? '90%' : '88%'} efficiency
-                  </span>
+
+        {isLoading ? (
+          <div style={styles.loadingSpinner}>
+            <div style={styles.spinner}></div>
+          </div>
+        ) : (
+          <>
+            <div style={styles.earningsList}>
+              {currentMonthsData.length > 0 ? (
+                currentMonthsData.map((month, index) => (
+                  <div 
+                    key={index} 
+                    style={styles.earningItem}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f8fafc';
+                      e.currentTarget.style.borderColor = '#7C2A62';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'white';
+                      e.currentTarget.style.borderColor = '#e5e7eb';
+                    }}
+                  >
+                    <div style={styles.earningDate}>
+                      <strong style={styles.earningDateText}>
+                        {month.label}
+                      </strong>
+                      <div style={styles.earningMeta}>
+                        <span style={styles.metaBadge}>{month.deliveries} deliveries</span>
+                        <span style={styles.metaBadge}>{month.cancelled} cancelled</span>
+                        <span style={styles.metaBadge}>
+                          {month.value.includes('january') ? '93%' :
+                           month.value.includes('december') ? '90%' : 
+                           month.year === 2023 ? '85%' : '88%'} efficiency
+                        </span>
+                      </div>
+                    </div>
+                    <div style={styles.earningAmountItem}>
+                      {formatIndianCurrency(month.earnings)}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div style={styles.noData}>
+                  No earnings data available
                 </div>
-              </div>
-              <div style={styles.earningAmountItem}>
-                {formatIndianCurrency(month.earnings)}
-              </div>
+              )}
             </div>
-          ))}
-        </div>
+
+            {/* Pagination for View All */}
+            {showAllMonths && allMonthsData.length > itemsPerPage && (
+              <div style={styles.pagination}>
+                <button
+                  style={{
+                    ...styles.paginationButton,
+                    ...(currentPage === 1 ? styles.paginationButtonDisabled : {})
+                  }}
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </button>
+                <span style={styles.paginationInfo}>
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  style={{
+                    ...styles.paginationButton,
+                    ...(currentPage === totalPages ? styles.paginationButtonDisabled : {})
+                  }}
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
 };
 
-export default Earnings; 
+export default Earnings;

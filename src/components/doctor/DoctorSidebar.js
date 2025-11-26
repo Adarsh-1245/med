@@ -12,9 +12,6 @@ const DoctorSidebar = ({
 }) => {
   const isMobile = window.innerWidth <= 768;
 
-  // Filter out messages from navigation items
-  const filteredNavigationItems = navigationItems.filter(item => item.id !== 'messages');
-
   return (
     <>
       {/* Mobile Overlay */}
@@ -42,9 +39,25 @@ const DoctorSidebar = ({
             </button>
           )}
         </div>
+
+        {/* Doctor Profile Section - Moved to top */}
+        <div style={styles.profileSection}>
+          <button 
+            style={styles.profileButton}
+            onClick={() => setShowProfileModal(true)}
+          >
+            <div style={styles.userInfo}>
+              <div style={styles.userAvatar}>👨‍⚕️</div>
+              <div style={styles.userDetails}>
+                <p style={styles.userName}>Dr. {userProfile.fullName?.split(' ')[0] || 'User'}</p>
+                <p style={styles.userSpecialization}>{userProfile.specialization || 'General Physician'}</p>
+              </div>
+            </div>
+          </button>
+        </div>
         
         <nav style={styles.navigation}>
-          {filteredNavigationItems.map(item => (
+          {navigationItems.map(item => (
             <button
               key={item.id}
               style={{
@@ -62,23 +75,8 @@ const DoctorSidebar = ({
           ))}
         </nav>
 
-        {/* Fixed Profile Section */}
+        {/* Fixed Bottom Section with only Logout */}
         <div style={styles.bottomSection}>
-          <div style={styles.profileSection}>
-            <button 
-              style={styles.profileButton}
-              onClick={() => setShowProfileModal(true)}
-            >
-              <div style={styles.userInfo}>
-                <div style={styles.userAvatar}>👨‍⚕️</div>
-                <div style={styles.userDetails}>
-                  <p style={styles.userName}>Dr. {userProfile.fullName?.split(' ')[0] || 'User'}</p>
-                  <p style={styles.userSpecialization}>{userProfile.specialization || 'General Physician'}</p>
-                </div>
-              </div>
-            </button>
-          </div>
-
           <div style={styles.sidebarFooter}>
             <button 
               style={styles.logoutButton} 
@@ -143,45 +141,10 @@ const styles = {
     opacity: 0.8,
     margin: 0
   },
-  navigation: {
-    flex: 1,
-    padding: '20px 0',
-    overflow: 'hidden',
-    flexShrink: 1
-  },
-  navButton: {
-    display: 'flex',
-    alignItems: 'center',
-    width: '100%',
-    padding: '16px 24px',
-    backgroundColor: 'transparent',
-    border: 'none',
-    color: 'white',
-    fontSize: '16px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    opacity: 0.8,
-    position: 'relative'
-  },
-  navButtonActive: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    opacity: 1,
-    borderRight: '4px solid #F7D9EB'
-  },
-  navIcon: {
-    fontSize: '20px',
-    marginRight: '12px',
-    width: '24px'
-  },
-  navLabel: {
-    fontWeight: '500'
-  },
-  bottomSection: {
-    flexShrink: 0,
-    borderTop: '1px solid rgba(255,255,255,0.1)'
-  },
   profileSection: {
-    padding: '16px 24px 8px'
+    padding: '16px 24px',
+    borderBottom: '1px solid rgba(255,255,255,0.1)',
+    flexShrink: 0
   },
   profileButton: {
     width: '100%',
@@ -231,8 +194,45 @@ const styles = {
     overflow: 'hidden',
     textOverflow: 'ellipsis'
   },
+  navigation: {
+    flex: 1,
+    padding: '20px 0',
+    overflow: 'hidden',
+    flexShrink: 1
+  },
+  navButton: {
+    display: 'flex',
+    alignItems: 'center',
+    width: '100%',
+    padding: '16px 24px',
+    backgroundColor: 'transparent',
+    border: 'none',
+    color: 'white',
+    fontSize: '16px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    opacity: 0.8,
+    position: 'relative'
+  },
+  navButtonActive: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    opacity: 1,
+    borderRight: '4px solid #F7D9EB'
+  },
+  navIcon: {
+    fontSize: '20px',
+    marginRight: '12px',
+    width: '24px'
+  },
+  navLabel: {
+    fontWeight: '500'
+  },
+  bottomSection: {
+    flexShrink: 0,
+    borderTop: '1px solid rgba(255,255,255,0.1)'
+  },
   sidebarFooter: {
-    padding: '8px 24px 20px'
+    padding: '20px 24px'
   },
   logoutButton: {
     width: '100%',
