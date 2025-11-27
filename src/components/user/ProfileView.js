@@ -75,14 +75,15 @@ const ProfileView = ({ setActiveView }) => {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      gap: '1rem',
+      gap: '2rem', // Increased gap between back button and header content
       marginBottom: '2rem',
       textAlign: 'center',
       position: 'relative',
     },
     backButton: {
-      padding: '0.5rem 1rem',
+      padding: '0.75rem 0.5rem', // Increased padding for longer button
       backgroundColor: 'transparent',
+       marginTop: '1.5rem',
       color: '#7C2A62',
       border: '2px solid #7C2A62',
       borderRadius: '8px',
@@ -93,7 +94,8 @@ const ProfileView = ({ setActiveView }) => {
       alignSelf: 'flex-start',
       position: 'relative',
       zIndex: 2,
-      marginBottom: '1rem',
+      marginBottom: '0.5rem', // Added margin for better spacing
+      minWidth: '180px', // Minimum width for consistent button size
     },
     headerContent: {
       display: 'flex',
@@ -210,7 +212,7 @@ const ProfileView = ({ setActiveView }) => {
       boxShadow: '0 2px 8px rgba(255, 107, 107, 0.3)',
     },
     editProfileButton: {
-      padding: '0.75rem 1.5rem',
+      padding: '0.75rem 2rem', // Increased padding for longer button
       backgroundColor: '#7C2A62',
       color: 'white',
       border: 'none',
@@ -223,6 +225,7 @@ const ProfileView = ({ setActiveView }) => {
       alignItems: 'center',
       gap: '0.5rem',
       boxShadow: '0 2px 8px rgba(124, 42, 98, 0.3)',
+      minWidth: '160px', // Minimum width for consistent button size
     },
 
     // Profile Form - Compact
@@ -291,37 +294,27 @@ const ProfileView = ({ setActiveView }) => {
       borderColor: '#F7D9EB',
     },
 
-    // Phone Input Styles - Larger Input
+    // Phone Input Styles - Extended container
     phoneInputContainer: {
       display: 'flex',
       alignItems: 'center',
       gap: '0.5rem',
-      backgroundColor: 'white',
+      width: '100%', // Ensure full width
     },
     phonePrefix: {
       display: 'flex',
       alignItems: 'center',
       gap: '0.5rem',
-      padding: '0.75rem',
+      padding: '0.75rem 1rem', // Increased horizontal padding
       backgroundColor: '#f8f5ff',
       borderRadius: '8px',
       fontWeight: '600',
       color: '#7C2A62',
       fontSize: '0.9rem',
       border: '1px solid #F7D9EB',
-      minWidth: '50px',
-    },
-    phoneInput: {
-      padding: '0.75rem',
-      border: '1px solid #F7D9EB',
-      borderRadius: '8px',
-      fontSize: '1.1rem',
-      transition: 'all 0.3s ease',
-      cursor: 'text',
-      fontFamily: 'inherit',
-      flex: '1',
-      minWidth: '200px',
-      height: '20px',
+      minWidth: '100px', // Increased minimum width
+      justifyContent: 'center',
+      flexShrink: 0, // Prevent shrinking
     },
 
     // Action Buttons - Compact
@@ -334,7 +327,7 @@ const ProfileView = ({ setActiveView }) => {
       borderTop: '2px solid #F7D9EB',
     },
     updateButton: {
-      padding: '0.75rem 1.5rem',
+      padding: '0.75rem 2rem', // Increased padding for longer button
       backgroundColor: '#7C2A62',
       color: 'white',
       border: 'none',
@@ -344,6 +337,7 @@ const ProfileView = ({ setActiveView }) => {
       fontSize: '0.9rem',
       transition: 'all 0.3s ease',
       boxShadow: '0 2px 8px rgba(124, 42, 98, 0.3)',
+      minWidth: '160px', // Minimum width for consistent button size
     },
     updateButtonDisabled: {
       backgroundColor: '#cccccc',
@@ -351,7 +345,7 @@ const ProfileView = ({ setActiveView }) => {
       boxShadow: 'none',
     },
     cancelButton: {
-      padding: '0.75rem 1.5rem',
+      padding: '0.75rem 2rem', // Increased padding for longer button
       backgroundColor: 'transparent',
       color: '#7C2A62',
       border: '1px solid #7C2A62',
@@ -360,6 +354,7 @@ const ProfileView = ({ setActiveView }) => {
       fontWeight: '600',
       fontSize: '0.9rem',
       transition: 'all 0.3s ease',
+      minWidth: '120px', // Minimum width for consistent button size
     },
 
     // Save Status - Compact
@@ -894,7 +889,7 @@ const ProfileView = ({ setActiveView }) => {
             )}
           </div>
 
-          {/* Editable Phone Field - Larger Input */}
+          {/* Editable Phone Field - Extended container */}
           <div style={styles.formGroup}>
             <label style={styles.formLabel}>Phone *</label>
             <div style={styles.phoneInputContainer}>
@@ -906,9 +901,10 @@ const ProfileView = ({ setActiveView }) => {
                 onChange={handleLocalProfileChange}
                 onBlur={handleLocalProfileBlur}
                 style={{
-                  ...styles.phoneInput,
+                  ...styles.formInput,
                   ...(localIsFormTouched && localFormErrors.phone && styles.formInputError),
-                  ...(!isEditMode && styles.nonEditableField)
+                  ...(!isEditMode && styles.nonEditableField),
+                  flex: '1', // Take remaining space
                 }}
                 placeholder="10-digit mobile number"
                 maxLength="10"

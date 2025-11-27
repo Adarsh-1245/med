@@ -591,12 +591,14 @@ const AppointmentsView = ({
             <h1 style={{
               color: '#7C2A62',
               fontSize: '2rem',
-              margin: '0 0 0.5rem 0',
+              margin: '0 0 0.5rem ',
+               marginTop: '1.5rem',
               fontWeight: '700'
+              
             }}>My Appointments</h1>
             <p style={{
               color: '#666',
-              margin: 0,
+              marginTop: '1.5rem',
               fontSize: '1rem'
             }}>Quick Care, Better Health</p>
           </div>
@@ -669,98 +671,6 @@ const AppointmentsView = ({
             >
               + Book New Appointment
             </button>
-          </div>
-        </div>
-
-        {/* Medical Consultation Information Section */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '12px',
-          padding: '1.5rem',
-          marginBottom: '2rem',
-          boxShadow: '0 2px 15px rgba(0,0,0,0.08)',
-          border: '1px solid #E5E7EB'
-        }}>
-          <h3 style={{
-            color: '#7C2A62',
-            fontSize: '1.25rem',
-            margin: '0 0 1.5rem 0',
-            fontWeight: '700',
-            textAlign: 'center'
-          }}>Why Choose QuickMed?</h3>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '1.5rem'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '1rem'
-            }}>
-              <div style={{
-                fontSize: '2rem',
-                color: '#7C2A62',
-                flexShrink: 0
-              }}>👨‍⚕️</div>
-              <div>
-                <h4 style={{ color: '#7C2A62', margin: '0 0 0.5rem 0', fontSize: '1rem' }}>Expert Medical Care</h4>
-                <p style={{ color: '#666', fontSize: '0.85rem', margin: 0, lineHeight: '1.4' }}>
-                  Consult with experienced doctors across 15+ specialties. Get personalized treatment plans and continuous care.
-                </p>
-              </div>
-            </div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '1rem'
-            }}>
-              <div style={{
-                fontSize: '2rem',
-                color: '#7C2A62',
-                flexShrink: 0
-              }}>💊</div>
-              <div>
-                <h4 style={{ color: '#7C2A62', margin: '0 0 0.5rem 0', fontSize: '1rem' }}>Digital Prescriptions</h4>
-                <p style={{ color: '#666', fontSize: '0.85rem', margin: 0, lineHeight: '1.4' }}>
-                  Receive digital prescriptions instantly. Access your medical records and treatment history anytime.
-                </p>
-              </div>
-            </div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '1rem'
-            }}>
-              <div style={{
-                fontSize: '2rem',
-                color: '#7C2A62',
-                flexShrink: 0
-              }}>🕒</div>
-              <div>
-                <h4 style={{ color: '#7C2A62', margin: '0 0 0.5rem 0', fontSize: '1rem' }}>24/7 Support</h4>
-                <p style={{ color: '#666', fontSize: '0.85rem', margin: 0, lineHeight: '1.4' }}>
-                  Our medical team is available round the clock. Emergency consultations and follow-ups made easy.
-                </p>
-              </div>
-            </div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '1rem'
-            }}>
-              <div style={{
-                fontSize: '2rem',
-                color: '#7C2A62',
-                flexShrink: 0
-              }}>📊</div>
-              <div>
-                <h4 style={{ color: '#7C2A62', margin: '0 0 0.5rem 0', fontSize: '1rem' }}>Health Tracking</h4>
-                <p style={{ color: '#666', fontSize: '0.85rem', margin: 0, lineHeight: '1.4' }}>
-                  Monitor your health progress with our digital tools. Regular follow-ups and health assessments.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
 

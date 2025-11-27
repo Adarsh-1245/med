@@ -12,8 +12,8 @@ const VendorSidebar = ({
 }) => {
   const sidebarStyle = {
     width: '280px',
-    backgroundColor: '#7C2A62',
-    color: 'white',
+    backgroundColor: '#F7D9EB',
+    color: '#333333',
     display: 'flex',
     flexDirection: 'column',
     position: 'fixed',
@@ -30,7 +30,7 @@ const VendorSidebar = ({
 
   const sidebarHeaderStyle = {
     padding: '24px 20px 16px',
-    borderBottom: '1px solid rgba(255,255,255,0.1)',
+    borderBottom: '1px solid rgba(0,0,0,0.1)',
     position: 'relative',
     flexShrink: 0
   };
@@ -55,7 +55,7 @@ const VendorSidebar = ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.1)',
     borderRadius: '8px'
   };
 
@@ -68,7 +68,7 @@ const VendorSidebar = ({
     fontSize: '22px',
     fontWeight: '700',
     margin: '0 0 4px 0',
-    color: 'white',
+    color: '#333333',
     letterSpacing: '0.5px'
   };
 
@@ -76,7 +76,8 @@ const VendorSidebar = ({
     fontSize: '12px',
     opacity: 0.8,
     margin: 0,
-    fontWeight: '400'
+    fontWeight: '400',
+    color: '#333333'
   };
 
   const mobileCloseButtonStyle = {
@@ -86,7 +87,7 @@ const VendorSidebar = ({
     top: '24px',
     backgroundColor: 'transparent',
     border: 'none',
-    color: 'white',
+    color: '#333333',
     fontSize: '18px',
     cursor: 'pointer',
     padding: '4px',
@@ -98,23 +99,23 @@ const VendorSidebar = ({
 
   const vendorProfileSectionStyle = {
     padding: '16px 20px',
-    borderBottom: '1px solid rgba(255,255,255,0.1)',
+    borderBottom: '1px solid rgba(0,0,0,0.1)',
     flexShrink: 0,
-    backgroundColor: 'rgba(255,255,255,0.05)'
+    backgroundColor: 'rgba(0,0,0,0.05)'
   };
 
   const vendorProfileStyle = {
     display: 'flex',
     alignItems: 'center',
     padding: '12px',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(0,0,0,0.08)',
     borderRadius: '10px',
     cursor: 'pointer',
     transition: 'all 0.3s ease',
-    border: '1px solid rgba(255,255,255,0.15)',
+    border: '1px solid rgba(0,0,0,0.1)',
     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
     '&:hover': {
-      backgroundColor: 'rgba(255,255,255,0.15)',
+      backgroundColor: 'rgba(0,0,0,0.12)',
       transform: 'translateY(-1px)',
       boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
     }
@@ -128,10 +129,10 @@ const VendorSidebar = ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.1)',
     borderRadius: '10px',
     flexShrink: 0,
-    border: '2px solid rgba(255,255,255,0.3)'
+    border: '2px solid rgba(0,0,0,0.2)'
   };
 
   const vendorDetailsStyle = {
@@ -143,7 +144,7 @@ const VendorSidebar = ({
     margin: '0 0 4px 0',
     fontWeight: '600',
     fontSize: '14px',
-    color: 'white',
+    color: '#333333',
     lineHeight: '1.2',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
@@ -154,7 +155,7 @@ const VendorSidebar = ({
     margin: '0 0 2px 0',
     fontSize: '11px',
     opacity: 0.9,
-    color: 'white',
+    color: '#333333',
     lineHeight: '1.2',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
@@ -174,7 +175,7 @@ const VendorSidebar = ({
     padding: '14px 20px',
     backgroundColor: 'transparent',
     border: 'none',
-    color: 'white',
+    color: '#333333',
     fontSize: '14px',
     cursor: 'pointer',
     transition: 'all 0.3s ease',
@@ -182,9 +183,9 @@ const VendorSidebar = ({
   };
 
   const navButtonActiveStyle = {
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(0,0,0,0.08)',
     opacity: 1,
-    borderRight: '3px solid #F7D9EB',
+    borderRight: '3px solid #7C2A62',
     fontWeight: '600'
   };
 
@@ -203,16 +204,16 @@ const VendorSidebar = ({
 
   const sidebarFooterStyle = {
     padding: '16px 20px',
-    borderTop: '1px solid rgba(255,255,255,0.1)',
+    borderTop: '1px solid rgba(0,0,0,0.1)',
     flexShrink: 0,
-    backgroundColor: 'rgba(255,255,255,0.05)'
+    backgroundColor: 'rgba(0,0,0,0.05)'
   };
 
   const logoutButtonStyle = {
     width: '100%',
     padding: '10px 16px',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    color: 'white',
+    backgroundColor: 'rgba(0,0,0,0.08)',
+    color: '#333333',
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer',
@@ -220,7 +221,7 @@ const VendorSidebar = ({
     fontSize: '14px',
     transition: 'all 0.3s ease',
     '&:hover': {
-      backgroundColor: 'rgba(255,255,255,0.15)'
+      backgroundColor: 'rgba(0,0,0,0.12)'
     }
   };
 
@@ -237,7 +238,6 @@ const VendorSidebar = ({
               e.target.nextSibling.style.display = 'block';
             }}
           />
-          {/* <div style={logoFallbackStyle}>🏥</div> */}
           <div style={logoTextContainerStyle}>
             <h1 style={logoStyle}>QUICKMED</h1>
             <p style={vendorTitleStyle}>Vendor Portal</p>

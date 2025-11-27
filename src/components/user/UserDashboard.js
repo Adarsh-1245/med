@@ -14,6 +14,7 @@ import Products from './Products';
 import AIChatbotWidget from './AIChatbotWidget';
 import { ProfileProvider, useProfile } from './ProfileContext';
 
+
 // Error Boundary Component
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -964,6 +965,7 @@ const UserDashboardContent = ({ user, onLogout }) => {
       borderRadius: '20px',
       boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
       width: '100%',
+      marginTop: '30px', // Added gap between header and welcome section
     },
     welcomeTitle: {
       fontSize: 'clamp(2rem, 5vw, 3rem)',
@@ -1384,24 +1386,7 @@ const UserDashboardContent = ({ user, onLogout }) => {
         <h2 style={dashboardStyles.infoTitle}>Healthcare Information & Guidelines</h2>
         
         <div style={dashboardStyles.infoGrid}>
-          {/* QuickMed Services Info */}
-          <div style={dashboardStyles.infoCard}>
-            <h3 style={dashboardStyles.infoCardTitle}>
-              <span>🏥</span> About QuickMed Services
-            </h3>
-            <div style={dashboardStyles.infoCardContent}>
-              <p>
-                <span style={dashboardStyles.highlightText}>QuickMed</span> is your comprehensive digital healthcare platform offering:
-              </p>
-              <ul style={dashboardStyles.infoList}>
-                <li style={dashboardStyles.infoListItem}><strong>Instant Medicine Delivery:</strong> Within 2 hours at your doorstep</li>
-                <li style={dashboardStyles.infoListItem}><strong>Online Doctor Consultations:</strong> 24/7 access to certified professionals</li>
-                <li style={dashboardStyles.infoListItem}><strong>Digital Prescription Management:</strong> Secure storage and easy access</li>
-                <li style={dashboardStyles.infoListItem}><strong>Live Order Tracking:</strong> Real-time updates on your deliveries</li>
-              </ul>
-            </div>
-          </div>
-
+          
           {/* Medicine Safety Guidelines */}
           <div style={dashboardStyles.infoCard}>
             <h3 style={dashboardStyles.infoCardTitle}>

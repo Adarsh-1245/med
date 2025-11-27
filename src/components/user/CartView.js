@@ -192,6 +192,7 @@ const CartView = ({
           position: 'absolute',
           left: 0,
           top: '50%',
+          marginTop: '1.5rem',
           transform: 'translateY(-50%)',
         }}>
           <BackButton onClick={handleBackToMedicines} text="Back to Medicines" />
@@ -208,6 +209,7 @@ const CartView = ({
             color: '#7C2A62',
             fontSize: '2rem',
             margin: 0,
+            marginTop: '1.5rem',
             fontWeight: '800',
             background: 'linear-gradient(135deg, #7C2A62, #E91E63)',
             WebkitBackgroundClip: 'text',

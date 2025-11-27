@@ -25,16 +25,15 @@ const Products = ({
     danger: '#dc3545'
   };
 
-  // Styles object with the new color scheme - SIGNIFICANTLY INCREASED GAP
+  // Styles object with the new color scheme
   const styles = {
     mainContent: {
       padding: '20px',
       backgroundColor: colors.lightGray,
       minHeight: '100vh',
-      marginTop: '50px', // Account for fixed header
-      paddingTop: '80px' // SIGNIFICANTLY INCREASED from 50px to 80px
+      marginTop: '50px',
+      paddingTop: '80px'
     },
-    // NEW: Back button styles
     backButton: {
       position: 'fixed',
       top: '80px',
@@ -56,48 +55,47 @@ const Products = ({
     },
     welcomeSection: {
       textAlign: 'center',
-      marginBottom: '30px', // Increased from 30px to 40px
-      padding: '20px 10px', // SIGNIFICANTLY INCREASED padding
+      marginBottom: '30px',
+      padding: '20px 10px',
       backgroundColor: colors.white,
       borderRadius: '15px',
       boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-      marginTop: '20px' // DOUBLED from 10px to 20px
+      marginTop: '40px'
     },
     welcomeTitle: {
       color: colors.primary,
-      fontSize: '2.5rem', // Larger font size
-      marginBottom: '20px', // More space below title
+      fontSize: '2.5rem',
+      marginBottom: '20px',
       fontWeight: 'bold'
     },
     welcomeSubtitle: {
       color: colors.gray,
-      fontSize: '1.3rem', // Larger subtitle
+      fontSize: '1.3rem',
       lineHeight: '1.6'
     },
     searchSection: {
-      marginBottom: '40px', // Increased spacing
+      marginBottom: '40px',
       backgroundColor: colors.white,
-      padding: '30px', // Increased padding
+      padding: '30px',
       borderRadius: '12px',
       boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
     },
     searchContainer: {
       display: 'flex',
       alignItems: 'center',
-      marginBottom: '25px', // More space
-      gap: '20px' // More gap between elements
+      marginBottom: '25px',
+      gap: '20px'
     },
     searchInput: {
       flex: 0.5,
-      padding: '15px 20px', // Larger padding for better touch
+      padding: '15px 20px',
       border: `2px solid ${colors.accent}`,
-      borderRadius: '5px', // Slightly larger border radius
+      borderRadius: '5px',
       fontSize: '16px',
       outline: 'none',
       transition: 'border-color 0.3s ease',
       backgroundColor: colors.white
     },
-    // NEW: Health message styles
     healthMessage: {
       flex: 0.7,
       padding: '15px 20px',
@@ -113,16 +111,16 @@ const Products = ({
     categoryFilter: {
       display: 'flex',
       flexWrap: 'wrap',
-      gap: '15px' // More gap between category buttons
+      gap: '15px'
     },
     categoryButton: {
-      padding: '12px 24px', // Larger buttons
+      padding: '12px 24px',
       border: `2px solid ${colors.accent}`,
       backgroundColor: colors.white,
       color: colors.primary,
       borderRadius: '25px',
       cursor: 'pointer',
-      fontSize: '15px', // Slightly larger font
+      fontSize: '15px',
       fontWeight: '500',
       transition: 'all 0.3s ease'
     },
@@ -131,29 +129,27 @@ const Products = ({
       color: colors.white,
       borderColor: colors.primary
     },
-    productsSection: {
-      marginBottom: '40px' // More space at bottom
-    },
     productsGrid: {
       display: 'grid',
       gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-      gap: '25px' // More gap between product cards
+      gap: '25px'
     },
     productCard: {
       backgroundColor: colors.white,
-      borderRadius: '12px',
-      padding: '25px', // More padding in cards
+      borderRadius: '5px',
+      padding: '25px',
       boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
       transition: 'transform 0.3s ease, box-shadow 0.3s ease',
       border: `1px solid ${colors.accent}`,
       display: 'flex',
       flexDirection: 'column',
-      height: '90%'
+      minHeight: '200px', // Fixed minimum height
+      position: 'relative'
     },
     productImage: {
-      fontSize: '3.5rem', // Larger icons
+      fontSize: '3.5rem',
       textAlign: 'center',
-      marginBottom: '20px' // More space below image
+      marginBottom: '20px'
     },
     productInfo: {
       flex: 1,
@@ -162,140 +158,125 @@ const Products = ({
     },
     productName: {
       color: colors.primary,
-      fontSize: '1.3rem', // Slightly larger
+      fontSize: '1.3rem',
       fontWeight: 'bold',
-      marginBottom: '8px' // More space
+      marginBottom: '8px'
     },
     productBrand: {
       color: colors.gray,
-      fontSize: '1.1rem', // Slightly larger
-      marginBottom: '12px', // More space
+      fontSize: '1.1rem',
+      marginBottom: '12px',
       fontWeight: '500'
     },
     productDescription: {
       color: colors.darkGray,
-      fontSize: '0.95rem', // Slightly larger
-      marginBottom: '18px', // More space
-      lineHeight: '1.5' // Better readability
+      fontSize: '0.95rem',
+      marginBottom: '18px',
+      lineHeight: '1.5'
     },
     productMeta: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: '15px' // More space
+      marginBottom: '15px'
     },
     productCategory: {
       backgroundColor: colors.accent,
       color: colors.primary,
-      padding: '6px 14px', // Larger badge
+      padding: '6px 14px',
       borderRadius: '15px',
-      fontSize: '0.85rem', // Slightly larger
+      fontSize: '0.85rem',
       fontWeight: '500'
     },
     prescriptionBadge: {
       backgroundColor: colors.warning,
       color: colors.darkGray,
-      padding: '6px 10px', // Larger badge
+      padding: '6px 10px',
       borderRadius: '10px',
-      fontSize: '0.75rem', // Slightly larger
+      fontSize: '0.75rem',
       fontWeight: 'bold'
     },
-    productRating: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px', // More gap
-      marginBottom: '15px' // More space
-    },
-    ratingStars: {
-      fontSize: '1rem' // Larger stars
-    },
-    ratingText: {
-      color: colors.gray,
-      fontSize: '0.85rem' // Slightly larger
-    },
-    productStock: {
-      marginBottom: '18px' // More space
-    },
-    inStock: {
-      color: colors.success,
-      fontSize: '0.95rem', // Slightly larger
-      fontWeight: '500'
-    },
-    outOfStock: {
-      color: colors.danger,
-      fontSize: '0.95rem', // Slightly larger
-      fontWeight: '500'
+
+    // FIXED: Bottom section that stays at bottom
+    bottomSection: {
+      marginTop: 'auto',
+      paddingTop: '15px',
+      borderTop: `1px solid ${colors.lightGray}`,
+      position: 'sticky',
+      bottom: '0',
+      backgroundColor: colors.white,
+      borderRadius: '0 0 12px 12px'
     },
     productPriceSection: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: '18px' // More space
+      marginBottom: '0'
     },
     productPrice: {
       color: colors.primary,
-      fontSize: '1.6rem', // Larger price
+      fontSize: '1.6rem',
       fontWeight: 'bold'
     },
-    // UPDATED: Smaller Add to Cart button
     addToCartButton: {
-      padding: '10px 0px', // SMALLER: Reduced from 14px to 10px
+      padding: '12px 24px',
       backgroundColor: colors.primary,
       color: colors.white,
       border: 'none',
-      borderRadius: '6px', // Slightly smaller
+      borderRadius: '8px',
       cursor: 'pointer',
-      fontSize: '0.9rem', // SMALLER: Reduced from 1.1rem to 0.9rem
+      fontSize: '0.9rem',
       fontWeight: '600',
       transition: 'all 0.3s ease',
-      marginTop: 'auto'
+      whiteSpace: 'nowrap',
+      minWidth: '120px'
     },
-    // UPDATED: Smaller disabled button
     disabledButton: {
-      padding: '10px 16px', // SMALLER: Reduced from 14px to 10px
+      padding: '12px 24px',
       backgroundColor: colors.gray,
       color: colors.white,
       border: 'none',
-      borderRadius: '6px', // Slightly smaller
+      borderRadius: '8px',
       cursor: 'not-allowed',
-      fontSize: '0.9rem', // SMALLER: Reduced from 1.1rem to 0.9rem
+      fontSize: '0.9rem',
       fontWeight: '600',
       opacity: 0.6,
-      marginTop: 'auto'
+      whiteSpace: 'nowrap',
+      minWidth: '120px'
     },
     quantityControls: {
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'space-between',
       gap: '15px',
-      marginTop: 'auto',
-      padding: '10px',
+      padding: '12px',
       backgroundColor: colors.lightGray,
-      borderRadius: '8px'
+      borderRadius: '8px',
+      width: '100%'
     },
-    // UPDATED: Smaller quantity buttons
     quantityButton: {
-      width: '35px', // SMALLER: Reduced from 40px to 35px
-      height: '35px', // SMALLER: Reduced from 40px to 35px
+      width: '35px',
+      height: '35px',
       border: `2px solid ${colors.primary}`,
       backgroundColor: colors.white,
       color: colors.primary,
       borderRadius: '50%',
       cursor: 'pointer',
-      fontSize: '1rem', // SMALLER: Reduced from 1.2rem to 1rem
+      fontSize: '1rem',
       fontWeight: 'bold',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      transition: 'all 0.3s ease'
+      transition: 'all 0.3s ease',
+      flexShrink: 0
     },
-    // UPDATED: Smaller quantity display
     quantityDisplay: {
-      fontSize: '1.1rem', // SMALLER: Reduced from 1.3rem to 1.1rem
+      fontSize: '1.1rem',
       fontWeight: 'bold',
       color: colors.primary,
-      minWidth: '35px', // SMALLER: Reduced from 40px to 35px
-      textAlign: 'center'
+      minWidth: '35px',
+      textAlign: 'center',
+      flex: 1
     }
   };
 
@@ -632,337 +613,6 @@ const Products = ({
       stock: 90,
       rating: 4.4,
       reviews: 156
-    },
-    {
-      id: 11,
-      name: 'Metformin 500mg',
-      brand: 'Glucophage',
-      price: 85,
-      vendor: 'HealthPlus Medicines',
-      category: 'Diabetes',
-      description: 'First-line treatment for type 2 diabetes',
-      detailedDescription: 'Metformin is an oral diabetes medicine that helps control blood sugar levels. It works by helping to restore the body\'s proper response to insulin and decreasing the amount of sugar produced by the liver.',
-      uses: [
-        'Type 2 diabetes management',
-        'Polycystic ovary syndrome (PCOS)',
-        'Weight management in diabetes'
-      ],
-      dosage: 'As prescribed, usually 1-2 tablets daily with meals',
-      sideEffects: [
-        'Nausea',
-        'Diarrhea',
-        'Stomach upset',
-        'Metallic taste'
-      ],
-      precautions: [
-        'PRESCRIPTION REQUIRED',
-        'Monitor kidney function',
-        'Avoid excessive alcohol',
-        'Take with food to reduce side effects'
-      ],
-      image: '',
-      prescriptionRequired: true,
-      stock: 60,
-      rating: 4.3,
-      reviews: 134
-    },
-    {
-      id: 12,
-      name: 'Atorvastatin 10mg',
-      brand: 'Lipitor',
-      price: 95,
-      vendor: 'City Pharmacy',
-      category: 'Cholesterol',
-      description: 'Statin medication for cholesterol control',
-      detailedDescription: 'Atorvastatin is a statin that slows the production of cholesterol in the body to reduce the amount of cholesterol that may build up on the walls of arteries and block blood flow.',
-      uses: [
-        'High cholesterol treatment',
-        'Cardiovascular disease prevention',
-        'Triglyceride reduction'
-      ],
-      dosage: 'One tablet daily, usually in the evening',
-      sideEffects: [
-        'Headache',
-        'Muscle pain',
-        'Joint pain',
-        'Digestive issues'
-      ],
-      precautions: [
-        'PRESCRIPTION REQUIRED',
-        'Regular liver function tests',
-        'Report unexplained muscle pain',
-        'Avoid grapefruit products'
-      ],
-      image: '',
-      prescriptionRequired: true,
-      stock: 45,
-      rating: 4.4,
-      reviews: 167
-    },
-    // NEW EMERGENCY MEDICINES ADDED BELOW
-    {
-      id: 13,
-      name: 'Dolo 650mg',
-      brand: 'Micro Labs',
-      price: 28,
-      vendor: 'Emergency Pharmacy',
-      category: 'Emergency',
-      description: 'Fast-acting paracetamol for fever and pain relief',
-      detailedDescription: 'Dolo 650 is a trusted paracetamol formulation that provides quick relief from fever, headache, body ache, and other mild to moderate pain conditions. Specially designed for rapid action.',
-      uses: [
-        'High fever reduction',
-        'Severe headache relief',
-        'Body pain and muscle aches',
-        'Dental pain and migraines'
-      ],
-      dosage: 'One tablet every 4-6 hours, maximum 4 tablets in 24 hours',
-      sideEffects: [
-        'Rare when taken as directed',
-        'Liver damage in overdose',
-        'Allergic skin reactions'
-      ],
-      precautions: [
-        'Do not exceed recommended dose',
-        'Consult for liver conditions',
-        'Avoid alcohol completely',
-        'Emergency use for high fever'
-      ],
-      image: '',
-      prescriptionRequired: false,
-      stock: 120,
-      rating: 4.8,
-      reviews: 425
-    },
-    {
-      id: 14,
-      name: 'Asthalin Inhaler',
-      brand: 'Cipla',
-      price: 145,
-      vendor: 'Emergency Pharmacy',
-      category: 'Emergency',
-      description: 'Emergency relief for asthma and breathing difficulties',
-      detailedDescription: 'Asthalin inhaler contains Salbutamol which provides immediate relief from asthma attacks, bronchospasm, and breathing difficulties by relaxing muscles in the airways.',
-      uses: [
-        'Asthma attacks',
-        'Bronchospasm relief',
-        'Exercise-induced asthma',
-        'Chronic obstructive pulmonary disease'
-      ],
-      dosage: '1-2 puffs as needed during attack, maximum 8 puffs in 24 hours',
-      sideEffects: [
-        'Tremors',
-        'Headache',
-        'Rapid heartbeat',
-        'Muscle cramps'
-      ],
-      precautions: [
-        'PRESCRIPTION REQUIRED',
-        'Not for regular use',
-        'Seek emergency help if no relief',
-        'Carry at all times if asthmatic'
-      ],
-      image: '',
-      prescriptionRequired: true,
-      stock: 35,
-      rating: 4.6,
-      reviews: 278
-    },
-    {
-      id: 15,
-      name: 'ORS Powder',
-      brand: 'Electral',
-      price: 15,
-      vendor: 'WellCare Store',
-      category: 'Emergency',
-      description: 'Oral rehydration solution for dehydration emergency',
-      detailedDescription: 'Electral ORS helps restore fluid and electrolyte balance during dehydration caused by diarrhea, vomiting, excessive sweating, or fever. Essential for preventing dehydration complications.',
-      uses: [
-        'Diarrhea and vomiting',
-        'Heat stroke',
-        'Food poisoning',
-        'Post-operative hydration'
-      ],
-      dosage: 'One sachet in 200ml clean water, as needed based on condition',
-      sideEffects: [
-        'Rare when prepared correctly',
-        'Nausea if taken too quickly'
-      ],
-      precautions: [
-        'Use clean water for preparation',
-        'Consume within 24 hours',
-        'Seek doctor if severe dehydration',
-        'Essential for children and elderly'
-      ],
-      image: '',
-      prescriptionRequired: false,
-      stock: 200,
-      rating: 4.9,
-      reviews: 512
-    },
-    {
-      id: 16,
-      name: 'Avomine 25mg',
-      brand: 'Sanofi',
-      price: 42,
-      vendor: 'City Pharmacy',
-      category: 'Emergency',
-      description: 'Emergency motion sickness and vomiting control',
-      detailedDescription: 'Avomine (Promethazine) is highly effective for preventing and treating motion sickness, nausea, vomiting, and vertigo. Works by blocking signals to the vomiting center in the brain.',
-      uses: [
-        'Motion sickness prevention',
-        'Severe nausea and vomiting',
-        'Vertigo and dizziness',
-        'Migraine-associated nausea'
-      ],
-      dosage: 'One tablet 1-2 hours before travel, or as needed for nausea',
-      sideEffects: [
-        'Drowsiness',
-        'Dry mouth',
-        'Blurred vision',
-        'Dizziness'
-      ],
-      precautions: [
-        'May cause drowsiness - avoid driving',
-        'Avoid alcohol',
-        'Not for children under 2 years',
-        'Take before symptoms start for best effect'
-      ],
-      image: '',
-      prescriptionRequired: false,
-      stock: 65,
-      rating: 4.5,
-      reviews: 189
-    },
-    {
-      id: 17,
-      name: 'Burnol Cream',
-      brand: 'Johnson & Johnson',
-      price: 55,
-      vendor: 'HealthPlus Medicines',
-      category: 'Emergency',
-      description: 'First aid antiseptic cream for burns and wounds',
-      detailedDescription: 'Burnol cream provides immediate relief from burns, scalds, and minor wounds. Contains antiseptic properties to prevent infection while promoting healing of damaged skin.',
-      uses: [
-        'Thermal burns and scalds',
-        'Minor cuts and wounds',
-        'Sunburn relief',
-        'Skin abrasions'
-      ],
-      dosage: 'Apply generously on affected area 2-3 times daily',
-      sideEffects: [
-        'Mild stinging on application',
-        'Skin irritation in sensitive individuals'
-      ],
-      precautions: [
-        'For external use only',
-        'Not for deep or infected wounds',
-        'Seek doctor for severe burns',
-        'Keep in first aid kit'
-      ],
-      image: '',
-      prescriptionRequired: false,
-      stock: 80,
-      rating: 4.7,
-      reviews: 234
-    },
-    {
-      id: 18,
-      name: 'Digene Tablet',
-      brand: 'Abbott',
-      price: 12,
-      vendor: 'Emergency Pharmacy',
-      category: 'Emergency',
-      description: 'Instant relief from acidity and indigestion',
-      detailedDescription: 'Digene tablets provide fast relief from acidity, heartburn, indigestion, and gas. Antacid formulation that neutralizes excess stomach acid immediately upon consumption.',
-      uses: [
-        'Acidity and heartburn',
-        'Indigestion and bloating',
-        'Gas and flatulence',
-        'Stomach discomfort'
-      ],
-      dosage: '1-2 tablets to be chewed as needed, maximum 12 tablets in 24 hours',
-      sideEffects: [
-        'Chalky taste',
-        'Constipation with overuse',
-        'Stomach cramps'
-      ],
-      precautions: [
-        'Not for long-term regular use',
-        'Consult if symptoms persist',
-        'Take after meals if chronic acidity',
-        'Keep handy for emergency relief'
-      ],
-      image: '',
-      prescriptionRequired: false,
-      stock: 150,
-      rating: 4.4,
-      reviews: 367
-    },
-    {
-      id: 19,
-      name: 'Betadine Solution',
-      brand: 'Win-Medicare',
-      price: 85,
-      vendor: 'City Pharmacy',
-      category: 'Emergency',
-      description: 'Antiseptic solution for wound disinfection',
-      detailedDescription: 'Betadine solution contains povidone-iodine that effectively kills bacteria, viruses, and fungi. Essential for first aid to prevent infection in cuts, wounds, and abrasions.',
-      uses: [
-        'Wound disinfection',
-        'Pre-surgical skin preparation',
-        'Burn care',
-        'Minor skin infections'
-      ],
-      dosage: 'Apply directly to affected area 2-3 times daily',
-      sideEffects: [
-        'Mild stinging',
-        'Temporary skin discoloration',
-        'Allergic reactions in iodine-sensitive individuals'
-      ],
-      precautions: [
-        'For external use only',
-        'Avoid contact with eyes',
-        'Do not use on deep wounds without medical supervision',
-        'Essential first aid item'
-      ],
-      image: '',
-      prescriptionRequired: false,
-      stock: 45,
-      rating: 4.6,
-      reviews: 198
-    },
-    {
-      id: 20,
-      name: 'Volini Spray',
-      brand: 'Sanofi',
-      price: 220,
-      vendor: 'HealthPlus Medicines',
-      category: 'Emergency',
-      description: 'Instant pain relief spray for muscle and joint injuries',
-      detailedDescription: 'Volini spray provides immediate cooling relief from muscle pain, sprains, strains, and joint pain. Easy-to-use spray formulation for quick application during sports injuries or accidents.',
-      uses: [
-        'Muscle sprains and strains',
-        'Joint pain and inflammation',
-        'Sports injuries',
-        'Back pain and stiffness'
-      ],
-      dosage: 'Spray on affected area 3-4 times daily from 15cm distance',
-      sideEffects: [
-        'Cooling sensation',
-        'Mild skin irritation',
-        'Redness in sensitive skin'
-      ],
-      precautions: [
-        'For external use only',
-        'Avoid broken skin',
-        'Do not inhale spray',
-        'Keep away from heat and flame'
-      ],
-      image: '',
-      prescriptionRequired: false,
-      stock: 30,
-      rating: 4.5,
-      reviews: 156
     }
   ];
 
@@ -978,7 +628,6 @@ const Products = ({
 
   const addToCartWithNotification = (product) => {
     addToCart(product);
-    // You can add a toast notification here if needed
   };
 
   // Get quantity of product in cart
@@ -987,14 +636,14 @@ const Products = ({
     return cartItem ? cartItem.quantity : 0;
   };
 
-  // NEW: Handle back to home page
+  // Handle back to home page
   const handleBackToHome = () => {
     setActiveView('home');
   };
 
   return (
     <div style={styles.mainContent}>
-      {/* NEW: Back Button */}
+      {/* Back Button */}
       <button 
         style={styles.backButton}
         onClick={handleBackToHome}
@@ -1030,7 +679,7 @@ const Products = ({
             onChange={(e) => setSearchQuery(e.target.value)}
             style={styles.searchInput}
           />
-          {/* NEW: Health Priority Message */}
+          {/* Health Priority Message */}
           <div style={styles.healthMessage}>
             For your safety and well-being, we provide only quality medicines from trusted sources, properly stored for maximum efficacy.
           </div>
@@ -1077,87 +726,74 @@ const Products = ({
                     )}
                   </div>
 
-                  <div style={styles.productRating}>
-                    <span style={styles.ratingStars}>
-                      {'⭐'.repeat(Math.floor(product.rating))}
-                    </span>
-                    <span style={styles.ratingText}>({product.reviews})</span>
-                  </div>
-
-                  <div style={styles.productStock}>
-                    {product.stock > 0 ? (
-                      <span style={styles.inStock}>In Stock ({product.stock})</span>
+                  {/* FIXED: Bottom section that stays at bottom */}
+                  <div style={styles.bottomSection}>
+                    {/* Add to Cart Button - Only show if product is not in cart */}
+                    {quantityInCart === 0 ? (
+                      <div style={styles.productPriceSection}>
+                        <span style={styles.productPrice}>₹{product.price}</span>
+                        <button
+                          style={product.stock > 0 ? styles.addToCartButton : styles.disabledButton}
+                          onClick={() => product.stock > 0 && addToCartWithNotification(product)}
+                          disabled={product.stock === 0}
+                          onMouseEnter={(e) => {
+                            if (product.stock > 0) {
+                              e.target.style.backgroundColor = colors.accent;
+                              e.target.style.color = colors.primary;
+                              e.target.style.transform = 'translateY(-2px)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (product.stock > 0) {
+                              e.target.style.backgroundColor = colors.primary; // FIXED: Changed cards.primary to colors.primary
+                              e.target.style.color = colors.white;
+                              e.target.style.transform = 'translateY(0)';
+                            }
+                          }}
+                        >
+                          {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                        </button>
+                      </div>
                     ) : (
-                      <span style={styles.outOfStock}>Out of Stock</span>
-                    )}
-                  </div>
-
-                  <div style={styles.productPriceSection}>
-                    <span style={styles.productPrice}>₹{product.price}</span>
-                  </div>
-
-                  {/* Quantity Controls - Only show if product is in cart */}
-                  {quantityInCart > 0 ? (
-                    <div style={styles.quantityControls}>
-                      <button
-                        style={styles.quantityButton}
-                        onClick={() => updateQuantity(product.id, quantityInCart - 1)}
-                        onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = colors.primary;
-                          e.target.style.color = colors.white;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = colors.white;
-                          e.target.style.color = colors.primary;
-                        }}
-                      >
-                        −
-                      </button>
-                      <span style={styles.quantityDisplay}>{quantityInCart}</span>
-                      <button
-                        style={styles.quantityButton}
-                        onClick={() => updateQuantity(product.id, quantityInCart + 1)}
-                        disabled={quantityInCart >= product.stock}
-                        onMouseEnter={(e) => {
-                          if (quantityInCart < product.stock) {
+                      /* Quantity Controls - Only show if product is in cart */
+                      <div style={styles.quantityControls}>
+                        <button
+                          style={styles.quantityButton}
+                          onClick={() => updateQuantity(product.id, quantityInCart - 1)}
+                          onMouseEnter={(e) => {
                             e.target.style.backgroundColor = colors.primary;
                             e.target.style.color = colors.white;
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (quantityInCart < product.stock) {
+                          }}
+                          onMouseLeave={(e) => {
                             e.target.style.backgroundColor = colors.white;
                             e.target.style.color = colors.primary;
-                          }
-                        }}
-                      >
-                        +
-                      </button>
-                    </div>
-                  ) : (
-                    // Add to Cart Button - Only show if product is not in cart
-                    <button
-                      style={product.stock > 0 ? styles.addToCartButton : styles.disabledButton}
-                      onClick={() => product.stock > 0 && addToCartWithNotification(product)}
-                      disabled={product.stock === 0}
-                      onMouseEnter={(e) => {
-                        if (product.stock > 0) {
-                          e.target.style.backgroundColor = colors.accent;
-                          e.target.style.color = colors.primary;
-                          e.target.style.transform = 'translateY(-2px)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (product.stock > 0) {
-                          e.target.style.backgroundColor = colors.primary;
-                          e.target.style.color = colors.white;
-                          e.target.style.transform = 'translateY(0)';
-                        }
-                      }}
-                    >
-                      {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
-                    </button>
-                  )}
+                          }}
+                        >
+                          −
+                        </button>
+                        <span style={styles.quantityDisplay}>{quantityInCart}</span>
+                        <button
+                          style={styles.quantityButton}
+                          onClick={() => updateQuantity(product.id, quantityInCart + 1)}
+                          disabled={quantityInCart >= product.stock}
+                          onMouseEnter={(e) => {
+                            if (quantityInCart < product.stock) {
+                              e.target.style.backgroundColor = colors.primary;
+                              e.target.style.color = colors.white;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (quantityInCart < product.stock) {
+                              e.target.style.backgroundColor = colors.white;
+                              e.target.style.color = colors.primary;
+                            }
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             );
