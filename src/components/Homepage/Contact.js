@@ -91,7 +91,7 @@ const Contact = () => {
     // Main Contact Section with Bubble Background
     contact: {
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #F7D9EB 0%, #ffffff 50%, #F7D9EB 100%)',
+      background: 'linear-gradient(135deg, #E0F2F1 0%, #FFFFFF 50%, #E0F2F1 100%)',
       position: 'relative',
       overflow: 'hidden',
       padding: isMobile ? '4rem 1rem' : isTablet ? '5rem 2rem' : '6rem 2rem',
@@ -107,7 +107,7 @@ const Contact = () => {
     },
     floatingElement: {
       position: 'absolute',
-      background: 'rgba(124, 42, 98, 0.1)',
+      background: 'rgba(77, 182, 172, 0.1)',
       borderRadius: '50%',
       animation: 'float 6s ease-in-out infinite',
     },
@@ -124,9 +124,9 @@ const Contact = () => {
     sectionTitle: {
       fontSize: isMobile ? '2.5rem' : isTablet ? '3rem' : '3.5rem',
       marginBottom: '1rem',
-      color: '#7C2A62',
+      color: '#124441',
       fontWeight: '700',
-      background: 'linear-gradient(45deg, #7C2A62, #9C3A7A)',
+      background: 'linear-gradient(45deg, #009688, #4DB6AC)',
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
       opacity: isVisible ? 1 : 0,
@@ -135,7 +135,7 @@ const Contact = () => {
     },
     sectionSubtitle: {
       fontSize: isMobile ? '1rem' : isTablet ? '1.1rem' : '1.2rem',
-      color: '#666',
+      color: '#4F6F6B',
       maxWidth: '600px',
       margin: '0 auto',
       lineHeight: '1.5',
@@ -158,22 +158,22 @@ const Contact = () => {
       padding: isMobile ? '1.5rem 1rem' : '2rem 1.5rem',
       background: 'rgba(255, 255, 255, 0.9)',
       borderRadius: '15px',
-      boxShadow: '0 8px 30px rgba(124, 42, 98, 0.1)',
+      boxShadow: '0 8px 30px rgba(0, 150, 136, 0.1)',
       backdropFilter: 'blur(10px)',
       transition: 'all 0.3s ease',
     },
     statNumber: {
       fontSize: isMobile ? '1.5rem' : isTablet ? '1.8rem' : '2rem',
       fontWeight: 'bold',
-      color: '#7C2A62',
+      color: '#009688',
       marginBottom: '0.5rem',
-      background: 'linear-gradient(45deg, #7C2A62, #D32F2F)',
+      background: 'linear-gradient(45deg, #009688, #4DB6AC)',
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
     },
     statLabel: {
       fontSize: isMobile ? '0.8rem' : '0.9rem',
-      color: '#666',
+      color: '#4F6F6B',
       fontWeight: '500',
     },
     // Main Content Container
@@ -195,7 +195,7 @@ const Contact = () => {
       background: 'rgba(255, 255, 255, 0.9)',
       padding: isMobile ? '2rem 1.5rem' : '2.5rem',
       borderRadius: '20px',
-      boxShadow: '0 15px 40px rgba(124, 42, 98, 0.15)',
+      boxShadow: '0 15px 40px rgba(0, 150, 136, 0.15)',
       backdropFilter: 'blur(10px)',
       border: '2px solid transparent',
       flex: 1,
@@ -209,12 +209,12 @@ const Contact = () => {
     formTitle: {
       fontSize: isMobile ? '1.5rem' : '1.8rem',
       fontWeight: '700',
-      color: '#7C2A62',
+      color: '#124441',
       marginBottom: '0.8rem',
     },
     formSubtitle: {
       fontSize: isMobile ? '0.9rem' : '1rem',
-      color: '#666',
+      color: '#4F6F6B',
       lineHeight: '1.5',
     },
     form: {
@@ -235,7 +235,7 @@ const Contact = () => {
     formLabel: {
       fontSize: isMobile ? '0.85rem' : '0.9rem',
       fontWeight: '600',
-      color: '#333',
+      color: '#124441',
       marginBottom: '0.5rem',
       display: 'flex',
       alignItems: 'center',
@@ -247,45 +247,47 @@ const Contact = () => {
     },
     formInput: {
       padding: isMobile ? '0.8rem' : '1rem',
-      border: '2px solid #e9ecef',
+      border: '2px solid #E0F2F1',
       borderRadius: '10px',
       fontSize: isMobile ? '0.9rem' : '1rem',
       transition: 'all 0.3s ease',
       outline: 'none',
-      background: '#f8f9fa',
+      background: '#FFFFFF',
       width: '100%',
       boxSizing: 'border-box',
       fontFamily: 'inherit',
+      color: '#124441',
     },
     formInputFocus: {
-      borderColor: '#7C2A62',
+      borderColor: '#009688',
       background: 'white',
-      boxShadow: '0 0 0 3px rgba(124, 42, 98, 0.1)',
+      boxShadow: '0 0 0 3px rgba(0, 150, 136, 0.1)',
     },
     formInputError: {
       borderColor: '#dc3545',
       background: '#fff5f5',
     },
     formInputValid: {
-      borderColor: '#28a745',
+      borderColor: '#4DB6AC',
       background: '#f8fff9',
     },
     formSelect: {
       padding: isMobile ? '0.8rem' : '1rem',
-      border: '2px solid #e9ecef',
+      border: '2px solid #E0F2F1',
       borderRadius: '10px',
       fontSize: isMobile ? '0.9rem' : '1rem',
       transition: 'all 0.3s ease',
       outline: 'none',
-      background: '#f8f9fa',
+      background: '#FFFFFF',
       cursor: 'pointer',
       width: '100%',
       boxSizing: 'border-box',
       fontFamily: 'inherit',
+      color: '#124441',
     },
     formTextarea: {
       padding: isMobile ? '0.8rem' : '1rem',
-      border: '2px solid #e9ecef',
+      border: '2px solid #E0F2F1',
       borderRadius: '10px',
       fontSize: isMobile ? '0.9rem' : '1rem',
       minHeight: isMobile ? '100px' : '120px',
@@ -293,11 +295,12 @@ const Contact = () => {
       transition: 'all 0.3s ease',
       outline: 'none',
       fontFamily: 'inherit',
-      background: '#f8f9fa',
+      background: '#FFFFFF',
       width: '100%',
       boxSizing: 'border-box',
       lineHeight: '1.4',
       flex: 1,
+      color: '#124441',
     },
     errorText: {
       color: '#dc3545',
@@ -315,7 +318,7 @@ const Contact = () => {
       marginTop: '0.3rem',
     },
     validStatus: {
-      color: '#28a745',
+      color: '#4DB6AC',
       fontWeight: '600',
     },
     invalidStatus: {
@@ -324,7 +327,7 @@ const Contact = () => {
     },
     submitButton: {
       padding: isMobile ? '1rem' : '1.2rem',
-      background: 'linear-gradient(135deg, #7C2A62, #9C3A7A)',
+      background: 'linear-gradient(135deg, #009688, #4DB6AC)',
       color: 'white',
       border: 'none',
       borderRadius: '12px',
@@ -336,11 +339,11 @@ const Contact = () => {
       width: '100%',
       position: 'relative',
       overflow: 'hidden',
-      boxShadow: '0 5px 15px rgba(124, 42, 98, 0.3)',
+      boxShadow: '0 5px 15px rgba(0, 150, 136, 0.3)',
     },
     submitButtonHover: {
       transform: 'translateY(-2px)',
-      boxShadow: '0 8px 25px rgba(124, 42, 98, 0.4)',
+      boxShadow: '0 8px 25px rgba(0, 150, 136, 0.4)',
     },
     submitButtonDisabled: {
       background: 'linear-gradient(135deg, #cccccc, #aaaaaa)',
@@ -360,7 +363,7 @@ const Contact = () => {
       background: 'rgba(255, 255, 255, 0.9)',
       padding: isMobile ? '2rem 1.5rem' : '2.5rem',
       borderRadius: '20px',
-      boxShadow: '0 15px 40px rgba(124, 42, 98, 0.15)',
+      boxShadow: '0 15px 40px rgba(0, 150, 136, 0.15)',
       backdropFilter: 'blur(10px)',
       border: '2px solid transparent',
       textAlign: 'center',
@@ -378,12 +381,12 @@ const Contact = () => {
     animationTitle: {
       fontSize: isMobile ? '1.5rem' : '1.8rem',
       fontWeight: '700',
-      color: '#7C2A62',
+      color: '#124441',
       marginBottom: '1rem',
     },
     animationDescription: {
       fontSize: isMobile ? '1rem' : '1.1rem',
-      color: '#666',
+      color: '#4F6F6B',
       lineHeight: '1.6',
       marginBottom: '2rem',
     },
@@ -395,11 +398,11 @@ const Contact = () => {
     },
     featureItem: {
       padding: '0.8rem',
-      background: 'rgba(124, 42, 98, 0.1)',
+      background: 'rgba(77, 182, 172, 0.1)',
       borderRadius: '10px',
       fontSize: isMobile ? '0.8rem' : '0.9rem',
       fontWeight: '600',
-      color: '#7C2A62',
+      color: '#009688',
     },
     animationIndicators: {
       display: 'flex',
@@ -411,12 +414,12 @@ const Contact = () => {
       width: '12px',
       height: '12px',
       borderRadius: '50%',
-      background: '#e9ecef',
+      background: '#E0F2F1',
       cursor: 'pointer',
       transition: 'all 0.3s ease',
     },
     activeIndicator: {
-      background: '#7C2A62',
+      background: '#009688',
       transform: 'scale(1.2)',
     },
     // Real-time Animation Elements
@@ -426,7 +429,7 @@ const Contact = () => {
       marginBottom: '2rem',
       overflow: 'hidden',
       borderRadius: '15px',
-      background: 'linear-gradient(135deg, #f8f9fa, #ffffff)',
+      background: 'linear-gradient(135deg, #E0F2F1, #FFFFFF)',
       flexShrink: 0,
     },
     // Medicine Delivery Animation - FIXED DIRECTION
@@ -440,7 +443,7 @@ const Contact = () => {
     deliveryTruck: {
       fontSize: '3rem',
       position: 'relative',
-      transform: 'scaleX(-1)', // This flips the truck to face right
+      transform: 'scaleX(-1)',
     },
     deliveryPath: {
       position: 'absolute',
@@ -448,7 +451,7 @@ const Contact = () => {
       left: '0',
       width: '100%',
       height: '2px',
-      background: '#7C2A62',
+      background: '#009688',
     },
     deliveryDots: {
       position: 'absolute',
@@ -462,7 +465,7 @@ const Contact = () => {
       width: '6px',
       height: '6px',
       borderRadius: '50%',
-      background: '#7C2A62',
+      background: '#009688',
     },
     // Doctor Consultation Animation
     consultationAnimation: {
@@ -482,7 +485,7 @@ const Contact = () => {
       transform: 'translate(-50%, -50%)',
       width: '100px',
       height: '100px',
-      border: '2px solid #7C2A62',
+      border: '2px solid #009688',
       borderRadius: '50%',
       animation: 'ripple 2s linear infinite',
     },
@@ -503,7 +506,7 @@ const Contact = () => {
       left: '20px',
       right: '20px',
       height: '2px',
-      background: 'linear-gradient(90deg, transparent, #dc3545, transparent)',
+      background: 'linear-gradient(90deg, transparent, #009688, transparent)',
       animation: 'heartbeat 1.5s ease-in-out infinite',
     },
   };
@@ -679,7 +682,7 @@ const Contact = () => {
         return (
           <div style={styles.realTimeAnimation}>
             <div style={styles.consultationAnimation}>
-              <div style={styles.doctorIcon}>👨‍⚕️</div>
+              <div style={styles.doctorIcon}></div>
               <div style={styles.videoWaves}></div>
               <div style={{...styles.videoWaves, animationDelay: '0.5s'}}></div>
               <div style={{...styles.videoWaves, animationDelay: '1s'}}></div>
@@ -735,11 +738,11 @@ const Contact = () => {
               style={styles.statItem}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-5px)';
-                e.currentTarget.style.boxShadow = '0 15px 40px rgba(124, 42, 98, 0.2)';
+                e.currentTarget.style.boxShadow = '0 15px 40px rgba(0, 150, 136, 0.2)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 8px 30px rgba(124, 42, 98, 0.1)';
+                e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 150, 136, 0.1)';
               }}
             >
               <div style={styles.statNumber}>{stat.number}</div>
@@ -756,12 +759,12 @@ const Contact = () => {
               style={styles.contactForm}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-5px)';
-                e.currentTarget.style.boxShadow = '0 20px 50px rgba(124, 42, 98, 0.2)';
-                e.currentTarget.style.borderColor = '#7C2A62';
+                e.currentTarget.style.boxShadow = '0 20px 50px rgba(0, 150, 136, 0.2)';
+                e.currentTarget.style.borderColor = '#009688';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 15px 40px rgba(124, 42, 98, 0.15)';
+                e.currentTarget.style.boxShadow = '0 15px 40px rgba(0, 150, 136, 0.15)';
                 e.currentTarget.style.borderColor = 'transparent';
               }}
             >
@@ -838,7 +841,7 @@ const Contact = () => {
                     </label>
                     <input
                       type="tel"
-                      placeholder="+91 "
+                      placeholder=" "
                       style={{
                         ...styles.formInput,
                         ...(hoverStates.formFocus.phone && styles.formInputFocus),
@@ -883,7 +886,8 @@ const Contact = () => {
                       <option value="">Select service</option>
                       <option value="medicine-delivery">Medicine Delivery</option>
                       <option value="doctor-consultation">Doctor Consultation</option>
-                      <option value="both">Both Services</option>
+                      <option value="Pregnancy-care">Pregnancy care</option>
+                      <option value="Baby-care">Baby care</option>
                     </select>
                     {errors.service && (
                       <span style={styles.errorText}>⚠️ {errors.service}</span>
@@ -943,12 +947,12 @@ const Contact = () => {
               style={styles.animationContainer}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-5px)';
-                e.currentTarget.style.boxShadow = '0 20px 50px rgba(124, 42, 98, 0.2)';
-                e.currentTarget.style.borderColor = '#7C2A62';
+                e.currentTarget.style.boxShadow = '0 20px 50px rgba(0, 150, 136, 0.2)';
+                e.currentTarget.style.borderColor = '#009688';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 15px 40px rgba(124, 42, 98, 0.15)';
+                e.currentTarget.style.boxShadow = '0 15px 40px rgba(0, 150, 136, 0.15)';
                 e.currentTarget.style.borderColor = 'transparent';
               }}
             >

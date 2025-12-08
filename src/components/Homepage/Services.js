@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
-const Services = ({ onNavigateToLogin }) => {
+// Main Services Component
+const Services = () => {
   const [selectedService, setSelectedService] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showLoginMessage, setShowLoginMessage] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -28,7 +28,7 @@ const Services = ({ onNavigateToLogin }) => {
     // Main Services Section with Bubble Background
     services: {
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #F7D9EB 0%, #ffffff 50%, #F7D9EB 100%)',
+      background: 'linear-gradient(135deg, #E0F2F1 0%, #FFFFFF 50%, #E0F2F1 100%)',
       position: 'relative',
       overflow: 'hidden',
       padding: isMobile ? '4rem 1rem' : isTablet ? '5rem 2rem' : '6rem 2rem',
@@ -44,7 +44,7 @@ const Services = ({ onNavigateToLogin }) => {
     },
     floatingElement: {
       position: 'absolute',
-      background: 'rgba(124, 42, 98, 0.1)',
+      background: 'rgba(0, 150, 136, 0.1)',
       borderRadius: '50%',
       animation: 'float 6s ease-in-out infinite',
     },
@@ -58,9 +58,9 @@ const Services = ({ onNavigateToLogin }) => {
       fontSize: isMobile ? '2.5rem' : isTablet ? '3rem' : '3.5rem',
       textAlign: 'center',
       marginBottom: '1rem',
-      color: '#7C2A62',
+      color: '#009688',
       fontWeight: '700',
-      background: 'linear-gradient(45deg, #7C2A62, #9C3A7A)',
+      background: 'linear-gradient(45deg, #009688, #4DB6AC)',
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
       opacity: isVisible ? 1 : 0,
@@ -71,7 +71,7 @@ const Services = ({ onNavigateToLogin }) => {
       fontSize: isMobile ? '1rem' : isTablet ? '1.1rem' : '1.2rem',
       textAlign: 'center',
       marginBottom: isMobile ? '3rem' : '4rem',
-      color: '#666',
+      color: '#4F6F6B',
       opacity: isVisible ? 1 : 0,
       transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
       transition: 'all 0.8s ease-out 0.2s',
@@ -88,7 +88,7 @@ const Services = ({ onNavigateToLogin }) => {
       padding: isMobile ? '2rem 1.5rem' : '2.5rem',
       backgroundColor: 'rgba(255, 255, 255, 0.9)',
       borderRadius: '20px',
-      boxShadow: '0 8px 30px rgba(124, 42, 98, 0.1)',
+      boxShadow: '0 8px 30px rgba(0, 150, 136, 0.1)',
       textAlign: 'center',
       transition: 'all 0.3s ease',
       border: '2px solid transparent',
@@ -99,18 +99,18 @@ const Services = ({ onNavigateToLogin }) => {
     serviceIcon: {
       fontSize: isMobile ? '3.5rem' : '4rem',
       marginBottom: '1.5rem',
-      background: 'linear-gradient(45deg, #7C2A62, #D32F2F)',
+      background: 'linear-gradient(45deg, #009688, #4DB6AC)',
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
     },
     serviceTitle: {
       fontSize: isMobile ? '1.3rem' : '1.5rem',
       marginBottom: '1rem',
-      color: '#7C2A62',
+      color: '#124441',
       fontWeight: '600',
     },
     serviceDescription: {
-      color: '#666',
+      color: '#4F6F6B',
       lineHeight: '1.6',
       marginBottom: '2rem',
       fontSize: isMobile ? '0.9rem' : '1rem',
@@ -123,7 +123,7 @@ const Services = ({ onNavigateToLogin }) => {
     },
     serviceFeatureItem: {
       padding: '0.5rem 0',
-      color: '#555',
+      color: '#4F6F6B',
       fontSize: isMobile ? '0.85rem' : '0.95rem',
       position: 'relative',
       paddingLeft: '1.5rem',
@@ -131,14 +131,14 @@ const Services = ({ onNavigateToLogin }) => {
     featureBullet: {
       position: 'absolute',
       left: '0',
-      color: '#7C2A62',
+      color: '#009688',
       fontWeight: 'bold',
     },
     learnMoreButton: {
       padding: isMobile ? '0.7rem 1.2rem' : '0.8rem 1.5rem',
       backgroundColor: 'transparent',
-      color: '#7C2A62',
-      border: '2px solid #7C2A62',
+      color: '#009688',
+      border: '2px solid #009688',
       borderRadius: '25px',
       cursor: 'pointer',
       fontWeight: '600',
@@ -180,7 +180,7 @@ const Services = ({ onNavigateToLogin }) => {
       border: 'none',
       fontSize: '2rem',
       cursor: 'pointer',
-      color: '#666',
+      color: '#4F6F6B',
       fontWeight: '300',
       width: '40px',
       height: '40px',
@@ -196,23 +196,23 @@ const Services = ({ onNavigateToLogin }) => {
       gap: '1.5rem',
       marginBottom: '2rem',
       paddingBottom: '1.5rem',
-      borderBottom: '2px solid #f0f0f0',
+      borderBottom: '2px solid #E0F2F1',
     },
     modalIcon: {
       fontSize: isMobile ? '2.5rem' : '3rem',
-      background: 'linear-gradient(45deg, #7C2A62, #D32F2F)',
+      background: 'linear-gradient(45deg, #009688, #4DB6AC)',
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
     },
     modalTitle: {
       fontSize: isMobile ? '1.5rem' : '2rem',
-      color: '#7C2A62',
+      color: '#124441',
       fontWeight: '700',
       marginBottom: '0.5rem',
     },
     modalDescription: {
       fontSize: isMobile ? '0.9rem' : '1.1rem',
-      color: '#666',
+      color: '#4F6F6B',
       margin: '0',
     },
     modalBody: {
@@ -223,12 +223,12 @@ const Services = ({ onNavigateToLogin }) => {
     },
     modalSectionTitle: {
       fontSize: isMobile ? '1.1rem' : '1.3rem',
-      color: '#7C2A62',
+      color: '#009688',
       fontWeight: '600',
       marginBottom: '1rem',
     },
     modalText: {
-      color: '#555',
+      color: '#4F6F6B',
       lineHeight: '1.6',
       fontSize: isMobile ? '0.9rem' : '1rem',
     },
@@ -239,7 +239,7 @@ const Services = ({ onNavigateToLogin }) => {
     },
     modalListItem: {
       padding: '0.5rem 0',
-      color: '#555',
+      color: '#4F6F6B',
       fontSize: isMobile ? '0.9rem' : '1rem',
       position: 'relative',
       paddingLeft: '1.5rem',
@@ -253,7 +253,7 @@ const Services = ({ onNavigateToLogin }) => {
     },
     modalProcessItem: {
       padding: '0.8rem 0',
-      color: '#555',
+      color: '#4F6F6B',
       fontSize: isMobile ? '0.9rem' : '1rem',
       position: 'relative',
       paddingLeft: '2.5rem',
@@ -265,7 +265,7 @@ const Services = ({ onNavigateToLogin }) => {
       left: '0',
       width: '1.8rem',
       height: '1.8rem',
-      backgroundColor: '#7C2A62',
+      backgroundColor: '#009688',
       color: 'white',
       borderRadius: '50%',
       display: 'flex',
@@ -280,7 +280,7 @@ const Services = ({ onNavigateToLogin }) => {
       gap: isMobile ? '1rem' : '2rem',
       marginTop: '2rem',
       padding: '1.5rem',
-      backgroundColor: '#f8f9fa',
+      backgroundColor: '#E0F2F1',
       borderRadius: '15px',
     },
     detailItem: {
@@ -288,99 +288,20 @@ const Services = ({ onNavigateToLogin }) => {
     },
     detailTitle: {
       fontSize: isMobile ? '1rem' : '1.1rem',
-      color: '#7C2A62',
+      color: '#124441',
       fontWeight: '600',
       marginBottom: '0.5rem',
     },
     detailText: {
-      color: '#555',
+      color: '#4F6F6B',
       fontSize: isMobile ? '0.9rem' : '1rem',
       lineHeight: '1.5',
       margin: '0',
-    },
-    modalFooter: {
-      display: 'flex',
-      gap: '1rem',
-      justifyContent: 'flex-end',
-      paddingTop: '1.5rem',
-      borderTop: '2px solid #f0f0f0',
-      flexDirection: isMobile ? 'column' : 'row',
-    },
-    btnPrimary: {
-      padding: isMobile ? '0.7rem 1.5rem' : '0.8rem 2rem',
-      backgroundColor: '#7C2A62',
-      color: 'white',
-      border: 'none',
-      borderRadius: '25px',
-      cursor: 'pointer',
-      fontWeight: '600',
-      fontSize: isMobile ? '0.9rem' : '1rem',
-      transition: 'all 0.3s ease',
-      boxShadow: '0 5px 15px rgba(124, 42, 98, 0.3)',
-      position: 'relative',
-      overflow: 'hidden',
-    },
-    btnSecondary: {
-      padding: isMobile ? '0.7rem 1.5rem' : '0.8rem 2rem',
-      backgroundColor: 'transparent',
-      color: '#7C2A62',
-      border: '2px solid #7C2A62',
-      borderRadius: '25px',
-      cursor: 'pointer',
-      fontWeight: '600',
-      fontSize: isMobile ? '0.9rem' : '1rem',
-      transition: 'all 0.3s ease',
-      position: 'relative',
-      overflow: 'hidden',
-    },
-    loginMessage: {
-      position: 'fixed',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      backgroundColor: 'white',
-      padding: isMobile ? '1.5rem' : '2rem',
-      borderRadius: '15px',
-      boxShadow: '0 15px 40px rgba(0, 0, 0, 0.3)',
-      zIndex: '2000',
-      textAlign: 'center',
-      maxWidth: isMobile ? '350px' : '400px',
-      width: '90%',
-      backdropFilter: 'blur(10px)',
-    },
-    loginMessageTitle: {
-      fontSize: isMobile ? '1.3rem' : '1.5rem',
-      color: '#7C2A62',
-      fontWeight: '600',
-      marginBottom: '1rem',
-    },
-    loginMessageText: {
-      color: '#666',
-      marginBottom: '2rem',
-      lineHeight: '1.5',
-      fontSize: isMobile ? '0.9rem' : '1rem',
-    },
-    loginMessageButtons: {
-      display: 'flex',
-      gap: '1rem',
-      justifyContent: 'center',
-      flexDirection: isMobile ? 'column' : 'row',
-    },
-    loginMessageOverlay: {
-      position: 'fixed',
-      top: '0',
-      left: '0',
-      right: '0',
-      bottom: '0',
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      zIndex: '1999',
-      backdropFilter: 'blur(5px)',
     },
   };
 
   const services = [
     {
-      
       title: 'Medicine Delivery',
       description: 'Get prescribed medicines delivered to your home within 2 hours',
       features: ['24/7 Delivery', 'Prescription Upload', 'Generic Alternatives', 'Real-time Tracking'],
@@ -391,143 +312,162 @@ const Services = ({ onNavigateToLogin }) => {
           "Real-time order tracking",
           "Temperature-sensitive packaging",
           "Prescription verification",
-          "Insurance claim support"
+          "Insurance claim support",
+          "Emergency delivery within 1 hour"
         ],
         process: [
-          "Upload your prescription",
+          "Upload your prescription or select from our medicine database",
           "Select medicines from verified pharmacies",
-          "Choose delivery time slot",
+          "Choose delivery time slot (2-hour, 4-hour, or scheduled)",
           "Track your order in real-time",
-          "Safe and contactless delivery"
+          "Safe and contactless delivery at your doorstep",
+          "Digital invoice and prescription storage"
         ],
-        pricing: "Starting from $2.99 delivery fee. Free for emergency medications.",
-        duration: "2-4 hours standard delivery"
-      }
+        pricing: "Starting from $2.99 delivery fee. Free for emergency medications and orders above $25.",
+        duration: "2-4 hours standard delivery, 1-hour emergency delivery available",
+        coverage: "Available in all major cities. Expanding to suburban areas soon."
+      },
+      
     },
     {
-      
       title: 'Online Consultation',
       description: 'Video calls with certified doctors and specialists',
       features: ['Instant Booking', 'Multiple Specialties', 'E-Prescriptions', 'Follow-up Care'],
       details: {
-        overview: "Connect with board-certified doctors through secure video consultations. Get medical advice, prescriptions, and specialist referrals from the comfort of your home.",
+        overview: "Connect with board-certified doctors through secure video consultations. Get medical advice, prescriptions, and specialist referrals from the comfort of your home. Our platform is HIPAA compliant ensuring complete privacy of your health data.",
         benefits: [
-          "100+ certified doctors",
-          "15+ medical specialties",
-          "Secure and private sessions",
-          "Instant e-prescriptions",
-          "Follow-up consultations"
+          "100+ certified doctors across 15+ specialties",
+          "Secure and private video sessions",
+          "Instant e-prescriptions sent directly to your pharmacy",
+          "Follow-up consultations included",
+          "Mental health counseling available",
+          "Second opinion services"
         ],
         process: [
-          "Choose your doctor and specialty",
-          "Book appointment (instant or scheduled)",
-          "Join video call at appointment time",
-          "Receive diagnosis and e-prescription",
-          "Get specialist referrals if needed"
+          "Choose your doctor and specialty or use our 'Instant Consult' feature",
+          "Book appointment (instant or scheduled for later)",
+          "Complete pre-consultation health questionnaire",
+          "Join secure video call at appointment time",
+          "Receive diagnosis, treatment plan, and e-prescription",
+          "Access consultation summary in your health records"
         ],
-        pricing: "Starting from $25 per consultation. Insurance accepted.",
-        duration: "15-30 minutes per session"
-      }
+        pricing: "Starting from $25 per consultation. Insurance accepted from major providers.",
+        duration: "15-30 minutes per session. Extended sessions available.",
+        coverage: "Available in 50 states. Doctors licensed in multiple states for continuity of care."
+      },
+      
     },
     {
-      
       title: 'Emergency Care',
       description: 'Immediate medical assistance for urgent health issues',
       features: ['24/7 Availability', 'Ambulance Service', 'Emergency Kit', 'GPS Tracking'],
       details: {
-        overview: "24/7 emergency medical support with instant response teams. We provide immediate assistance, ambulance services, and emergency medical guidance.",
+        overview: "24/7 emergency medical support with instant response teams. We provide immediate assistance, ambulance services, and emergency medical guidance. Our emergency response teams are trained in advanced life support and can handle critical situations until hospital arrival.",
         benefits: [
-          "Instant response within 2 minutes",
-          "GPS-enabled ambulance tracking",
-          "Emergency medical guidance",
-          "Hospital coordination",
-          "Family notification system"
+          "Instant response within 2 minutes of call",
+          "GPS-enabled ambulance tracking with ETA updates",
+          "Emergency medical guidance while help arrives",
+          "Hospital coordination and pre-alerts",
+          "Family notification system",
+          "Emergency medical kit delivery within 15 minutes"
         ],
         process: [
-          "Call emergency helpline",
-          "Describe emergency situation",
-          "Receive immediate first-aid guidance",
-          "Ambulance dispatched if needed",
-          "Hospital admission coordination"
+          "Call our 24/7 emergency helpline",
+          "Describe emergency situation to trained dispatcher",
+          "Receive immediate first-aid guidance over phone",
+          "Ambulance dispatched with paramedic team if needed",
+          "Continuous monitoring during transit",
+          "Hospital admission coordination and handover"
         ],
-        pricing: "Emergency consultation: Free. Ambulance: $50-$150 based on distance.",
-        duration: "Immediate response, 15-minute ambulance ETA"
-      }
+        pricing: "Emergency consultation: Free. Ambulance: $50-$150 based on distance. Insurance coverage verification available.",
+        duration: "Immediate response, 15-minute ambulance ETA in urban areas",
+        coverage: "Available in metropolitan areas 24/7. Rural coverage with partner networks."
+      },
+      
     },
     {
-      
-      title: 'Diagnostic Tests',
-      description: 'Home sample collection and lab tests',
-      features: ['Home Collection', 'Digital Reports', '100+ Tests', 'Expert Consultation'],
+      title: 'Baby Care Products',
+      description: 'Premium quality baby care essentials and healthcare products',
+      features: ['Organic Products', 'Diapers & Wipes', 'Baby Skincare', 'Feeding Essentials'],
       details: {
-        overview: "Comprehensive diagnostic testing with home sample collection. Get accurate results from certified labs with digital reports and doctor consultations.",
+        overview: "Complete range of certified baby care products including diapers, skincare, feeding essentials, and healthcare items. All products are dermatologically tested and safe for your baby's delicate skin. We offer organic, hypoallergenic options for sensitive skin.",
         benefits: [
-          "200+ test options",
-          "Certified phlebotomists",
-          "Digital reports in 24 hours",
-          "Free doctor consultation on abnormal results",
-          "Historical report tracking"
+          "100% organic and hypoallergenic certified products",
+          "Dermatologist tested and pediatrician approved",
+          "Age-specific product ranges (0-3 months, 3-12 months, 1-3 years)",
+          "Free delivery on bulk orders",
+          "Expert baby care guidance included",
+          "Subscription boxes with developmental toys"
         ],
         process: [
-          "Book test online or via app",
-          "Sample collection at your home",
-          "Sample processing at certified labs",
-          "Digital report delivery",
-          "Free doctor consultation if needed"
+          "Browse age-appropriate products with detailed descriptions",
+          "Select from trusted brands like Pampers, Johnson's, etc.",
+          "Choose delivery schedule (one-time or subscription)",
+          "Get expert recommendations based on baby's age and needs",
+          "Regular subscription boxes delivered monthly",
+          "Easy returns and exchanges for unused products"
         ],
-        pricing: "Starting from $15. Health packages available at discounted rates.",
-        duration: "Sample collection: 2 hours, Reports: 6-24 hours"
-      }
+        pricing: "Products starting from $5. Subscription boxes from $35/month. First box 20% off.",
+        duration: "Same-day delivery available in metro areas, 1-2 days elsewhere",
+        coverage: "Nationwide delivery. International shipping available for select products."
+      },
+      
     },
     {
+      title: 'PregnancyCare for Women',
+      description: 'Comprehensive prenatal and postnatal care services',
+      features: ['Prenatal Checkups', 'Nutrition Guidance', 'Yoga Sessions', 'Postnatal Care'],
+      details: {
+        overview: "Specialized healthcare services for expecting and new mothers. Our pregnancy care program includes medical checkups, nutritional guidance, fitness sessions, and emotional support throughout the pregnancy journey and beyond.",
+        benefits: [
+          "Regular prenatal checkups with obstetricians",
+          "Personalized nutrition plans by dietitians",
+          "Pregnancy yoga and fitness classes",
+          "Mental wellness support and counseling",
+          "Postnatal recovery care",
+          "Lactation consultation and support"
+        ],
+        process: [
+          "Initial pregnancy assessment and risk evaluation",
+          "Customized care plan creation with trimester-wise milestones",
+          "Regular monitoring with virtual checkups",
+          "Delivery preparation classes and hospital bag checklist",
+          "Birth plan creation and partner involvement",
+          "Postnatal recovery program for 3 months"
+        ],
+        pricing: "Packages starting from $99/month. Complete pregnancy package: $799. Insurance coverage available.",
+        duration: "Complete program: 9 months + 3 months postnatal support",
+        coverage: "Available nationwide with local hospital partnerships for delivery."
+      },
       
+    },
+    {
       title: 'Health Checkups',
       description: 'Comprehensive health packages for all ages',
       features: ['Custom Packages', 'Doctor Consultation', 'Diet Plans', 'Annual Tracking'],
       details: {
-        overview: "Preventive health checkups designed for different age groups and health conditions. Comprehensive packages with detailed reports and specialist consultations.",
+        overview: "Preventive health checkups designed for different age groups and health conditions. Comprehensive packages with detailed reports and specialist consultations. Early detection of health issues with advanced diagnostic tests.",
         benefits: [
-          "Age-specific packages",
-          "Comprehensive health assessment",
-          "Specialist doctor consultation",
+          "Age-specific packages (20-30, 30-40, 40-50, 50+, Senior Citizen)",
+          "Comprehensive health assessment with 50+ parameters",
+          "Specialist doctor consultation included",
           "Personalized diet and exercise plans",
-          "Annual health tracking"
+          "Annual health tracking with comparison reports",
+          "Family health history analysis"
         ],
         process: [
-          "Choose health package",
-          "Complete tests and assessments",
-          "Comprehensive report generation",
-          "Specialist doctor consultation",
-          "Receive personalized health plan"
+          "Choose health package based on age and health concerns",
+          "Complete tests at our partner labs or home collection",
+          "Comprehensive report generation with risk analysis",
+          "Specialist doctor consultation to review results",
+          "Receive personalized health plan and recommendations",
+          "6-month follow-up and progress tracking"
         ],
-        pricing: "Packages starting from $99. Family and corporate discounts available.",
-        duration: "2-4 hours for complete checkup"
-      }
-    },
-    {
-     
-      title: 'Wellness Programs',
-      description: 'Preventive healthcare and lifestyle management',
-      features: ['Yoga Sessions', 'Diet Planning', 'Mental Wellness', 'Progress Tracking'],
-      details: {
-        overview: "Holistic wellness programs focusing on preventive care, mental health, and lifestyle management. Customized plans for overall well-being.",
-        benefits: [
-          "Personalized wellness plans",
-          "Certified wellness coaches",
-          "Mental health support",
-          "Nutritionist consultations",
-          "Progress tracking"
-        ],
-        process: [
-          "Initial health assessment",
-          "Personalized wellness plan creation",
-          "Regular coaching sessions",
-          "Progress monitoring",
-          "Plan adjustments based on results"
-        ],
-        pricing: "Starting from $49/month. 3-month and annual plans available.",
-        duration: "3-12 month programs with weekly sessions"
-      }
+        pricing: "Packages starting from $99. Executive package: $299. Family packages (4+ members): 20% discount.",
+        duration: "2-4 hours for complete checkup. Reports within 24-48 hours.",
+        coverage: "Lab network across all states. Home sample collection available."
+      },
+      
     }
   ];
 
@@ -541,22 +481,6 @@ const Services = ({ onNavigateToLogin }) => {
     setIsModalOpen(false);
     setSelectedService(null);
     document.body.style.overflow = 'auto';
-  };
-
-  const handleBookNow = () => {
-    setShowLoginMessage(true);
-  };
-
-  const handleLoginRedirect = () => {
-    setShowLoginMessage(false);
-    closeModal();
-    if (onNavigateToLogin) {
-      onNavigateToLogin();
-    }
-  };
-
-  const handleCancelLogin = () => {
-    setShowLoginMessage(false);
   };
 
   // Generate floating elements
@@ -589,10 +513,10 @@ const Services = ({ onNavigateToLogin }) => {
 
       <div style={styles.container}>
         <h2 style={styles.sectionTitle}>
-          Our Services
+          Our Healthcare Services
         </h2>
         <p style={styles.sectionSubtitle}>
-          Comprehensive healthcare solutions for all your needs
+          Comprehensive healthcare solutions designed for your convenience and well-being
         </p>
         
         <div style={styles.servicesGrid}>
@@ -602,12 +526,12 @@ const Services = ({ onNavigateToLogin }) => {
               style={styles.serviceCard}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-10px)';
-                e.currentTarget.style.boxShadow = '0 20px 40px rgba(124, 42, 98, 0.15)';
-                e.currentTarget.style.borderColor = '#7C2A62';
+                e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 150, 136, 0.15)';
+                e.currentTarget.style.borderColor = '#009688';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 8px 30px rgba(124, 42, 98, 0.1)';
+                e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 150, 136, 0.1)';
                 e.currentTarget.style.borderColor = 'transparent';
               }}
             >
@@ -634,17 +558,17 @@ const Services = ({ onNavigateToLogin }) => {
                 style={styles.learnMoreButton}
                 onClick={() => openModal(service)}
                 onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#7C2A62';
+                  e.target.style.backgroundColor = '#009688';
                   e.target.style.color = 'white';
                   e.target.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = '#7C2A62';
+                  e.target.style.color = '#009688';
                   e.target.style.transform = 'translateY(0)';
                 }}
               >
-                Learn More →
+                View Details →
               </button>
             </div>
           ))}
@@ -659,12 +583,12 @@ const Services = ({ onNavigateToLogin }) => {
               style={styles.modalClose}
               onClick={closeModal}
               onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#F7D9EB';
-                e.target.style.color = '#7C2A62';
+                e.target.style.backgroundColor = '#E0F2F1';
+                e.target.style.color = '#009688';
               }}
               onMouseLeave={(e) => {
                 e.target.style.backgroundColor = 'transparent';
-                e.target.style.color = '#666';
+                e.target.style.color = '#4F6F6B';
               }}
             >
               ×
@@ -686,7 +610,7 @@ const Services = ({ onNavigateToLogin }) => {
 
             <div style={styles.modalBody}>
               <div style={styles.modalSection}>
-                <h3 style={styles.modalSectionTitle}>Overview</h3>
+                <h3 style={styles.modalSectionTitle}>Service Overview</h3>
                 <p style={styles.modalText}>{selectedService.details.overview}</p>
               </div>
 
@@ -725,94 +649,47 @@ const Services = ({ onNavigateToLogin }) => {
                   <h4 style={styles.detailTitle}>Duration</h4>
                   <p style={styles.detailText}>{selectedService.details.duration}</p>
                 </div>
+                {selectedService.details.coverage && (
+                  <div style={styles.detailItem}>
+                    <h4 style={styles.detailTitle}>Coverage</h4>
+                    <p style={styles.detailText}>{selectedService.details.coverage}</p>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div style={styles.modalFooter}>
+            <div style={{ textAlign: 'center', paddingTop: '1.5rem', borderTop: '2px solid #E0F2F1' }}>
               <button 
-                style={styles.btnPrimary}
-                onClick={handleBookNow}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#9C3A7A';
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 8px 20px rgba(124, 42, 98, 0.4)';
+                style={{
+                  padding: isMobile ? '0.7rem 1.5rem' : '0.8rem 2rem',
+                  backgroundColor: 'transparent',
+                  color: '#009688',
+                  border: '2px solid #009688',
+                  borderRadius: '25px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: isMobile ? '0.9rem' : '1rem',
+                  transition: 'all 0.3s ease',
+                  position: 'relative',
+                  overflow: 'hidden',
                 }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = '#7C2A62';
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 5px 15px rgba(124, 42, 98, 0.3)';
-                }}
-              >
-                Book Now
-              </button>
-              <button 
-                style={styles.btnSecondary}
                 onClick={closeModal}
                 onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#7C2A62';
+                  e.target.style.backgroundColor = '#009688';
                   e.target.style.color = 'white';
                   e.target.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = '#7C2A62';
+                  e.target.style.color = '#009688';
                   e.target.style.transform = 'translateY(0)';
                 }}
               >
-                Close
+                Close Details
               </button>
             </div>
           </div>
         </div>
-      )}
-
-      {/* Login Message Modal */}
-      {showLoginMessage && (
-        <>
-          <div style={styles.loginMessageOverlay} onClick={handleCancelLogin} />
-          <div style={styles.loginMessage}>
-            <h3 style={styles.loginMessageTitle}>
-              Login Required
-            </h3>
-            <p style={styles.loginMessageText}>
-              Please login to book this service and access all our healthcare features.
-            </p>
-            <div style={styles.loginMessageButtons}>
-              <button 
-                style={styles.btnPrimary}
-                onClick={handleLoginRedirect}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#9C3A7A';
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 8px 20px rgba(124, 42, 98, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = '#7C2A62';
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 5px 15px rgba(124, 42, 98, 0.3)';
-                }}
-              >
-                Go to Login
-              </button>
-              <button 
-                style={styles.btnSecondary}
-                onClick={handleCancelLogin}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#7C2A62';
-                  e.target.style.color = 'white';
-                  e.target.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = '#7C2A62';
-                  e.target.style.transform = 'translateY(0)';
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </>
       )}
     </section>
   );

@@ -1,155 +1,602 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+// Move allProducts outside the component to fix ESLint warning
+const allProducts = [
+    // Medicines Category - Batch 1 (1-10)
+    { id: 1, name: 'Dolo 650 Tablet', brand: 'Micro Labs', price: 25, vendor: 'City Pharmacy', category: 'Fever & Cold', mainCategory: 'medicines', description: 'Effective fever reducer and pain reliever', prescriptionRequired: false, stock: 200, rating: 4.7, reviews: 1250, popular: true, image: 'https://www.netmeds.com/images/product-v1/600x600/859374/dolo_650_tablet_15s_0.jpg' },
+    { id: 2, name: 'Saridon Tablet', brand: 'Bayer', price: 30, vendor: 'WellCare Store', category: 'Pain Relief', mainCategory: 'medicines', description: 'Fast relief from headache and migraine', prescriptionRequired: false, stock: 150, rating: 4.5, reviews: 890, popular: true, image: 'https://www.netmeds.com/images/product-v1/600x600/846855/saridon_tablet_10s_0.jpg' },
+    { id: 3, name: 'Azithromycin 500mg', brand: 'Cipla', price: 120, vendor: 'MedPlus', category: 'Antibiotics', mainCategory: 'medicines', description: 'Broad spectrum antibiotic for infections', prescriptionRequired: true, stock: 50, rating: 4.4, reviews: 340, popular: false, image: 'https://www.apollopharmacy.in/images/product/ar_1001260026_1.jpg' },
+    { id: 4, name: 'Cetirizine 10mg', brand: 'Zyrtec', price: 35, vendor: 'Apollo Pharmacy', category: 'Allergy', mainCategory: 'medicines', description: '24-hour allergy relief without drowsiness', prescriptionRequired: false, stock: 180, rating: 4.6, reviews: 920, popular: true, image: 'https://m.media-amazon.com/images/I/71sf-E8gMGL._SL1500_.jpg' },
+    { id: 5, name: 'Metformin 500mg', brand: 'USV', price: 45, vendor: 'WellCare Store', category: 'Diabetes Care', mainCategory: 'medicines', description: 'Oral anti-diabetic medication', prescriptionRequired: true, stock: 120, rating: 4.3, reviews: 560, popular: false, image: 'https://www.netmeds.com/images/product-v1/600x600/402193/glycomet_500_tablet_10s_0.jpg' },
+    { id: 6, name: 'Atorvastatin 10mg', brand: 'Sun Pharma', price: 65, vendor: 'MedPlus', category: 'Cardiac Care', mainCategory: 'medicines', description: 'Cholesterol lowering medication', prescriptionRequired: true, stock: 90, rating: 4.4, reviews: 430, popular: false, image: 'https://www.apollopharmacy.in/images/product/ar_1001260027_1.jpg' },
+    { id: 7, name: 'Montelukast 10mg', brand: 'Cipla', price: 55, vendor: 'Apollo Pharmacy', category: 'Asthma & Respiratory', mainCategory: 'medicines', description: 'For asthma and allergic rhinitis', prescriptionRequired: true, stock: 80, rating: 4.5, reviews: 380, popular: false, image: 'https://www.netmeds.com/images/product-v1/600x600/878488/montair_10_tablet_10s_0.jpg' },
+    { id: 8, name: 'Omeprazole 20mg', brand: 'Dr. Reddy\'s', price: 40, vendor: 'City Pharmacy', category: 'Digestive Care', mainCategory: 'medicines', description: 'Acid reducer for heartburn relief', prescriptionRequired: false, stock: 160, rating: 4.4, reviews: 670, popular: true, image: 'https://m.media-amazon.com/images/I/71V8ovlyPGL._SL1500_.jpg' },
+    { id: 9, name: 'Amoxicillin 500mg', brand: 'Alkem', price: 85, vendor: 'WellCare Store', category: 'Antibiotics', mainCategory: 'medicines', description: 'For bacterial infections', prescriptionRequired: true, stock: 70, rating: 4.3, reviews: 290, popular: false, image: 'https://www.netmeds.com/images/product-v1/600x600/883569/mox_500_capsule_10s_0.jpg' },
+    { id: 10, name: 'Ibuprofen 400mg', brand: 'Cipla', price: 28, vendor: 'MedPlus', category: 'Pain Relief', mainCategory: 'medicines', description: 'Anti-inflammatory pain reliever', prescriptionRequired: false, stock: 190, rating: 4.5, reviews: 810, popular: true, image: 'https://www.apollopharmacy.in/images/product/ar_1001260028_1.jpg' },
+
+    // Healthcare Devices - Batch 2 (11-20)
+    { id: 11, name: 'Digital Blood Pressure Monitor', brand: 'Omron', price: 1499, vendor: 'Health Device Store', category: 'Blood Pressure Monitors', mainCategory: 'healthcare-devices', description: 'Automatic upper arm monitor with memory', prescriptionRequired: false, stock: 45, rating: 4.6, reviews: 320, popular: true, image: 'https://m.media-amazon.com/images/I/61X4W2R9LwL._SL1500_.jpg' },
+    { id: 12, name: 'Digital Thermometer', brand: 'Dr. Morepen', price: 299, vendor: 'WellCare Store', category: 'Thermometers', mainCategory: 'healthcare-devices', description: 'Fast and accurate temperature reading', prescriptionRequired: false, stock: 120, rating: 4.5, reviews: 450, popular: true, image: 'https://m.media-amazon.com/images/I/61Q1TFqXZaL._SL1500_.jpg' },
+    { id: 13, name: 'Glucometer Kit', brand: 'Accu-Chek', price: 899, vendor: 'MedPlus', category: 'Glucometers', mainCategory: 'healthcare-devices', description: 'Complete diabetes monitoring kit', prescriptionRequired: false, stock: 65, rating: 4.7, reviews: 280, popular: false, image: 'https://m.media-amazon.com/images/I/61cvLc4Pp4L._SL1500_.jpg' },
+    { id: 14, name: 'Pulse Oximeter', brand: 'Dr. Trust', price: 1299, vendor: 'Apollo Pharmacy', category: 'Oximeters', mainCategory: 'healthcare-devices', description: 'Finger-tip oxygen saturation monitor', prescriptionRequired: false, stock: 55, rating: 4.4, reviews: 190, popular: true, image: 'https://m.media-amazon.com/images/I/71c-8sEoTxL._SL1500_.jpg' },
+    { id: 15, name: 'Portable Nebulizer', brand: 'Omron', price: 2499, vendor: 'Health Device Store', category: 'Nebulizers', mainCategory: 'healthcare-devices', description: 'Mesh technology for quick relief', prescriptionRequired: false, stock: 30, rating: 4.6, reviews: 120, popular: false, image: 'https://m.media-amazon.com/images/I/61Q4R5K5ZjL._SL1500_.jpg' },
+
+    // Personal Care - Batch 2 (16-20)
+    { id: 16, name: 'Dettol Soap', brand: 'Dettol', price: 45, vendor: 'Supermarket', category: 'Bath & Shower', mainCategory: 'personal-care', description: 'Antibacterial protection soap', prescriptionRequired: false, stock: 300, rating: 4.6, reviews: 1250, popular: true, image: 'https://www.netmeds.com/images/product-v1/600x600/8280734/dettol-soap-original-75-gm-0.jpg' },
+    { id: 17, name: 'Colgate Toothpaste', brand: 'Colgate', price: 85, vendor: 'Supermarket', category: 'Oral Care', mainCategory: 'personal-care', description: 'Cavity protection toothpaste', prescriptionRequired: false, stock: 250, rating: 4.7, reviews: 1800, popular: true, image: 'https://m.media-amazon.com/images/I/61DJtXK6LFL._SL1500_.jpg' },
+    { id: 18, name: 'Head & Shoulders Shampoo', brand: 'Head & Shoulders', price: 199, vendor: 'WellCare Store', category: 'Hair Care', mainCategory: 'personal-care', description: 'Anti-dandruff shampoo for daily use', prescriptionRequired: false, stock: 180, rating: 4.5, reviews: 920, popular: true, image: 'https://m.media-amazon.com/images/I/61xSCTdSqaL._SL1500_.jpg' },
+    { id: 19, name: 'Nivea Deodorant', brand: 'Nivea', price: 175, vendor: 'Supermarket', category: 'Deodorants', mainCategory: 'personal-care', description: '48-hour freshness protection', prescriptionRequired: false, stock: 160, rating: 4.4, reviews: 780, popular: true, image: 'https://m.media-amazon.com/images/I/612Xb1kdu+L._SL1500_.jpg' },
+    { id: 20, name: 'Whisper Ultra Sanitary Pads', brand: 'Whisper', price: 120, vendor: 'Apollo Pharmacy', category: 'Feminine Hygiene', mainCategory: 'personal-care', description: 'Wings for extra protection', prescriptionRequired: false, stock: 200, rating: 4.7, reviews: 1500, popular: true, image: 'https://m.media-amazon.com/images/I/61qST-EvTbL._SL1500_.jpg' },
+
+    // Skin Care - Batch 3 (21-30)
+    { id: 21, name: 'Cetaphil Moisturizing Lotion', brand: 'Cetaphil', price: 399, vendor: 'SkinCare Hub', category: 'Moisturizers', mainCategory: 'skin-care', description: 'Daily advance ultra hydrating lotion', prescriptionRequired: false, stock: 95, rating: 4.8, reviews: 420, popular: true, image: 'https://m.media-amazon.com/images/I/61PIRq8NFKL._SL1500_.jpg' },
+    { id: 22, name: 'Lotus Herbals Sunscreen', brand: 'Lotus Herbals', price: 299, vendor: 'SkinCare Hub', category: 'Sunscreens', mainCategory: 'skin-care', description: 'SPF 50 matte gel sunscreen', prescriptionRequired: false, stock: 110, rating: 4.5, reviews: 380, popular: true, image: 'https://m.media-amazon.com/images/I/61t3X5jN0FL._SL1500_.jpg' },
+    { id: 23, name: 'Neutrogena Face Wash', brand: 'Neutrogena', price: 249, vendor: 'WellCare Store', category: 'Face Washes', mainCategory: 'skin-care', description: 'Deep clean oil-free face wash', prescriptionRequired: false, stock: 130, rating: 4.6, reviews: 560, popular: true, image: 'https://m.media-amazon.com/images/I/61E7OgMtURL._SL1500_.jpg' },
+    { id: 24, name: 'Benzoyl Peroxide Gel', brand: 'Pernex', price: 189, vendor: 'Apollo Pharmacy', category: 'Acne Treatments', mainCategory: 'skin-care', description: 'Acne treatment gel 2.5%', prescriptionRequired: false, stock: 85, rating: 4.3, reviews: 240, popular: false, image: 'https://www.netmeds.com/images/product-v1/600x600/908235/pernex_ac_gel_20gm_0.jpg' },
+    { id: 25, name: 'Olay Regenerist Cream', brand: 'Olay', price: 899, vendor: 'SkinCare Hub', category: 'Anti-Aging', mainCategory: 'skin-care', description: 'Anti-aging night cream', prescriptionRequired: false, stock: 60, rating: 4.7, reviews: 190, popular: false, image: 'https://m.media-amazon.com/images/I/61k2tK2rX7L._SL1500_.jpg' },
+
+    // Nutrition & Supplements - Batch 3 (26-30)
+    { id: 26, name: 'Vitamin D3 60K IU', brand: 'Supradyn', price: 120, vendor: 'WellCare Store', category: 'Vitamins', mainCategory: 'nutrition-supplements', description: 'Weekly dose for vitamin D deficiency', prescriptionRequired: false, stock: 150, rating: 4.6, reviews: 430, popular: true, image: 'https://www.netmeds.com/images/product-v1/600x600/877349/supradyn_vitamin_d3_60000_iu_softgel_4s_0.jpg' },
+    { id: 27, name: 'Whey Protein 1kg', brand: 'MuscleBlaze', price: 1999, vendor: 'Fitness Depot', category: 'Protein Supplements', mainCategory: 'nutrition-supplements', description: '100% whey protein isolate', prescriptionRequired: false, stock: 75, rating: 4.5, reviews: 320, popular: true, image: 'https://m.media-amazon.com/images/I/71jRx63EQ9L._SL1500_.jpg' },
+    { id: 28, name: 'Omega-3 Fish Oil', brand: 'HealthKart', price: 699, vendor: 'WellCare Store', category: 'Omega & Fish Oil', mainCategory: 'nutrition-supplements', description: '1000mg EPA+DHA per serving', prescriptionRequired: false, stock: 90, rating: 4.4, reviews: 210, popular: false, image: 'https://m.media-amazon.com/images/I/61Q9-7V8w+L._SL1500_.jpg' },
+    { id: 29, name: 'Multivitamin Capsules', brand: 'Revital', price: 299, vendor: 'Apollo Pharmacy', category: 'Vitamins', mainCategory: 'nutrition-supplements', description: 'Daily multivitamin for adults', prescriptionRequired: false, stock: 120, rating: 4.5, reviews: 380, popular: true, image: 'https://www.netmeds.com/images/product-v1/600x600/877348/revital_h_capsule_30s_0.jpg' },
+    { id: 30, name: 'Calcium + Vitamin D3', brand: 'Caltrate', price: 450, vendor: 'MedPlus', category: 'Minerals', mainCategory: 'nutrition-supplements', description: 'For strong bones and teeth', prescriptionRequired: false, stock: 100, rating: 4.6, reviews: 290, popular: false, image: 'https://m.media-amazon.com/images/I/61eRk7M4tKL._SL1500_.jpg' },
+
+    // Baby Care - Batch 4 (31-35)
+    { id: 31, name: 'Pampers Premium Care Diapers', brand: 'Pampers', price: 899, vendor: 'BabyCare Store', category: 'Baby Diapers', mainCategory: 'baby-care', description: 'Super absorbent diapers size M', prescriptionRequired: false, stock: 200, rating: 4.7, reviews: 850, popular: true, image: 'https://m.media-amazon.com/images/I/81aZBy+pHlL._SL1500_.jpg' },
+    { id: 32, name: 'Johnson\'s Baby Soap', brand: 'Johnson & Johnson', price: 85, vendor: 'Supermarket', category: 'Baby Soaps', mainCategory: 'baby-care', description: 'Mild baby soap with milk protein', prescriptionRequired: false, stock: 180, rating: 4.6, reviews: 720, popular: true, image: 'https://m.media-amazon.com/images/I/71cVqUiNjhL._SL1500_.jpg' },
+    { id: 33, name: 'Huggies Baby Wipes', brand: 'Huggies', price: 199, vendor: 'BabyCare Store', category: 'Baby Wipes', mainCategory: 'baby-care', description: 'Alcohol-free sensitive wipes', prescriptionRequired: false, stock: 150, rating: 4.5, reviews: 480, popular: true, image: 'https://m.media-amazon.com/images/I/71OcFffsLhL._SL1500_.jpg' },
+    { id: 34, name: 'Nestle Cerelac Stage 1', brand: 'Nestle', price: 250, vendor: 'Supermarket', category: 'Baby Foods', mainCategory: 'baby-care', description: 'Rice based cereal for 6+ months', prescriptionRequired: false, stock: 120, rating: 4.7, reviews: 390, popular: true, image: 'https://m.media-amazon.com/images/I/71lZgSfKBgL._SL1500_.jpg' },
+    { id: 35, name: 'Sebamed Baby Lotion', brand: 'Sebamed', price: 399, vendor: 'Apollo Pharmacy', category: 'Baby Lotions', mainCategory: 'baby-care', description: 'pH 5.5 protective lotion', prescriptionRequired: false, stock: 85, rating: 4.6, reviews: 210, popular: false, image: 'https://m.media-amazon.com/images/I/61mO9WpMBXL._SL1500_.jpg' },
+
+    // Women Health - Batch 4 (36-40)
+    { id: 36, name: 'Prega News Pregnancy Test', brand: 'Prega News', price: 99, vendor: 'WellCare Store', category: 'Pregnancy Tests', mainCategory: 'women-health', description: 'Early detection test kit', prescriptionRequired: false, stock: 130, rating: 4.5, reviews: 560, popular: true, image: 'https://m.media-amazon.com/images/I/71q8VHvnxQL._SL1500_.jpg' },
+    { id: 37, name: 'Folic Acid Tablets', brand: 'Folvite', price: 65, vendor: 'Apollo Pharmacy', category: 'Prenatal Vitamins', mainCategory: 'women-health', description: '5mg folic acid tablets', prescriptionRequired: false, stock: 110, rating: 4.4, reviews: 320, popular: false, image: 'https://www.netmeds.com/images/product-v1/600x600/859365/folvite_5mg_tablet_30s_0.jpg' },
+    { id: 38, name: 'Stayfree Secure Pads', brand: 'Stayfree', price: 110, vendor: 'Supermarket', category: 'Menstrual Care', mainCategory: 'women-health', description: 'All-night security pads', prescriptionRequired: false, stock: 180, rating: 4.6, reviews: 890, popular: true, image: 'https://m.media-amazon.com/images/I/61Kw2IpyGjL._SL1500_.jpg' },
+    { id: 39, name: 'Evion 400 Capsules', brand: 'Merck', price: 85, vendor: 'MedPlus', category: 'Women Vitamins', mainCategory: 'women-health', description: 'Vitamin E capsules for skin health', prescriptionRequired: false, stock: 140, rating: 4.5, reviews: 410, popular: true, image: 'https://www.netmeds.com/images/product-v1/600x600/859370/evion_400_capsule_10s_0.jpg' },
+    { id: 40, name: 'MenoSure Capsules', brand: 'Dabur', price: 499, vendor: 'Apollo Pharmacy', category: 'Menopause Support', mainCategory: 'women-health', description: 'Ayurvedic support for menopause', prescriptionRequired: false, stock: 65, rating: 4.3, reviews: 120, popular: false, image: 'https://m.media-amazon.com/images/I/71d2TlDd4BL._SL1500_.jpg' },
+
+    // Elderly Care - Batch 5 (41-45)
+    { id: 41, name: 'Walking Stick Adjustable', brand: 'Dr. Trust', price: 799, vendor: 'Health Device Store', category: 'Walking Aids', mainCategory: 'elderly-care', description: 'Lightweight adjustable walking stick', prescriptionRequired: false, stock: 45, rating: 4.4, reviews: 95, popular: false, image: 'https://m.media-amazon.com/images/I/61dQ0WVHK+L._SL1500_.jpg' },
+    { id: 42, name: 'Adult Diapers Large', brand: 'Friends', price: 699, vendor: 'Apollo Pharmacy', category: 'Adult Diapers', mainCategory: 'elderly-care', description: 'Super absorbent adult diapers', prescriptionRequired: false, stock: 80, rating: 4.5, reviews: 180, popular: false, image: 'https://m.media-amazon.com/images/I/71zQKBHXpTL._SL1500_.jpg' },
+    { id: 43, name: 'Glucosamine Chondroitin', brand: 'HealthKart', price: 899, vendor: 'WellCare Store', category: 'Bone & Joint Care', mainCategory: 'elderly-care', description: 'Joint support supplement', prescriptionRequired: false, stock: 60, rating: 4.3, reviews: 110, popular: false, image: 'https://m.media-amazon.com/images/I/61BfLwUIVPL._SL1500_.jpg' },
+    { id: 44, name: 'Eye Drops for Dry Eyes', brand: 'Refresh', price: 199, vendor: 'MedPlus', category: 'Eye Care', mainCategory: 'elderly-care', description: 'Lubricant eye drops', prescriptionRequired: false, stock: 120, rating: 4.6, reviews: 240, popular: true, image: 'https://m.media-amazon.com/images/I/71t4R+WQb6L._SL1500_.jpg' },
+    { id: 45, name: 'Memory Support Supplement', brand: 'MindCare', price: 599, vendor: 'Apollo Pharmacy', category: 'Memory Support', mainCategory: 'elderly-care', description: 'Natural memory enhancement', prescriptionRequired: false, stock: 55, rating: 4.2, reviews: 85, popular: false, image: 'https://m.media-amazon.com/images/I/61KVYHc3g5L._SL1500_.jpg' },
+
+    // Sexual Wellness - Batch 5 (46-50)
+    { id: 46, name: 'Durex Condoms Extra Safe', brand: 'Durex', price: 199, vendor: 'WellCare Store', category: 'Condoms', mainCategory: 'sexual-wellness', description: 'Extra safe with lubricant', prescriptionRequired: false, stock: 150, rating: 4.7, reviews: 680, popular: true, image: 'https://m.media-amazon.com/images/I/71-BOjh-ogL._SL1500_.jpg' },
+    { id: 47, name: 'KY Jelly Lubricant', brand: 'Johnson & Johnson', price: 299, vendor: 'Apollo Pharmacy', category: 'Lubricants', mainCategory: 'sexual-wellness', description: 'Water-based personal lubricant', prescriptionRequired: false, stock: 95, rating: 4.5, reviews: 320, popular: true, image: 'https://m.media-amazon.com/images/I/61G+eGk07KL._SL1500_.jpg' },
+    { id: 48, name: 'Sildenafil 50mg', brand: 'Cipla', price: 150, vendor: 'MedPlus', category: 'ED Treatment', mainCategory: 'sexual-wellness', description: 'For erectile dysfunction', prescriptionRequired: true, stock: 40, rating: 4.4, reviews: 160, popular: false, image: 'https://www.netmeds.com/images/product-v1/600x600/859376/suhagra_50_tablet_4s_0.jpg' },
+    { id: 49, name: 'Moods Condoms', brand: 'Moods', price: 149, vendor: 'WellCare Store', category: 'Condoms', mainCategory: 'sexual-wellness', description: 'Ultra thin for sensitivity', prescriptionRequired: false, stock: 120, rating: 4.6, reviews: 420, popular: true, image: 'https://m.media-amazon.com/images/I/71+LmRGlYtL._SL1500_.jpg' },
+    { id: 50, name: 'Intimate Wash', brand: 'VWash', price: 249, vendor: 'Apollo Pharmacy', category: 'Intimate Care', mainCategory: 'sexual-wellness', description: 'pH balanced intimate hygiene', prescriptionRequired: false, stock: 110, rating: 4.5, reviews: 380, popular: true, image: 'https://m.media-amazon.com/images/I/61GZc8gF2dL._SL1500_.jpg' },
+
+    // Surgical Supplies - Batch 6 (51-55)
+    { id: 51, name: 'Band-Aid Assorted Pack', brand: 'Johnson & Johnson', price: 99, vendor: 'MedPlus', category: 'Bandages', mainCategory: 'surgical-supplies', description: 'Waterproof bandages of various sizes', prescriptionRequired: false, stock: 200, rating: 4.6, reviews: 520, popular: true, image: 'https://m.media-amazon.com/images/I/81+yCrlRcnL._SL1500_.jpg' },
+    { id: 52, name: 'Surgical Mask N95', brand: '3M', price: 199, vendor: 'Apollo Pharmacy', category: 'Face Masks', mainCategory: 'surgical-supplies', description: 'Respiratory protection mask', prescriptionRequired: false, stock: 180, rating: 4.5, reviews: 410, popular: true, image: 'https://m.media-amazon.com/images/I/81wT5jQ+rDL._SL1500_.jpg' },
+    { id: 53, name: 'Disposable Gloves Latex Free', brand: 'Honeywell', price: 299, vendor: 'WellCare Store', category: 'Disposable Gloves', mainCategory: 'surgical-supplies', description: 'Powder-free examination gloves', prescriptionRequired: false, stock: 150, rating: 4.4, reviews: 290, popular: false, image: 'https://m.media-amazon.com/images/I/71+DG3jCOFL._SL1500_.jpg' },
+    { id: 54, name: 'Sterile Gauze Pads', brand: 'Smith & Nephew', price: 149, vendor: 'MedPlus', category: 'Gauze & Dressings', mainCategory: 'surgical-supplies', description: 'Non-stick sterile gauze pads', prescriptionRequired: false, stock: 130, rating: 4.5, reviews: 180, popular: false, image: 'https://m.media-amazon.com/images/I/61eG9DgTogL._SL1500_.jpg' },
+    { id: 55, name: 'First Aid Kit Comprehensive', brand: 'Dr. Morepen', price: 599, vendor: 'Apollo Pharmacy', category: 'First Aid Kits', mainCategory: 'surgical-supplies', description: '150 piece first aid kit', prescriptionRequired: false, stock: 75, rating: 4.6, reviews: 210, popular: true, image: 'https://m.media-amazon.com/images/I/71ujQj9RhHL._SL1500_.jpg' },
+
+    // Homeopathy & Ayurveda - Batch 6 (56-60)
+    { id: 56, name: 'Arnica Montana 30C', brand: 'SBL', price: 120, vendor: 'Ayurveda Store', category: 'Homeopathic Medicines', mainCategory: 'homeopathy-ayurveda', description: 'For pain, bruises and inflammation', prescriptionRequired: false, stock: 95, rating: 4.4, reviews: 160, popular: false, image: 'https://www.netmeds.com/images/product-v1/600x600/829568/sbl_arnica_montana_30_ch_1ml_0.jpg' },
+    { id: 57, name: 'Dabur Chyawanprash', brand: 'Dabur', price: 299, vendor: 'WellCare Store', category: 'Chyawanprash', mainCategory: 'homeopathy-ayurveda', description: 'Immunity booster for all ages', prescriptionRequired: false, stock: 120, rating: 4.7, reviews: 580, popular: true, image: 'https://m.media-amazon.com/images/I/61V9iDexgPL._SL1500_.jpg' },
+    { id: 58, name: 'Lavender Essential Oil', brand: 'Now Foods', price: 399, vendor: 'Ayurveda Store', category: 'Essential Oils', mainCategory: 'homeopathy-ayurveda', description: 'Pure lavender oil for relaxation', prescriptionRequired: false, stock: 85, rating: 4.5, reviews: 240, popular: true, image: 'https://m.media-amazon.com/images/I/61M7o4fAEaL._SL1500_.jpg' },
+    { id: 59, name: 'Ashwagandha Capsules', brand: 'Himalaya', price: 249, vendor: 'Apollo Pharmacy', category: 'Ayurvedic Medicines', mainCategory: 'homeopathy-ayurveda', description: 'Stress relief and vitality support', prescriptionRequired: false, stock: 110, rating: 4.6, reviews: 320, popular: true, image: 'https://www.netmeds.com/images/product-v1/600x600/910845/himalaya_ashwagandha_capsule_60s_0.jpg' },
+    { id: 60, name: 'Homeopathy First Aid Kit', brand: 'SBL', price: 699, vendor: 'MedPlus', category: 'Homeopathy Kits', mainCategory: 'homeopathy-ayurveda', description: '35 essential homeopathic remedies', prescriptionRequired: false, stock: 45, rating: 4.4, reviews: 95, popular: false, image: 'https://m.media-amazon.com/images/I/71oL4ftrWLL._SL1500_.jpg' },
+
+    // Health Foods - Batch 7 (61-65)
+    { id: 61, name: 'Sugar-Free Natura', brand: 'Sugar-Free', price: 299, vendor: 'Supermarket', category: 'Sugar-Free Products', mainCategory: 'health-foods', description: 'Low calorie sweetener', prescriptionRequired: false, stock: 140, rating: 4.5, reviews: 380, popular: true, image: 'https://m.media-amazon.com/images/I/81fRqG5pGhL._SL1500_.jpg' },
+    { id: 62, name: 'Quest Protein Bars', brand: 'Quest', price: 249, vendor: 'Fitness Depot', category: 'Protein Bars', mainCategory: 'health-foods', description: 'High protein low carb bars', prescriptionRequired: false, stock: 90, rating: 4.6, reviews: 210, popular: true, image: 'https://m.media-amazon.com/images/I/81NfrwlM9IL._SL1500_.jpg' },
+    { id: 63, name: 'Almonds California', brand: 'Wonderland', price: 599, vendor: 'Supermarket', category: 'Healthy Snacks', mainCategory: 'health-foods', description: 'Premium California almonds 500g', prescriptionRequired: false, stock: 75, rating: 4.7, reviews: 190, popular: false, image: 'https://m.media-amazon.com/images/I/81KLXWshfqL._SL1500_.jpg' },
+    { id: 64, name: 'Ensure Nutrition Powder', brand: 'Abbott', price: 1299, vendor: 'Apollo Pharmacy', category: 'Nutrition Drinks', mainCategory: 'health-foods', description: 'Complete balanced nutrition', prescriptionRequired: false, stock: 60, rating: 4.6, reviews: 280, popular: true, image: 'https://m.media-amazon.com/images/I/71d2TlDd4BL._SL1500_.jpg' },
+    { id: 65, name: 'Gluten-Free Flour', brand: 'Urban Platter', price: 349, vendor: 'Supermarket', category: 'Gluten-Free', mainCategory: 'health-foods', description: 'Multi-grain gluten free flour', prescriptionRequired: false, stock: 85, rating: 4.4, reviews: 120, popular: false, image: 'https://m.media-amazon.com/images/I/71uio3Gq5GL._SL1500_.jpg' },
+
+    // Additional Products - Batch 7 (66-70)
+    { id: 66, name: 'Crocin Pain Relief', brand: 'GSK', price: 28, vendor: 'City Pharmacy', category: 'Pain Relief', mainCategory: 'medicines', description: 'Fast relief from headache and fever', prescriptionRequired: false, stock: 170, rating: 4.6, reviews: 740, popular: true, image: 'https://www.netmeds.com/images/product-v1/600x600/858341/crocin_pain_relief_tablet_15s_0.jpg' },
+    { id: 67, name: 'Vicks Vaporub', brand: 'P&G', price: 89, vendor: 'WellCare Store', category: 'Fever & Cold', mainCategory: 'medicines', description: 'Cough and cold relief ointment', prescriptionRequired: false, stock: 150, rating: 4.7, reviews: 920, popular: true, image: 'https://m.media-amazon.com/images/I/71YKMHExo+L._SL1500_.jpg' },
+    { id: 68, name: 'Digene Tablets', brand: 'Abbott', price: 35, vendor: 'MedPlus', category: 'Digestive Care', mainCategory: 'medicines', description: 'Instant relief from acidity', prescriptionRequired: false, stock: 190, rating: 4.5, reviews: 680, popular: true, image: 'https://www.netmeds.com/images/product-v1/600x600/858350/digene_tablet_mint_15s_0.jpg' },
+    { id: 69, name: 'Liv 52 DS', brand: 'Himalaya', price: 120, vendor: 'Apollo Pharmacy', category: 'Ayurvedic Medicines', mainCategory: 'homeopathy-ayurveda', description: 'Liver support supplement', prescriptionRequired: false, stock: 110, rating: 4.6, reviews: 450, popular: true, image: 'https://www.netmeds.com/images/product-v1/600x600/829399/liv_52_ds_tablet_60s_0.jpg' },
+    { id: 70, name: 'Burnol Cream', brand: 'J&J', price: 65, vendor: 'MedPlus', category: 'Wound Care', mainCategory: 'surgical-supplies', description: 'Antiseptic burn cream', prescriptionRequired: false, stock: 130, rating: 4.4, reviews: 320, popular: true, image: 'https://m.media-amazon.com/images/I/71CHKZBshSL._SL1500_.jpg' }
+];
 
 const Products = ({ 
   searchQuery, 
   setSearchQuery, 
-  medicines, 
-  filteredMedicines, 
   cart, 
   addToCart, 
   updateQuantity, 
   setActiveView 
 }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedSubcategory, setSelectedSubcategory] = useState('all');
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [selectedPrescriptionProduct, setSelectedPrescriptionProduct] = useState(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [products, setProducts] = useState([]);
 
-  // Color constants
+  // Updated Color constants with new scheme
   const colors = {
-    primary: '#7C2A62',
-    accent: '#F7D9EB',
+    primary: '#009688',
+    mint: '#4DB6AC',
+    softbg: '#E0F2F1',
     white: '#FFFFFF',
-    lightGray: '#F5F5F5',
-    gray: '#666666',
-    darkGray: '#333333',
-    success: '#28a745',
-    warning: '#ffc107',
-    danger: '#dc3545'
+    darktext: '#124441',
+    softtext: '#4F6F6B',
+    success: '#4CAF50',
+    warning: '#FF9800',
+    danger: '#ef4444',
+    info: '#2196F3'
   };
 
-  // Styles object with the new color scheme
+  // Enhanced category system with subcategories
+  const categoryStructure = {
+    'all': { name: 'All Products', icon: '' },
+    'medicines': { 
+      name: 'Medicines', 
+      icon: '',
+      subcategories: [
+        'All Medicines',
+        'Pain Relief',
+        'Fever & Cold',
+        'Antibiotics',
+        'Allergy',
+        'Digestive Care',
+        'Cardiac Care',
+        'Diabetes Care',
+        'Asthma & Respiratory',
+        'Prescription Drugs'
+      ]
+    },
+    'healthcare-devices': { 
+      name: 'Healthcare Devices', 
+      icon: '',
+      subcategories: [
+        'All Devices',
+        'Blood Pressure Monitors',
+        'Thermometers',
+        'Glucometers',
+        'Nebulizers',
+        'Oximeters',
+        'Weighing Scales',
+        'ECG Machines',
+        'Stethoscopes',
+        'First Aid Kits'
+      ]
+    },
+    'personal-care': { 
+      name: 'Personal Care', 
+      icon: '',
+      subcategories: [
+        'All Personal Care',
+        'Bath & Shower',
+        'Oral Care',
+        'Hair Care',
+        'Deodorants',
+        'Feminine Hygiene',
+        'Shaving Needs',
+        'Hand Sanitizers',
+        'Face Care',
+        'Body Lotions'
+      ]
+    },
+    'skin-care': { 
+      name: 'Skin Care', 
+      icon: '',
+      subcategories: [
+        'All Skin Care',
+        'Moisturizers',
+        'Sunscreens',
+        'Acne Treatments',
+        'Anti-Aging',
+        'Face Washes',
+        'Serums',
+        'Face Creams',
+        'Night Creams',
+        'Skin Toners'
+      ]
+    },
+    'nutrition-supplements': { 
+      name: 'Nutrition & Supplements', 
+      icon: '',
+      subcategories: [
+        'All Supplements',
+        'Vitamins',
+        'Minerals',
+        'Protein Supplements',
+        'Weight Gainers',
+        'Herbal Supplements',
+        'Ayurvedic',
+        'Omega & Fish Oil',
+        'Probiotics',
+        'Sports Nutrition'
+      ]
+    },
+    'baby-care': { 
+      name: 'Baby Care', 
+      icon: '',
+      subcategories: [
+        'All Baby Care',
+        'Baby Diapers',
+        'Baby Wipes',
+        'Baby Lotions',
+        'Baby Foods',
+        'Baby Soaps',
+        'Baby Shampoos',
+        'Baby Oil',
+        'Baby Powder',
+        'Feeding Essentials'
+      ]
+    },
+    'women-health': { 
+      name: 'Women Health', 
+      icon: '',
+      subcategories: [
+        'All Women Health',
+        'Pregnancy Tests',
+        'Prenatal Vitamins',
+        'Menstrual Care',
+        'Menopause Support',
+        'Breastfeeding Essentials',
+        'Fertility Support',
+        'Women Vitamins',
+        'Intimate Hygiene',
+        'Maternity Care'
+      ]
+    },
+    'elderly-care': { 
+      name: 'Elderly Care', 
+      icon: '',
+      subcategories: [
+        'All Elderly Care',
+        'Walking Aids',
+        'Adult Diapers',
+        'Pain Relief',
+        'Bone & Joint Care',
+        'Memory Support',
+        'Eye Care',
+        'Hearing Aids',
+        'Mobility Support',
+        'Comfort Care'
+      ]
+    },
+    'sexual-wellness': { 
+      name: 'Sexual Wellness', 
+      icon: '',
+      subcategories: [
+        'All Sexual Wellness',
+        'Condoms',
+        'Lubricants',
+        'Pregnancy Tests',
+        'Fertility Tests',
+        'Sexual Health Supplements',
+        'Intimate Care',
+        'Personal Massagers',
+        'ED Treatment',
+        'Contraceptives'
+      ]
+    },
+    'surgical-supplies': { 
+      name: 'Surgical Supplies', 
+      icon: '',
+      subcategories: [
+        'All Surgical',
+        'Bandages',
+        'Gauze & Dressings',
+        'Surgical Tapes',
+        'Cotton & Swabs',
+        'Disposable Gloves',
+        'Face Masks',
+        'Syringes',
+        'Needles',
+        'Wound Care'
+      ]
+    },
+    'homeopathy-ayurveda': { 
+      name: 'Homeopathy & Ayurveda', 
+      icon: '',
+      subcategories: [
+        'All Alternative Medicine',
+        'Homeopathic Medicines',
+        'Ayurvedic Medicines',
+        'Herbal Teas',
+        'Essential Oils',
+        'Ayurvedic Oils',
+        'Chyawanprash',
+        'Herbal Supplements',
+        'Homeopathy Kits',
+        'Natural Remedies'
+      ]
+    },
+    'health-foods': { 
+      name: 'Health Foods', 
+      icon: '',
+      subcategories: [
+        'All Health Foods',
+        'Sugar-Free Products',
+        'Protein Bars',
+        'Healthy Snacks',
+        'Diet Foods',
+        'Organic Products',
+        'Gluten-Free',
+        'Lactose-Free',
+        'Energy Drinks',
+        'Nutrition Drinks'
+      ]
+    }
+  };
+
+  useEffect(() => {
+    setProducts(allProducts);
+  }, []);
+
+  // Get all subcategories from the selected main category
+  const getSubcategories = () => {
+    if (selectedCategory === 'all') {
+      return ['all'];
+    }
+    const category = categoryStructure[selectedCategory];
+    return category?.subcategories || ['all'];
+  };
+
+  // Filter products based on main category and subcategory
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         product.category.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesMainCategory = selectedCategory === 'all' || product.mainCategory === selectedCategory;
+    
+    const matchesSubcategory = selectedSubcategory === 'all' || 
+                              selectedSubcategory === 'All ' + categoryStructure[selectedCategory]?.name.replace(' & ', ' ') || 
+                              product.category === selectedSubcategory;
+    
+    return matchesSearch && matchesMainCategory && matchesSubcategory;
+  });
+
+  // Handle category selection
+  const handleCategorySelect = (categoryKey) => {
+    setSelectedCategory(categoryKey);
+    setSelectedSubcategory('all');
+    setIsDropdownOpen(false);
+  };
+
+  // Get quantity of product in cart
+  const getProductQuantity = (productId) => {
+    const cartItem = cart.find(item => item.id === productId);
+    return cartItem ? cartItem.quantity : 0;
+  };
+
+  // Handle prescription required products
+  const handlePrescriptionProduct = (product) => {
+    setSelectedPrescriptionProduct(product);
+    setShowPrescriptionModal(true);
+  };
+
+  // Handle proceed to medicine delivery
+  const handleProceedToMedicineDelivery = () => {
+    setShowPrescriptionModal(false);
+    setActiveView('medicine');
+  };
+
+  // Handle back to dashboard
+  const handleBackToDashboard = () => {
+    if (setActiveView) {
+      setActiveView('dashboard');
+    }
+  };
+
+  // Format price with commas
+  const formatPrice = (price) => {
+    return `₹${price.toLocaleString('en-IN')}`;
+  };
+
+  // Get stock status
+  const getStockStatus = (stock) => {
+    if (stock > 20) return { text: 'In Stock', color: colors.success };
+    if (stock > 0) return { text: 'Low Stock', color: colors.warning };
+    return { text: 'Out of Stock', color: colors.danger };
+  };
+
+  // Styles
   const styles = {
-    mainContent: {
+    container: {
       padding: '20px',
-      backgroundColor: colors.lightGray,
-      minHeight: '100vh',
-      marginTop: '50px',
-      paddingTop: '80px'
+      maxWidth: '1400px',
+      margin: '0 auto',
+      marginTop: '130px',
+      minHeight: 'calc(100vh - 120px)',
+      width: '100%',
+      boxSizing: 'border-box',
+      backgroundColor: colors.white
     },
-    backButton: {
-      position: 'fixed',
-      top: '80px',
-      left: '20px',
-      padding: '12px 20px',
-      backgroundColor: colors.primary,
-      color: colors.white,
-      border: 'none',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      fontSize: '16px',
-      fontWeight: '600',
-      transition: 'all 0.3s ease',
-      zIndex: 100,
+    headerRow: {
       display: 'flex',
+      justifyContent: 'space-between',
       alignItems: 'center',
-      gap: '8px',
-      boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+      marginBottom: '2rem',
+      flexWrap: 'wrap',
+      gap: '1rem'
     },
-    welcomeSection: {
+    titleSection: {
       textAlign: 'center',
-      marginBottom: '30px',
-      padding: '20px 10px',
-      backgroundColor: colors.white,
-      borderRadius: '15px',
-      boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-      marginTop: '40px'
+      flex: 1
     },
-    welcomeTitle: {
+    title: {
       color: colors.primary,
-      fontSize: '2.5rem',
-      marginBottom: '20px',
-      fontWeight: 'bold'
+      fontSize: '2.2rem',
+      margin: '0 0 0.5rem 0',
+      fontWeight: '700'
     },
-    welcomeSubtitle: {
-      color: colors.gray,
-      fontSize: '1.3rem',
-      lineHeight: '1.6'
+    subtitle: {
+      color: colors.softtext,
+      margin: 0,
+      fontSize: '1rem'
     },
     searchSection: {
-      marginBottom: '40px',
+      marginBottom: '30px',
       backgroundColor: colors.white,
-      padding: '30px',
+      padding: '25px',
       borderRadius: '12px',
-      boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+      boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+      border: `1px solid ${colors.softbg}`
     },
     searchContainer: {
       display: 'flex',
       alignItems: 'center',
       marginBottom: '25px',
-      gap: '20px'
+      gap: '20px',
+      flexWrap: 'wrap'
     },
     searchInput: {
-      flex: 0.5,
+      flex: '0 0 350px',
       padding: '15px 20px',
-      border: `2px solid ${colors.accent}`,
-      borderRadius: '5px',
+      border: `2px solid ${colors.softbg}`,
+      borderRadius: '8px',
       fontSize: '16px',
       outline: 'none',
       transition: 'border-color 0.3s ease',
-      backgroundColor: colors.white
+      backgroundColor: colors.white,
+      color: colors.darktext
     },
     healthMessage: {
-      flex: 0.7,
+      flex: 1,
       padding: '15px 20px',
-      backgroundColor: colors.accent,
+      backgroundColor: colors.softbg,
       color: colors.primary,
       borderRadius: '8px',
       fontSize: '14px',
       lineHeight: '1.5',
       fontWeight: '500',
       textAlign: 'center',
-      border: `1px solid ${colors.primary}20`
+      border: `1px solid ${colors.primary}20`,
+      minWidth: '300px'
     },
-    categoryFilter: {
+    // Category dropdown
+    categoryDropdown: {
+      position: 'relative',
+      marginBottom: '20px',
+      width: '40%',
+      minWidth: '300px'
+    },
+    dropdownHeader: {
+      padding: '15px 20px',
+      backgroundColor: colors.white,
+      border: `2px solid ${colors.primary}`,
+      borderRadius: '8px',
+      cursor: 'pointer',
       display: 'flex',
-      flexWrap: 'wrap',
-      gap: '15px'
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      fontSize: '16px',
+      fontWeight: '600',
+      color: colors.primary,
+      transition: 'all 0.3s ease'
     },
-    categoryButton: {
-      padding: '12px 24px',
-      border: `2px solid ${colors.accent}`,
+    dropdownIcon: {
+      transition: 'transform 0.3s ease',
+      transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+    },
+    dropdownList: {
+      position: 'absolute',
+      top: '100%',
+      left: 0,
+      right: 0,
+      backgroundColor: colors.white,
+      border: `1px solid ${colors.softbg}`,
+      borderRadius: '8px',
+      boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+      zIndex: 100,
+      maxHeight: '400px',
+      overflowY: 'auto',
+      display: isDropdownOpen ? 'block' : 'none'
+    },
+    dropdownItem: {
+      padding: '12px 20px',
+      borderBottom: `1px solid ${colors.softbg}`,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      transition: 'all 0.2s ease',
+      color: colors.darktext,
+      backgroundColor: colors.white
+    },
+    activeDropdownItem: {
+      backgroundColor: colors.primary,
+      color: colors.white
+    },
+    // Subcategory filter
+    subcategoryFilter: {
+      display: selectedCategory !== 'all' ? 'flex' : 'none',
+      flexWrap: 'wrap',
+      gap: '10px',
+      marginTop: '15px',
+      padding: '15px',
+      backgroundColor: colors.softbg,
+      borderRadius: '8px'
+    },
+    subcategoryButton: {
+      padding: '8px 16px',
+      border: `1px solid ${colors.primary}`,
       backgroundColor: colors.white,
       color: colors.primary,
-      borderRadius: '25px',
+      borderRadius: '20px',
       cursor: 'pointer',
-      fontSize: '15px',
+      fontSize: '14px',
       fontWeight: '500',
       transition: 'all 0.3s ease'
     },
-    activeCategoryButton: {
+    activeSubcategoryButton: {
       backgroundColor: colors.primary,
       color: colors.white,
       borderColor: colors.primary
     },
+    // Products Grid
     productsGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-      gap: '25px'
+      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+      gap: '20px',
+      marginTop: '20px'
     },
     productCard: {
       backgroundColor: colors.white,
-      borderRadius: '5px',
-      padding: '25px',
-      boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-      border: `1px solid ${colors.accent}`,
+      borderRadius: '12px',
+      padding: '20px',
+      boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+      transition: 'all 0.3s ease',
+      border: `1px solid ${colors.softbg}`,
       display: 'flex',
       flexDirection: 'column',
-      minHeight: '200px', // Fixed minimum height
-      position: 'relative'
+      position: 'relative',
+      overflow: 'hidden'
+    },
+    popularBadge: {
+      position: 'absolute',
+      top: '10px',
+      right: '10px',
+      backgroundColor: colors.warning,
+      color: colors.darktext,
+      padding: '4px 10px',
+      borderRadius: '4px',
+      fontSize: '0.7rem',
+      fontWeight: 'bold',
+      zIndex: 1
+    },
+    productImageContainer: {
+      height: '180px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: '15px',
+      overflow: 'hidden',
+      borderRadius: '8px',
+      backgroundColor: colors.softbg
     },
     productImage: {
-      fontSize: '3.5rem',
-      textAlign: 'center',
-      marginBottom: '20px'
+      maxWidth: '100%',
+      maxHeight: '100%',
+      objectFit: 'contain',
+      borderRadius: '8px'
     },
     productInfo: {
       flex: 1,
@@ -158,54 +605,58 @@ const Products = ({
     },
     productName: {
       color: colors.primary,
-      fontSize: '1.3rem',
-      fontWeight: 'bold',
-      marginBottom: '8px'
+      fontSize: '1.1rem',
+      fontWeight: '600',
+      marginBottom: '8px',
+      lineHeight: '1.4'
     },
     productBrand: {
-      color: colors.gray,
-      fontSize: '1.1rem',
-      marginBottom: '12px',
+      color: colors.softtext,
+      fontSize: '0.9rem',
+      marginBottom: '8px',
       fontWeight: '500'
     },
     productDescription: {
-      color: colors.darkGray,
-      fontSize: '0.95rem',
-      marginBottom: '18px',
-      lineHeight: '1.5'
+      color: colors.darktext,
+      fontSize: '0.85rem',
+      marginBottom: '15px',
+      lineHeight: '1.5',
+      flex: 1
     },
     productMeta: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: '15px'
+      marginBottom: '15px',
+      flexWrap: 'wrap',
+      gap: '8px'
     },
     productCategory: {
-      backgroundColor: colors.accent,
+      backgroundColor: colors.softbg,
       color: colors.primary,
-      padding: '6px 14px',
-      borderRadius: '15px',
-      fontSize: '0.85rem',
+      padding: '4px 10px',
+      borderRadius: '12px',
+      fontSize: '0.75rem',
       fontWeight: '500'
     },
     prescriptionBadge: {
       backgroundColor: colors.warning,
-      color: colors.darkGray,
-      padding: '6px 10px',
-      borderRadius: '10px',
-      fontSize: '0.75rem',
+      color: colors.darktext,
+      padding: '4px 8px',
+      borderRadius: '8px',
+      fontSize: '0.7rem',
       fontWeight: 'bold'
     },
-
-    // FIXED: Bottom section that stays at bottom
+    stockStatus: {
+      fontSize: '0.8rem',
+      fontWeight: '500',
+      padding: '3px 8px',
+      borderRadius: '4px'
+    },
     bottomSection: {
       marginTop: 'auto',
       paddingTop: '15px',
-      borderTop: `1px solid ${colors.lightGray}`,
-      position: 'sticky',
-      bottom: '0',
-      backgroundColor: colors.white,
-      borderRadius: '0 0 12px 12px'
+      borderTop: `1px solid ${colors.softbg}`
     },
     productPriceSection: {
       display: 'flex',
@@ -215,10 +666,168 @@ const Products = ({
     },
     productPrice: {
       color: colors.primary,
-      fontSize: '1.6rem',
+      fontSize: '1.4rem',
       fontWeight: 'bold'
     },
     addToCartButton: {
+      padding: '10px 20px',
+      backgroundColor: colors.primary,
+      color: colors.white,
+      border: 'none',
+      borderRadius: '6px',
+      cursor: 'pointer',
+      fontSize: '0.85rem',
+      fontWeight: '600',
+      transition: 'all 0.3s ease',
+      whiteSpace: 'nowrap',
+      minWidth: '100px'
+    },
+    prescriptionButton: {
+      padding: '10px 20px',
+      backgroundColor: colors.warning,
+      color: colors.darktext,
+      border: 'none',
+      borderRadius: '6px',
+      cursor: 'pointer',
+      fontSize: '0.85rem',
+      fontWeight: '600',
+      transition: 'all 0.3s ease',
+      whiteSpace: 'nowrap',
+      minWidth: '100px'
+    },
+    disabledButton: {
+      padding: '10px 20px',
+      backgroundColor: colors.softtext,
+      color: colors.white,
+      border: 'none',
+      borderRadius: '6px',
+      cursor: 'not-allowed',
+      fontSize: '0.85rem',
+      fontWeight: '600',
+      opacity: 0.6,
+      whiteSpace: 'nowrap',
+      minWidth: '100px'
+    },
+    quantityControls: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: '10px',
+      padding: '10px',
+      backgroundColor: colors.softbg,
+      borderRadius: '6px'
+    },
+    quantityButton: {
+      width: '30px',
+      height: '30px',
+      border: `1px solid ${colors.primary}`,
+      backgroundColor: colors.white,
+      color: colors.primary,
+      borderRadius: '50%',
+      cursor: 'pointer',
+      fontSize: '0.9rem',
+      fontWeight: 'bold',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transition: 'all 0.3s ease',
+      flexShrink: 0
+    },
+    quantityDisplay: {
+      fontSize: '1rem',
+      fontWeight: 'bold',
+      color: colors.primary,
+      minWidth: '30px',
+      textAlign: 'center',
+      flex: 1
+    },
+    productCount: {
+      color: colors.softtext,
+      fontSize: '0.9rem',
+      marginBottom: '15px',
+      textAlign: 'center',
+      backgroundColor: colors.white,
+      padding: '10px',
+      borderRadius: '8px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+      border: `1px solid ${colors.softbg}`
+    },
+    emptyState: {
+      textAlign: 'center',
+      padding: '60px 20px',
+      backgroundColor: colors.white,
+      borderRadius: '12px',
+      color: colors.softtext,
+      border: `1px solid ${colors.softbg}`
+    },
+    vendorInfo: {
+      fontSize: '0.8rem',
+      color: colors.softtext,
+      marginTop: '5px'
+    }
+  };
+
+  // Prescription Modal Styles
+  const modalStyles = {
+    overlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      padding: '20px'
+    },
+    modal: {
+      backgroundColor: colors.white,
+      borderRadius: '15px',
+      padding: '30px',
+      maxWidth: '500px',
+      width: '100%',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+      textAlign: 'center'
+    },
+    modalTitle: {
+      color: colors.primary,
+      fontSize: '1.5rem',
+      fontWeight: 'bold',
+      marginBottom: '15px'
+    },
+    modalText: {
+      color: colors.darktext,
+      fontSize: '1rem',
+      lineHeight: '1.5',
+      marginBottom: '20px'
+    },
+    productInfo: {
+      backgroundColor: colors.softbg,
+      padding: '15px',
+      borderRadius: '10px',
+      marginBottom: '20px',
+      textAlign: 'left'
+    },
+    productName: {
+      color: colors.primary,
+      fontSize: '1.1rem',
+      fontWeight: 'bold',
+      marginBottom: '5px'
+    },
+    productDetails: {
+      color: colors.softtext,
+      fontSize: '0.9rem',
+      margin: '2px 0'
+    },
+    buttonGroup: {
+      display: 'flex',
+      gap: '15px',
+      justifyContent: 'center',
+      flexWrap: 'wrap'
+    },
+    primaryButton: {
       padding: '12px 24px',
       backgroundColor: colors.primary,
       color: colors.white,
@@ -228,490 +837,199 @@ const Products = ({
       fontSize: '0.9rem',
       fontWeight: '600',
       transition: 'all 0.3s ease',
-      whiteSpace: 'nowrap',
-      minWidth: '120px'
+      minWidth: '140px'
     },
-    disabledButton: {
+    secondaryButton: {
       padding: '12px 24px',
-      backgroundColor: colors.gray,
-      color: colors.white,
-      border: 'none',
+      backgroundColor: 'transparent',
+      color: colors.primary,
+      border: `2px solid ${colors.primary}`,
       borderRadius: '8px',
-      cursor: 'not-allowed',
+      cursor: 'pointer',
       fontSize: '0.9rem',
       fontWeight: '600',
-      opacity: 0.6,
-      whiteSpace: 'nowrap',
-      minWidth: '120px'
-    },
-    quantityControls: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: '15px',
-      padding: '12px',
-      backgroundColor: colors.lightGray,
-      borderRadius: '8px',
-      width: '100%'
-    },
-    quantityButton: {
-      width: '35px',
-      height: '35px',
-      border: `2px solid ${colors.primary}`,
-      backgroundColor: colors.white,
-      color: colors.primary,
-      borderRadius: '50%',
-      cursor: 'pointer',
-      fontSize: '1rem',
-      fontWeight: 'bold',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
       transition: 'all 0.3s ease',
-      flexShrink: 0
+      minWidth: '140px'
     },
-    quantityDisplay: {
-      fontSize: '1.1rem',
-      fontWeight: 'bold',
-      color: colors.primary,
-      minWidth: '35px',
-      textAlign: 'center',
-      flex: 1
+    prescriptionNote: {
+      backgroundColor: colors.warning,
+      color: colors.darktext,
+      padding: '10px 15px',
+      borderRadius: '8px',
+      fontSize: '0.85rem',
+      fontWeight: '500',
+      marginBottom: '20px'
     }
-  };
-
-  // Enhanced medicine data with detailed information
-  const enhancedMedicines = [
-    {
-      id: 1,
-      name: 'Aspirin 75mg',
-      brand: 'Bayer',
-      price: 25,
-      vendor: 'WellCare Store',
-      category: 'Pain Relief',
-      description: 'Low-dose aspirin for heart health and pain relief',
-      detailedDescription: 'Aspirin is a salicylate drug that works by reducing substances in the body that cause pain, fever, and inflammation. Low-dose aspirin (75mg) is commonly used for cardiovascular protection.',
-      uses: [
-        'Prevention of heart attacks and strokes',
-        'Mild to moderate pain relief',
-        'Reduction of fever and inflammation'
-      ],
-      dosage: 'Take one tablet daily with food as directed by your doctor',
-      sideEffects: [
-        'Stomach upset',
-        'Heartburn',
-        'Mild headache'
-      ],
-      precautions: [
-        'Do not take if allergic to aspirin',
-        'Consult doctor before surgery',
-        'Avoid alcohol consumption'
-      ],
-      image: '',
-      prescriptionRequired: false,
-      stock: 50,
-      rating: 4.5,
-      reviews: 128
-    },
-    {
-      id: 2,
-      name: 'Paracetamol 500mg',
-      brand: 'Crocin',
-      price: 30,
-      vendor: 'City Pharmacy',
-      category: 'Fever & Pain',
-      description: 'Effective relief from fever and mild pain',
-      detailedDescription: 'Paracetamol (acetaminophen) is a common pain reliever and fever reducer. It works by affecting the areas of the brain that receive pain signals and regulate body temperature.',
-      uses: [
-        'Fever reduction',
-        'Headache relief',
-        'Muscle aches and pains',
-        'Arthritis pain'
-      ],
-      dosage: '1-2 tablets every 4-6 hours as needed, maximum 8 tablets in 24 hours',
-      sideEffects: [
-        'Rare when taken as directed',
-        'Allergic reactions in sensitive individuals',
-        'Liver damage with overdose'
-      ],
-      precautions: [
-        'Do not exceed recommended dosage',
-        'Consult doctor for liver conditions',
-        'Avoid with alcohol'
-      ],
-      image: '',
-      prescriptionRequired: false,
-      stock: 100,
-      rating: 4.7,
-      reviews: 256
-    },
-    {
-      id: 3,
-      name: 'Ibuprofen 400mg',
-      brand: 'Brufen',
-      price: 35,
-      vendor: 'HealthPlus Medicines',
-      category: 'Pain Relief',
-      description: 'Anti-inflammatory pain reliever for various conditions',
-      detailedDescription: 'Ibuprofen is a nonsteroidal anti-inflammatory drug (NSAID) that works by reducing hormones that cause inflammation and pain in the body. Effective for various inflammatory conditions.',
-      uses: [
-        'Arthritis pain and inflammation',
-        'Muscle aches',
-        'Menstrual cramps',
-        'Dental pain'
-      ],
-      dosage: 'One tablet every 6-8 hours with food, maximum 1200mg per day',
-      sideEffects: [
-        'Stomach upset',
-        'Heartburn',
-        'Dizziness',
-        'Increased blood pressure'
-      ],
-      precautions: [
-        'Take with food or milk',
-        'Avoid in third trimester of pregnancy',
-        'Consult for kidney problems'
-      ],
-      image: '',
-      prescriptionRequired: false,
-      stock: 75,
-      rating: 4.4,
-      reviews: 189
-    },
-    {
-      id: 4,
-      name: 'Vitamin C 1000mg',
-      brand: 'NatureMade',
-      price: 40,
-      vendor: 'WellCare Store',
-      category: 'Vitamins & Supplements',
-      description: 'High-potency Vitamin C for immune support',
-      detailedDescription: 'Vitamin C (ascorbic acid) is a water-soluble vitamin essential for growth and development. It helps the body form collagen, absorb iron, and maintain healthy bones, teeth, and immune system.',
-      uses: [
-        'Immune system support',
-        'Collagen production',
-        'Antioxidant protection',
-        'Iron absorption'
-      ],
-      dosage: 'One tablet daily with a meal',
-      sideEffects: [
-        'Mild diarrhea in high doses',
-        'Stomach cramps',
-        'Nausea'
-      ],
-      precautions: [
-        'Consult for kidney stones history',
-        'May interact with chemotherapy',
-        'Store in cool dry place'
-      ],
-      image: '',
-      prescriptionRequired: false,
-      stock: 200,
-      rating: 4.8,
-      reviews: 342
-    },
-    {
-      id: 5,
-      name: 'Amoxicillin 500mg',
-      brand: 'Amoxil',
-      price: 120,
-      vendor: 'City Pharmacy',
-      category: 'Antibiotics',
-      description: 'Broad-spectrum antibiotic for bacterial infections',
-      detailedDescription: 'Amoxicillin is a penicillin-type antibiotic that fights bacteria in the body. It is used to treat many different types of infections caused by bacteria, such as ear infections, bladder infections, pneumonia, and more.',
-      uses: [
-        'Bacterial infections',
-        'Respiratory tract infections',
-        'Urinary tract infections',
-        'Skin infections'
-      ],
-      dosage: 'As prescribed by doctor, typically one capsule three times daily',
-      sideEffects: [
-        'Nausea',
-        'Diarrhea',
-        'Skin rash',
-        'Yeast infection'
-      ],
-      precautions: [
-        'PRESCRIPTION REQUIRED',
-        'Complete full course',
-        'Inform about penicillin allergy',
-        'Take with plenty of water'
-      ],
-      image: '',
-      prescriptionRequired: true,
-      stock: 30,
-      rating: 4.3,
-      reviews: 95
-    },
-    {
-      id: 6,
-      name: 'Blood Pressure Monitor',
-      brand: 'Omron',
-      price: 899,
-      vendor: 'HealthPlus Medicines',
-      category: 'Medical Equipment',
-      description: 'Digital automatic blood pressure monitor',
-      detailedDescription: 'Professional-grade digital blood pressure monitor with advanced accuracy. Features easy-to-read display, irregular heartbeat detector, and memory function for tracking readings over time.',
-      uses: [
-        'Home blood pressure monitoring',
-        'Hypertension management',
-        'Health tracking',
-        'Doctor consultation support'
-      ],
-      features: [
-        'One-touch operation',
-        '90-reading memory',
-        'Irregular heartbeat detection',
-        'WHO classification indicator'
-      ],
-      specifications: [
-        'Cuff size: 22-32cm',
-        'Battery operated',
-        '2-year warranty',
-        'Clinically validated'
-      ],
-      image: '',
-      prescriptionRequired: false,
-      stock: 25,
-      rating: 4.6,
-      reviews: 167
-    },
-    {
-      id: 7,
-      name: 'Cetirizine 10mg',
-      brand: 'Zyrtec',
-      price: 25,
-      vendor: 'City Pharmacy',
-      category: 'Allergy',
-      description: '24-hour allergy relief without drowsiness',
-      detailedDescription: 'Cetirizine is an antihistamine that reduces the effects of natural chemical histamine in the body. Histamine can produce symptoms of sneezing, itching, watery eyes, and runny nose.',
-      uses: [
-        'Seasonal allergies',
-        'Hay fever',
-        'Chronic urticaria',
-        'Allergic skin reactions'
-      ],
-      dosage: 'One tablet daily, with or without food',
-      sideEffects: [
-        'Dry mouth',
-        'Mild drowsiness (rare)',
-        'Headache',
-        'Sore throat'
-      ],
-      precautions: [
-        'Avoid alcohol',
-        'Consult for kidney problems',
-        'Safe for long-term use'
-      ],
-      image: '',
-      prescriptionRequired: false,
-      stock: 80,
-      rating: 4.5,
-      reviews: 214
-    },
-    {
-      id: 8,
-      name: 'Omeprazole 20mg',
-      brand: 'Prilosec',
-      price: 45,
-      vendor: 'City Pharmacy',
-      category: 'Acid Reducer',
-      description: 'Proton pump inhibitor for acid reflux',
-      detailedDescription: 'Omeprazole is a proton pump inhibitor that decreases the amount of acid produced in the stomach. It is used to treat symptoms of GERD and other conditions caused by excess stomach acid.',
-      uses: [
-        'GERD (gastroesophageal reflux disease)',
-        'Stomach ulcers',
-        'Zollinger-Ellison syndrome',
-        'Erosive esophagitis'
-      ],
-      dosage: 'One capsule daily before eating, usually for 4-8 weeks',
-      sideEffects: [
-        'Headache',
-        'Diarrhea',
-        'Stomach pain',
-        'Nausea'
-      ],
-      precautions: [
-        'Take before meals',
-        'Do not crush or chew',
-        'Long-term use requires monitoring',
-        'May affect vitamin B12 absorption'
-      ],
-      image: '',
-      prescriptionRequired: true,
-      stock: 40,
-      rating: 4.2,
-      reviews: 178
-    },
-    {
-      id: 9,
-      name: 'Multivitamin Tablets',
-      brand: 'Centrum',
-      price: 150,
-      vendor: 'WellCare Store',
-      category: 'Vitamins & Supplements',
-      description: 'Complete daily multivitamin for adults',
-      detailedDescription: 'Comprehensive multivitamin formula containing essential vitamins and minerals to support overall health, energy production, immune function, and cellular protection.',
-      uses: [
-        'Daily nutritional support',
-        'Energy production',
-        'Immune system function',
-        'Bone and eye health'
-      ],
-      keyIngredients: [
-        'Vitamin A, C, D, E',
-        'B-complex vitamins',
-        'Calcium and Magnesium',
-        'Zinc and Selenium'
-      ],
-      dosage: 'One tablet daily with a meal',
-      sideEffects: [
-        'Mild stomach upset',
-        'Constipation',
-        'Unusual taste'
-      ],
-      precautions: [
-        'Keep out of reach of children',
-        'Do not exceed recommended dose',
-        'Consult if pregnant or nursing'
-      ],
-      image: '',
-      prescriptionRequired: false,
-      stock: 150,
-      rating: 4.7,
-      reviews: 289
-    },
-    {
-      id: 10,
-      name: 'Calcium Supplements',
-      brand: 'Caltrate',
-      price: 200,
-      vendor: 'WellCare Store',
-      category: 'Vitamins & Supplements',
-      description: 'Calcium with Vitamin D for bone health',
-      detailedDescription: 'Advanced calcium supplement with Vitamin D3 to support bone density and strength. Essential for maintaining healthy bones and teeth, and preventing osteoporosis.',
-      uses: [
-        'Bone health maintenance',
-        'Osteoporosis prevention',
-        'Dental health',
-        'Muscle function'
-      ],
-      dosage: 'One tablet twice daily with meals',
-      sideEffects: [
-        'Constipation',
-        'Gas and bloating',
-        'Stomach upset'
-      ],
-      precautions: [
-        'Take with plenty of water',
-        'Space from other medications',
-        'Consult for kidney stones'
-      ],
-      image: '',
-      prescriptionRequired: false,
-      stock: 90,
-      rating: 4.4,
-      reviews: 156
-    }
-  ];
-
-  const categories = ['all', ...new Set(enhancedMedicines.map(medicine => medicine.category))];
-
-  const filteredProducts = enhancedMedicines.filter(medicine => {
-    const matchesSearch = medicine.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         medicine.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         medicine.category.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || medicine.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const addToCartWithNotification = (product) => {
-    addToCart(product);
-  };
-
-  // Get quantity of product in cart
-  const getProductQuantity = (productId) => {
-    const cartItem = cart.find(item => item.id === productId);
-    return cartItem ? cartItem.quantity : 0;
-  };
-
-  // Handle back to home page
-  const handleBackToHome = () => {
-    setActiveView('home');
   };
 
   return (
-    <div style={styles.mainContent}>
-      {/* Back Button */}
-      <button 
-        style={styles.backButton}
-        onClick={handleBackToHome}
-        onMouseEnter={(e) => {
-          e.target.style.backgroundColor = colors.accent;
-          e.target.style.color = colors.primary;
-          e.target.style.transform = 'translateX(-5px)';
-        }}
-        onMouseLeave={(e) => {
-          e.target.style.backgroundColor = colors.primary;
-          e.target.style.color = colors.white;
-          e.target.style.transform = 'translateX(0)';
-        }}
-      >
-        ← Back to Home
-      </button>
+    <div style={styles.container}>
+      {/* Header Row */}
+      <div style={styles.headerRow}>
+        <button 
+          style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: 'transparent',
+            color: colors.primary,
+            border: `1px solid ${colors.primary}`,
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '0.9rem',
+            transition: 'all 0.3s ease'
+          }}
+          onClick={handleBackToDashboard}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = colors.primary;
+            e.target.style.color = colors.white;
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'transparent';
+            e.target.style.color = colors.primary;
+          }}
+        >
+          ← Dashboard
+        </button>
+        
+        <div style={styles.titleSection}>
+          <h1 style={styles.title}>Pharmacy & Healthcare Store </h1>
+          <p style={styles.subtitle}>70+ products across 12 categories - Authentic medicines & healthcare products</p>
+        </div>
 
-      {/* Header Section */}
-      <section style={styles.welcomeSection}>
-        <h2 style={styles.welcomeTitle}>Our Medicine Products 💊</h2>
-        <p style={styles.welcomeSubtitle}>
-          Discover high-quality medicines and healthcare products with detailed information
-        </p>
-      </section>
+        <div style={{ width: '80px' }}></div>
+      </div>
 
       {/* Search and Filter Section */}
       <section style={styles.searchSection}>
         <div style={styles.searchContainer}>
           <input
             type="text"
-            placeholder="Search medicines, brands, or categories..."
+            placeholder=" Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={styles.searchInput}
           />
-          {/* Health Priority Message */}
           <div style={styles.healthMessage}>
-            For your safety and well-being, we provide only quality medicines from trusted sources, properly stored for maximum efficacy.
+             100% Authentic Products |  Free Delivery Above ₹499 |  Certified Pharmacy
           </div>
         </div>
 
-        <div style={styles.categoryFilter}>
-          {categories.map(category => (
-            <button
-              key={category}
-              style={
-                selectedCategory === category 
-                  ? {...styles.categoryButton, ...styles.activeCategoryButton}
-                  : styles.categoryButton
-              }
-              onClick={() => setSelectedCategory(category)}
-            >
-              {category === 'all' ? 'All Products' : category}
-            </button>
-          ))}
+        {/* Category Dropdown */}
+        <div style={styles.categoryDropdown}>
+          <div 
+            style={styles.dropdownHeader}
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = colors.softbg;
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = colors.white;
+            }}
+          >
+            <span>
+              {categoryStructure[selectedCategory]?.icon} 
+              {categoryStructure[selectedCategory]?.name || 'Select Category'}
+            </span>
+            <span style={styles.dropdownIcon}>▼</span>
+          </div>
+          
+          <div style={styles.dropdownList}>
+            {Object.entries(categoryStructure).map(([key, category]) => (
+              <div
+                key={key}
+                style={{
+                  ...styles.dropdownItem,
+                  ...(selectedCategory === key ? styles.activeDropdownItem : {})
+                }}
+                onClick={() => handleCategorySelect(key)}
+                onMouseEnter={(e) => {
+                  if (selectedCategory !== key) {
+                    e.target.style.backgroundColor = colors.softbg;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (selectedCategory !== key) {
+                    e.target.style.backgroundColor = colors.white;
+                  }
+                }}
+              >
+                <span>{category.icon}</span>
+                <span>{category.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* Subcategory Filter */}
+        {selectedCategory !== 'all' && (
+          <div style={styles.subcategoryFilter}>
+            {getSubcategories().map((subcat, index) => (
+              <button
+                key={index}
+                style={
+                  selectedSubcategory === subcat 
+                    ? {...styles.subcategoryButton, ...styles.activeSubcategoryButton}
+                    : styles.subcategoryButton
+                }
+                onClick={() => setSelectedSubcategory(subcat)}
+                onMouseEnter={(e) => {
+                  if (selectedSubcategory !== subcat) {
+                    e.target.style.backgroundColor = colors.primary;
+                    e.target.style.color = colors.white;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (selectedSubcategory !== subcat) {
+                    e.target.style.backgroundColor = colors.white;
+                    e.target.style.color = colors.primary;
+                  }
+                }}
+              >
+                {subcat}
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
+      {/* Product Count */}
+      <div style={styles.productCount}>
+         Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
+        {selectedCategory !== 'all' && ` in ${categoryStructure[selectedCategory]?.name}`}
+        {selectedSubcategory !== 'all' && ` > ${selectedSubcategory}`}
+      </div>
+
       {/* Products Grid */}
-      <section style={styles.productsSection}>
+      {filteredProducts.length > 0 ? (
         <div style={styles.productsGrid}>
           {filteredProducts.map(product => {
             const quantityInCart = getProductQuantity(product.id);
+            const stockStatus = getStockStatus(product.stock);
             
             return (
-              <div key={product.id} style={styles.productCard}>
-                <div style={styles.productImage}>
-                  {product.image}
+              <div key={product.id} style={styles.productCard}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-5px)';
+                  e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+                  e.currentTarget.style.borderColor = colors.primary;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.08)';
+                  e.currentTarget.style.borderColor = colors.softbg;
+                }}
+              >
+                {product.popular && <div style={styles.popularBadge}>🔥 Popular</div>}
+                
+                <div style={styles.productImageContainer}>
+                  <img 
+                    src={product.image} 
+                    alt={product.name}
+                    style={styles.productImage}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23E0F2F1"/><text x="50" y="50" font-family="Arial" font-size="14" fill="%23009688" text-anchor="middle" dy=".3em">Image</text></svg>';
+                    }}
+                  />
                 </div>
                 
                 <div style={styles.productInfo}>
@@ -722,40 +1040,63 @@ const Products = ({
                   <div style={styles.productMeta}>
                     <div style={styles.productCategory}>{product.category}</div>
                     {product.prescriptionRequired && (
-                      <div style={styles.prescriptionBadge}>Prescription Required</div>
+                      <div style={styles.prescriptionBadge}>📋 Prescription</div>
                     )}
+                    <div style={{...styles.stockStatus, color: stockStatus.color}}>
+                      {stockStatus.text}
+                    </div>
                   </div>
+                  
+                  <div style={styles.vendorInfo}>Sold by: {product.vendor}</div>
 
-                  {/* FIXED: Bottom section that stays at bottom */}
                   <div style={styles.bottomSection}>
-                    {/* Add to Cart Button - Only show if product is not in cart */}
-                    {quantityInCart === 0 ? (
+                    {product.prescriptionRequired ? (
                       <div style={styles.productPriceSection}>
-                        <span style={styles.productPrice}>₹{product.price}</span>
+                        <span style={styles.productPrice}>{formatPrice(product.price)}</span>
                         <button
-                          style={product.stock > 0 ? styles.addToCartButton : styles.disabledButton}
-                          onClick={() => product.stock > 0 && addToCartWithNotification(product)}
+                          style={product.stock > 0 ? styles.prescriptionButton : styles.disabledButton}
+                          onClick={() => product.stock > 0 && handlePrescriptionProduct(product)}
                           disabled={product.stock === 0}
                           onMouseEnter={(e) => {
                             if (product.stock > 0) {
-                              e.target.style.backgroundColor = colors.accent;
-                              e.target.style.color = colors.primary;
-                              e.target.style.transform = 'translateY(-2px)';
+                              e.target.style.backgroundColor = colors.softbg;
+                              e.target.style.color = colors.darktext;
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (product.stock > 0) {
-                              e.target.style.backgroundColor = colors.primary; // FIXED: Changed cards.primary to colors.primary
-                              e.target.style.color = colors.white;
-                              e.target.style.transform = 'translateY(0)';
+                              e.target.style.backgroundColor = colors.warning;
+                              e.target.style.color = colors.darktext;
                             }
                           }}
                         >
-                          {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                          {product.stock > 0 ? '📋 Upload Rx' : 'Out of Stock'}
+                        </button>
+                      </div>
+                    ) : quantityInCart === 0 ? (
+                      <div style={styles.productPriceSection}>
+                        <span style={styles.productPrice}>{formatPrice(product.price)}</span>
+                        <button
+                          style={product.stock > 0 ? styles.addToCartButton : styles.disabledButton}
+                          onClick={() => product.stock > 0 && addToCart(product)}
+                          disabled={product.stock === 0}
+                          onMouseEnter={(e) => {
+                            if (product.stock > 0) {
+                              e.target.style.backgroundColor = colors.softbg;
+                              e.target.style.color = colors.primary;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (product.stock > 0) {
+                              e.target.style.backgroundColor = colors.primary;
+                              e.target.style.color = colors.white;
+                            }
+                          }}
+                        >
+                          {product.stock > 0 ? '🛒 Add to Cart' : 'Out of Stock'}
                         </button>
                       </div>
                     ) : (
-                      /* Quantity Controls - Only show if product is in cart */
                       <div style={styles.quantityControls}>
                         <button
                           style={styles.quantityButton}
@@ -799,7 +1140,78 @@ const Products = ({
             );
           })}
         </div>
-      </section>
+      ) : (
+        <div style={styles.emptyState}>
+          <h3 style={{ color: colors.primary }}>No products found</h3>
+          <p>Try a different search term or category</p>
+        </div>
+      )}
+
+      {/* Prescription Required Modal */}
+      {showPrescriptionModal && selectedPrescriptionProduct && (
+        <div style={modalStyles.overlay}>
+          <div style={modalStyles.modal}>
+            <h3 style={modalStyles.modalTitle}>📋 Prescription Required</h3>
+            
+            <div style={modalStyles.prescriptionNote}>
+              ⚠️ This medicine requires a valid doctor's prescription for purchase
+            </div>
+
+            <div style={modalStyles.productInfo}>
+              <div style={modalStyles.productName}>
+                {selectedPrescriptionProduct.name}
+              </div>
+              <div style={modalStyles.productDetails}>
+                <strong>Brand:</strong> {selectedPrescriptionProduct.brand}
+              </div>
+              <div style={modalStyles.productDetails}>
+                <strong>Price:</strong> {formatPrice(selectedPrescriptionProduct.price)}
+              </div>
+              <div style={modalStyles.productDetails}>
+                <strong>Category:</strong> {selectedPrescriptionProduct.category}
+              </div>
+            </div>
+
+            <p style={modalStyles.modalText}>
+              To purchase <strong>{selectedPrescriptionProduct.name}</strong>, you need to upload a valid prescription from a registered medical practitioner. 
+              This ensures your safety and compliance with medical regulations.
+            </p>
+
+            <p style={{...modalStyles.modalText, fontSize: '0.9rem', fontStyle: 'italic'}}>
+              You'll be redirected to the Medicine Delivery page where you can upload your prescription and order the medicine.
+            </p>
+
+            <div style={modalStyles.buttonGroup}>
+              <button
+                style={modalStyles.primaryButton}
+                onClick={handleProceedToMedicineDelivery}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = colors.mint;
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = colors.primary;
+                }}
+              >
+                📤 Go to Medicine Delivery
+              </button>
+              <button
+                style={modalStyles.secondaryButton}
+                onClick={() => setShowPrescriptionModal(false)}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = colors.primary;
+                  e.target.style.color = colors.white;
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                  e.target.style.color = colors.primary;
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }; 

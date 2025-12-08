@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 const Profile = ({ profileData, setShowProfileImageUpload }) => {
   const [fieldErrors, setFieldErrors] = useState({});
-  const [activeEditField, setActiveEditField] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     // Personal Information
     fullName: profileData.fullName,
@@ -14,11 +14,11 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
     
     // Emergency Contacts
     emergencyContact1Name: profileData.emergencyContact1Name || '',
-    emergencyContact1Phone: profileData.emergencyContact1Phone || '',
     emergencyContact1Relation: profileData.emergencyContact1Relation || '',
+    emergencyContact1Phone: profileData.emergencyContact1Phone || '',
     emergencyContact2Name: profileData.emergencyContact2Name || '',
-    emergencyContact2Phone: profileData.emergencyContact2Phone || '',
     emergencyContact2Relation: profileData.emergencyContact2Relation || '',
+    emergencyContact2Phone: profileData.emergencyContact2Phone || '',
     
     // Bank Details
     bankAccountNumber: profileData.bankAccountNumber || '',
@@ -144,6 +144,18 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
       gap: '20px',
       marginBottom: '10px'
     },
+    formGridVertical: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(1, 1fr)',
+      gap: '20px',
+      marginBottom: '10px'
+    },
+    emergencyFormGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(1, 1fr)',
+      gap: '20px',
+      marginBottom: '30px'
+    },
     formRow: {
       display: 'flex',
       flexDirection: 'column',
@@ -159,6 +171,15 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
       fontSize: '14px',
       fontWeight: '600',
       color: '#374151',
+      marginBottom: '6px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '5px'
+    },
+    labelDisabled: {
+      fontSize: '14px',
+      fontWeight: '600',
+      color: '#6b7280',
       marginBottom: '6px',
       display: 'flex',
       alignItems: 'center',
@@ -186,13 +207,20 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
       borderColor: '#7C2A62',
       backgroundColor: '#fafafa'
     },
+    inputDisabled: {
+      backgroundColor: '#f3f4f6',
+      color: '#6b7280',
+      cursor: 'not-allowed',
+      border: '1px solid #d1d5db'
+    },
     inputError: {
       borderColor: '#EF4444',
       backgroundColor: '#FEF2F2'
     },
-    inputSuccess: {
-      borderColor: '#10B981',
-      backgroundColor: '#F0FDF4'
+    inputReadOnly: {
+      backgroundColor: '#f9fafb',
+      color: '#374151',
+      border: '1px solid #d1d5db'
     },
     select: {
       width: '100%',
@@ -203,6 +231,11 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
       backgroundColor: 'white',
       outline: 'none',
       boxSizing: 'border-box'
+    },
+    selectDisabled: {
+      backgroundColor: '#f8fafc',
+      color: '#6b7280',
+      cursor: 'not-allowed'
     },
     phonePrefix: {
       position: 'absolute',
@@ -225,15 +258,6 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
       alignItems: 'center',
       gap: '4px'
     },
-    successText: {
-      color: '#10B981',
-      fontSize: '12px',
-      marginTop: '4px',
-      fontWeight: '500',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '4px'
-    },
     fieldValue: {
       padding: '10px 12px',
       fontSize: '14px',
@@ -244,8 +268,7 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
       border: '1px solid #e5e7eb',
       minHeight: '40px',
       display: 'flex',
-      alignItems: 'center',
-      position: 'relative'
+      alignItems: 'center'
     },
     sensitiveData: {
       color: '#EF4444',
@@ -253,56 +276,6 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
       backgroundColor: '#FEF2F2',
       padding: '2px 6px',
       borderRadius: '4px'
-    },
-    editButton: {
-      position: 'absolute',
-      right: '10px',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      backgroundColor: 'transparent',
-      border: 'none',
-      color: '#7C2A62',
-      cursor: 'pointer',
-      fontSize: '14px',
-      padding: '4px',
-      borderRadius: '4px',
-      transition: 'all 0.2s ease'
-    },
-    fieldActions: {
-      position: 'absolute',
-      right: '10px',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      display: 'flex',
-      gap: '8px'
-    },
-    iconButton: {
-      backgroundColor: 'transparent',
-      border: 'none',
-      cursor: 'pointer',
-      fontSize: '12px',
-      padding: '4px',
-      borderRadius: '4px',
-      width: '24px',
-      height: '24px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      transition: 'all 0.2s ease'
-    },
-    saveIcon: {
-      color: '#10B981',
-      '&:hover': {
-        backgroundColor: '#10B981',
-        color: 'white'
-      }
-    },
-    cancelIcon: {
-      color: '#EF4444',
-      '&:hover': {
-        backgroundColor: '#EF4444',
-        color: 'white'
-      }
     },
     statsGrid: {
       display: 'grid',
@@ -329,44 +302,109 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
       color: '#1f2937',
       fontWeight: '600'
     },
-    nameSection: {
-      display: 'flex',
-      gap: '15px',
-      marginBottom: '10px'
+    emergencyContactSection: {
+      backgroundColor: '#f8fafc',
+      padding: '20px',
+      borderRadius: '8px',
+      border: '1px solid #e5e7eb',
+      marginBottom: '20px'
     },
-    nameField: {
-      flex: 1,
+    emergencyContactHeader: {
+      fontSize: '16px',
+      fontWeight: '600',
+      color: '#1f2937',
+      marginBottom: '15px',
       display: 'flex',
-      flexDirection: 'column'
+      alignItems: 'center',
+      gap: '8px'
+    },
+    emergencyContactGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3, 1fr)',
+      gap: '15px'
+    },
+    emergencyContactField: {
+      marginBottom: '0'
+    },
+    saveButtonContainer: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: '30px',
+      paddingTop: '20px',
+      borderTop: '1px solid #e5e7eb'
+    },
+    saveButton: {
+      backgroundColor: '#7C2A62',
+      color: 'white',
+      border: 'none',
+      borderRadius: '6px',
+      padding: '12px 24px',
+      fontSize: '14px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+      minWidth: '140px'
+    },
+    saveButtonDisabled: {
+      backgroundColor: '#9CA3AF',
+      cursor: 'not-allowed'
+    },
+    saveButtonHover: {
+      backgroundColor: '#6B2252',
+      transform: 'translateY(-1px)'
+    },
+    editButton: {
+      backgroundColor: '#374151',
+      color: 'white',
+      border: 'none',
+      borderRadius: '6px',
+      padding: '12px 24px',
+      fontSize: '14px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+      minWidth: '140px',
+      marginTop: '10px'
     }
   };
 
-  const handleFieldEdit = (field) => {
-    setActiveEditField(field);
-  };
-
-  const handleFieldSave = (field) => {
-    const isValid = validateField(field, formData[field]);
-    if (isValid) {
-      setActiveEditField(null);
-      // Update the profile data in real-time
-      profileData[field] = formData[field];
-      console.log(`Field ${field} saved:`, formData[field]);
-      // Here you would typically send the data to your backend for this specific field
+  const handleInputChange = (field, value) => {
+    // Prevent editing of name, email, and phone fields
+    if (['fullName', 'email', 'phone'].includes(field) && !isEditing) {
+      return;
     }
-  };
-
-  const handleFieldCancel = (field) => {
-    setActiveEditField(null);
+    
     setFormData(prev => ({
       ...prev,
-      [field]: profileData[field] || ''
+      [field]: value
     }));
-    setFieldErrors(prev => {
-      const newErrors = { ...prev };
-      delete newErrors[field];
-      return newErrors;
-    });
+    
+    // Real-time validation
+    validateField(field, value);
+  };
+
+  const handlePhoneChange = (value) => {
+    const cleanValue = value.replace(/\D/g, '');
+    const limitedValue = cleanValue.slice(0, 10);
+    
+    setFormData(prev => ({
+      ...prev,
+      phone: limitedValue
+    }));
+    
+    validateField('phone', limitedValue);
+  };
+
+  const handleEmergencyPhoneChange = (contactNumber, value) => {
+    const cleanValue = value.replace(/\D/g, '');
+    const limitedValue = cleanValue.slice(0, 10);
+    
+    setFormData(prev => ({
+      ...prev,
+      [contactNumber]: limitedValue
+    }));
+    
+    validateField(contactNumber, limitedValue);
   };
 
   const validateField = (field, value) => {
@@ -492,38 +530,59 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
     return !errors[field];
   };
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleSaveChanges = () => {
+    // Validate all required fields
+    const requiredFields = ['fullName', 'email', 'phone', 'currentLocation', 'vehicleType', 'vehicleNumber'];
+    let hasErrors = false;
     
-    // Real-time validation
-    validateField(field, value);
+    requiredFields.forEach(field => {
+      if (!validateField(field, formData[field])) {
+        hasErrors = true;
+      }
+    });
+
+    if (hasErrors) {
+      alert('Please fix all validation errors before saving.');
+      return;
+    }
+
+    // Save all changes
+    Object.keys(formData).forEach(field => {
+      profileData[field] = formData[field];
+    });
+
+    console.log('All changes saved:', formData);
+    setIsEditing(false);
+    
+    // Here you would typically send the entire formData to your backend
+    alert('Profile updated successfully!');
   };
 
-  const handlePhoneChange = (value) => {
-    const cleanValue = value.replace(/\D/g, '');
-    const limitedValue = cleanValue.slice(0, 10);
-    
-    setFormData(prev => ({
-      ...prev,
-      phone: limitedValue
-    }));
-    
-    validateField('phone', limitedValue);
-  };
-
-  const handleEmergencyPhoneChange = (contactNumber, value) => {
-    const cleanValue = value.replace(/\D/g, '');
-    const limitedValue = cleanValue.slice(0, 10);
-    
-    setFormData(prev => ({
-      ...prev,
-      [contactNumber]: limitedValue
-    }));
-    
-    validateField(contactNumber, limitedValue);
+  const handleEditToggle = () => {
+    setIsEditing(!isEditing);
+    if (isEditing) {
+      // Reset form data if canceling edit
+      setFormData({
+        fullName: profileData.fullName,
+        email: profileData.email,
+        phone: profileData.phone,
+        currentLocation: profileData.currentLocation,
+        vehicleType: profileData.vehicleType,
+        vehicleNumber: profileData.vehicleNumber,
+        emergencyContact2Name: profileData.emergencyContact2Name || '',
+        emergencyContact2Phone: profileData.emergencyContact2Phone || '',
+        emergencyContact2Relation: profileData.emergencyContact2Relation || '',
+        emergencyContact1Name: profileData.emergencyContact1Name || '',
+        emergencyContact1Phone: profileData.emergencyContact1Phone || '',
+        emergencyContact1Relation: profileData.emergencyContact1Relation || '',
+        bankAccountNumber: profileData.bankAccountNumber || '',
+        bankAccountHolder: profileData.bankAccountHolder || '',
+        bankName: profileData.bankName || '',
+        ifscCode: profileData.ifscCode || '',
+        upiId: profileData.upiId || ''
+      });
+      setFieldErrors({});
+    }
   };
 
   const maskSensitiveData = (data) => {
@@ -542,22 +601,16 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
     return !fieldErrors[field] && formData[field] && formData[field].toString().trim();
   };
 
-  const getCurrentValue = (field) => {
-    // Return the current value from formData if editing, otherwise from profileData
-    return activeEditField === field ? formData[field] : profileData[field];
-  };
-
-  const renderFormField = (field, label, isRequired = false, isFullWidth = false, isSelect = false, options = []) => {
-    const isEditing = activeEditField === field;
+  const renderFormField = (field, label, isRequired = false, isFullWidth = false, isSelect = false, options = [], isReadOnly = false) => {
     const hasError = fieldErrors[field];
     const isValid = isFieldValid(field);
-    const currentValue = getCurrentValue(field);
 
     return (
       <div style={isFullWidth ? styles.formRowFull : styles.formRow}>
-        <label style={styles.label}>
+        <label style={isReadOnly ? styles.labelDisabled : styles.label}>
           {label}
           {isRequired && <span style={styles.required}>*</span>}
+          {isReadOnly && <span style={{fontSize: '12px', color: '#6b7280', marginLeft: '8px'}}>(Cannot be changed)</span>}
         </label>
         
         {isEditing ? (
@@ -566,10 +619,11 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
               <select
                 value={formData[field]}
                 onChange={(e) => handleInputChange(field, e.target.value)}
+                disabled={isReadOnly}
                 style={{
                   ...styles.select,
-                  ...(hasError ? styles.inputError : 
-                      isValid ? styles.inputSuccess : styles.inputEditing)
+                  ...(hasError ? styles.inputError : {}),
+                  ...(isReadOnly ? styles.inputDisabled : {})
                 }}
               >
                 {options.map(option => (
@@ -583,61 +637,39 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
                 type="text"
                 value={formData[field]}
                 onChange={(e) => handleInputChange(field, e.target.value)}
+                disabled={isReadOnly}
                 style={{
                   ...styles.input,
-                  ...(hasError ? styles.inputError : 
-                      isValid ? styles.inputSuccess : styles.inputEditing)
+                  ...(hasError ? styles.inputError : {}),
+                  ...(isReadOnly ? styles.inputReadOnly : {})
                 }}
                 placeholder={`Enter ${label.toLowerCase()}`}
+                readOnly={isReadOnly}
               />
             )}
             {hasError && (
               <div style={styles.errorText}>⚠️ {hasError}</div>
             )}
-            <div style={styles.fieldActions}>
-              <button
-                style={{...styles.iconButton, ...styles.saveIcon}}
-                onClick={() => handleFieldSave(field)}
-                title="Save"
-              >
-                ✓
-              </button>
-              <button
-                style={{...styles.iconButton, ...styles.cancelIcon}}
-                onClick={() => handleFieldCancel(field)}
-                title="Cancel"
-              >
-                ✕
-              </button>
-            </div>
           </div>
         ) : (
           <div style={styles.fieldValue}>
-            {currentValue || 'Not provided'}
-            <button
-              style={styles.editButton}
-              onClick={() => handleFieldEdit(field)}
-              title={`Edit ${label}`}
-            >
-              ✏️
-            </button>
+            {formData[field] || 'Not provided'}
           </div>
         )}
       </div>
     );
   };
 
-  const renderPhoneField = (field, label, isRequired = false, isEmergency = false) => {
-    const isEditing = activeEditField === field;
+  const renderPhoneField = (field, label, isRequired = false, isEmergency = false, isReadOnly = false) => {
     const hasError = fieldErrors[field];
     const isValid = isFieldValid(field);
-    const currentValue = getCurrentValue(field);
 
     return (
       <div style={styles.formRow}>
-        <label style={styles.label}>
+        <label style={isReadOnly ? styles.labelDisabled : styles.label}>
           {label}
           {isRequired && <span style={styles.required}>*</span>}
+          {isReadOnly && <span style={{fontSize: '12px', color: '#6b7280', marginLeft: '8px'}}>(Cannot be changed)</span>}
         </label>
         
         {isEditing ? (
@@ -650,45 +682,24 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
                 handleEmergencyPhoneChange(field, e.target.value) : 
                 handlePhoneChange(e.target.value)
               }
+              disabled={isReadOnly}
               style={{
                 ...styles.input,
                 ...styles.phoneInput,
-                ...(hasError ? styles.inputError : 
-                    isValid ? styles.inputSuccess : styles.inputEditing)
+                ...(hasError ? styles.inputError : {}),
+                ...(isReadOnly ? styles.inputReadOnly : {})
               }}
               placeholder="Enter 10-digit number"
               maxLength="10"
+              readOnly={isReadOnly}
             />
             {hasError && (
               <div style={styles.errorText}>⚠️ {hasError}</div>
             )}
-            <div style={styles.fieldActions}>
-              <button
-                style={{...styles.iconButton, ...styles.saveIcon}}
-                onClick={() => handleFieldSave(field)}
-                title="Save"
-              >
-                ✓
-              </button>
-              <button
-                style={{...styles.iconButton, ...styles.cancelIcon}}
-                onClick={() => handleFieldCancel(field)}
-                title="Cancel"
-              >
-                ✕
-              </button>
-            </div>
           </div>
         ) : (
           <div style={styles.fieldValue}>
-            {currentValue ? `+91 ${currentValue}` : 'Not provided'}
-            <button
-              style={styles.editButton}
-              onClick={() => handleFieldEdit(field)}
-              title={`Edit ${label}`}
-            >
-              ✏️
-            </button>
+            {formData[field] ? `+91 ${formData[field]}` : 'Not provided'}
           </div>
         )}
       </div>
@@ -696,10 +707,8 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
   };
 
   const renderSensitiveField = (field, label, maskFunction, isRequired = false) => {
-    const isEditing = activeEditField === field;
     const hasError = fieldErrors[field];
     const isValid = isFieldValid(field);
-    const currentValue = getCurrentValue(field);
 
     return (
       <div style={styles.formRow}>
@@ -716,49 +725,29 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
               onChange={(e) => handleInputChange(field, e.target.value)}
               style={{
                 ...styles.input,
-                ...(hasError ? styles.inputError : 
-                    isValid ? styles.inputSuccess : styles.inputEditing)
+                ...(hasError ? styles.inputError : {})
               }}
               placeholder={`Enter ${label.toLowerCase()}`}
             />
             {hasError && (
               <div style={styles.errorText}>⚠️ {hasError}</div>
             )}
-            <div style={styles.fieldActions}>
-              <button
-                style={{...styles.iconButton, ...styles.saveIcon}}
-                onClick={() => handleFieldSave(field)}
-                title="Save"
-              >
-                ✓
-              </button>
-              <button
-                style={{...styles.iconButton, ...styles.cancelIcon}}
-                onClick={() => handleFieldCancel(field)}
-                title="Cancel"
-              >
-                ✕
-              </button>
-            </div>
           </div>
         ) : (
           <div style={styles.fieldValue}>
-            {currentValue ? (
+            {formData[field] ? (
               <span style={styles.sensitiveData}>
-                {maskFunction(currentValue)}
+                {maskFunction(formData[field])}
               </span>
             ) : 'Not provided'}
-            <button
-              style={styles.editButton}
-              onClick={() => handleFieldEdit(field)}
-              title={`Edit ${label}`}
-            >
-              ✏️
-            </button>
           </div>
         )}
       </div>
     );
+  };
+
+  const hasValidationErrors = () => {
+    return Object.keys(fieldErrors).length > 0;
   };
 
   return (
@@ -795,6 +784,12 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
             <div style={styles.agentId}>
               <strong>AGENT ID:</strong> {profileData.agentId}
             </div>
+            <button
+              style={styles.editButton}
+              onClick={handleEditToggle}
+            >
+              {isEditing ? 'Cancel Editing' : 'Edit Profile'}
+            </button>
           </div>
         </div>
 
@@ -802,16 +797,10 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
         <div style={styles.formSection}>
           <h3 style={styles.sectionTitle}>Personal Information</h3>
           
-          {/* Name Section - Similar to email, phone layout */}
-          <div style={styles.nameSection}>
-            <div style={styles.nameField}>
-              {renderFormField('fullName', 'Full Name', true)}
-            </div>
-          </div>
-
           <div style={styles.formGrid}>
-            {renderFormField('email', 'Email Address', true)}
-            {renderPhoneField('phone', 'Phone Number', true)}
+            {renderFormField('fullName', 'Full Name', true, false, false, [], true)}
+            {renderFormField('email', 'Email Address', true, false, false, [], true)}
+            {renderPhoneField('phone', 'Phone Number', true, false, true)}
             {renderFormField('currentLocation', 'Current Location', true)}
             {renderFormField(
               'vehicleType', 
@@ -823,7 +812,7 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
                 { value: 'Motorcycle', label: 'Motorcycle' },
                 { value: 'Scooter', label: 'Scooter' },
                 { value: 'Bicycle', label: 'Bicycle' },
-                { value: 'Car', label: 'Car' }
+               
               ]
             )}
             {renderFormField('vehicleNumber', 'Vehicle Number', true)}
@@ -834,43 +823,61 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
         <div style={styles.formSection}>
           <h3 style={styles.sectionTitle}>Emergency Contacts</h3>
           <p style={styles.sectionSubtitle}>In case of emergencies, we'll contact these people</p>
-          <div style={styles.formGrid}>
-            {renderFormField('emergencyContact1Name', 'Contact 1 Name')}
-            {renderPhoneField('emergencyContact1Phone', 'Contact 1 Phone', false, true)}
-            {renderFormField(
-              'emergencyContact1Relation', 
-              'Contact 1 Relation', 
-              false,
-              false,
-              true,
-              [
-                { value: '', label: 'Select relation' },
-                { value: 'Father', label: 'Father' },
-                { value: 'Mother', label: 'Mother' },
-                { value: 'Spouse', label: 'Spouse' },
-                { value: 'Sibling', label: 'Sibling' },
-                { value: 'Friend', label: 'Friend' },
-                { value: 'Other', label: 'Other' }
-              ]
-            )}
-            {renderFormField('emergencyContact2Name', 'Contact 2 Name')}
-            {renderPhoneField('emergencyContact2Phone', 'Contact 2 Phone', false, true)}
-            {renderFormField(
-              'emergencyContact2Relation', 
-              'Contact 2 Relation', 
-              false,
-              false,
-              true,
-              [
-                { value: '', label: 'Select relation' },
-                { value: 'Father', label: 'Father' },
-                { value: 'Mother', label: 'Mother' },
-                { value: 'Spouse', label: 'Spouse' },
-                { value: 'Sibling', label: 'Sibling' },
-                { value: 'Friend', label: 'Friend' },
-                { value: 'Other', label: 'Other' }
-              ]
-            )}
+          
+          <div style={styles.emergencyFormGrid}>
+            {/* Emergency Contact 1 */}
+            <div style={styles.emergencyContactSection}>
+              <div style={styles.emergencyContactHeader}>
+                <span>🚨 Emergency Contact 1</span>
+              </div>
+              <div style={styles.formGridVertical}>
+                {renderFormField('emergencyContact1Name', 'Name')}
+                {renderPhoneField('emergencyContact1Phone', 'Phone Number', false, true)}
+                {renderFormField(
+                  'emergencyContact1Relation', 
+                  'Relation', 
+                  false,
+                  false,
+                  true,
+                  [
+                    { value: '', label: 'Select relation' },
+                    { value: 'Father', label: 'Father' },
+                    { value: 'Mother', label: 'Mother' },
+                    { value: 'Spouse', label: 'Spouse' },
+                    { value: 'Sibling', label: 'Sibling' },
+                    { value: 'Friend', label: 'Friend' },
+                    { value: 'Other', label: 'Other' }
+                  ]
+                )}
+              </div>
+            </div>
+
+            {/* Emergency Contact 2 */}
+            <div style={styles.emergencyContactSection}>
+              <div style={styles.emergencyContactHeader}>
+                <span>🚨 Emergency Contact 2</span>
+              </div>
+              <div style={styles.formGridVertical}>
+                {renderFormField('emergencyContact2Name', 'Name')}
+                {renderPhoneField('emergencyContact2Phone', 'Phone Number', false, true)}
+                {renderFormField(
+                  'emergencyContact2Relation', 
+                  'Relation', 
+                  false,
+                  false,
+                  true,
+                  [
+                    { value: '', label: 'Select relation' },
+                    { value: 'Father', label: 'Father' },
+                    { value: 'Mother', label: 'Mother' },
+                    { value: 'Spouse', label: 'Spouse' },
+                    { value: 'Sibling', label: 'Sibling' },
+                    { value: 'Friend', label: 'Friend' },
+                    { value: 'Other', label: 'Other' }
+                  ]
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -917,6 +924,34 @@ const Profile = ({ profileData, setShowProfileImageUpload }) => {
             </div>
           </div>
         </div>
+
+        {/* Save Changes Button */}
+        {isEditing && (
+          <div style={styles.saveButtonContainer}>
+            <button
+              style={{
+                ...styles.saveButton,
+                ...(hasValidationErrors() ? styles.saveButtonDisabled : {})
+              }}
+              onClick={handleSaveChanges}
+              disabled={hasValidationErrors()}
+              onMouseOver={(e) => {
+                if (!hasValidationErrors()) {
+                  e.target.style.backgroundColor = styles.saveButtonHover.backgroundColor;
+                  e.target.style.transform = styles.saveButtonHover.transform;
+                }
+              }}
+              onMouseOut={(e) => {
+                if (!hasValidationErrors()) {
+                  e.target.style.backgroundColor = styles.saveButton.backgroundColor;
+                  e.target.style.transform = 'translateY(0)';
+                }
+              }}
+            >
+              Save Changes
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

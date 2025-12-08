@@ -154,8 +154,8 @@ const FullNotificationsPage = ({
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: '24px',
-      borderBottom: '1px solid #e5e7eb',
-      backgroundColor: '#f8fafc'
+      borderBottom: '1px solid #E0F2F1',
+      backgroundColor: '#F5F5F5'
     },
     headerActions: {
       display: 'flex',
@@ -167,13 +167,13 @@ const FullNotificationsPage = ({
       border: 'none',
       fontSize: '20px',
       cursor: 'pointer',
-      color: '#6b7280',
+      color: '#4F6F6B',
       padding: '8px'
     },
     actionButton: {
       backgroundColor: 'transparent',
       border: 'none',
-      color: '#7C2A62',
+      color: '#009688',
       cursor: 'pointer',
       fontSize: '14px',
       fontWeight: '500',
@@ -199,14 +199,14 @@ const FullNotificationsPage = ({
     notificationItem: {
       display: 'flex',
       padding: '20px 24px',
-      borderBottom: '1px solid #f3f4f6',
+      borderBottom: '1px solid #E0F2F1',
       transition: 'background-color 0.3s ease',
       position: 'relative',
       backgroundColor: 'transparent',
       cursor: 'pointer'
     },
     unreadNotification: {
-      backgroundColor: '#f0f9ff'
+      backgroundColor: '#E0F2F1'
     },
     notificationIcon: {
       fontSize: '24px',
@@ -221,7 +221,7 @@ const FullNotificationsPage = ({
     notificationTitle: {
       fontSize: '16px',
       fontWeight: '600',
-      color: '#1f2937',
+      color: '#124441',
       margin: '0 0 8px 0',
       display: 'flex',
       justifyContent: 'space-between',
@@ -229,13 +229,13 @@ const FullNotificationsPage = ({
     },
     notificationMessage: {
       fontSize: '14px',
-      color: '#6b7280',
+      color: '#4F6F6B',
       margin: '0 0 8px 0',
       lineHeight: '1.5'
     },
     notificationTime: {
       fontSize: '12px',
-      color: '#9ca3af'
+      color: '#4F6F6B'
     },
     deleteButton: {
       backgroundColor: 'transparent',
@@ -249,20 +249,20 @@ const FullNotificationsPage = ({
     emptyState: {
       padding: '60px 20px',
       textAlign: 'center',
-      color: '#6b7280',
+      color: '#4F6F6B',
       fontSize: '16px'
     },
     loadingState: {
       padding: '40px 20px',
       textAlign: 'center',
-      color: '#6b7280'
+      color: '#4F6F6B'
     },
     loadMoreButton: {
       width: '100%',
       padding: '16px',
       backgroundColor: 'transparent',
-      color: '#7C2A62',
-      border: '1px solid #7C2A62',
+      color: '#009688',
+      border: '1px solid #009688',
       borderRadius: '8px',
       cursor: 'pointer',
       fontWeight: '500',
@@ -314,7 +314,7 @@ const FullNotificationsPage = ({
             >
               ←
             </button>
-            <h2 style={{ margin: 0 }}>All Notifications</h2>
+            <h2 style={{ margin: 0, color: '#124441' }}>All Notifications</h2>
             {unreadCount > 0 && (
               <span style={{
                 backgroundColor: '#ef4444',

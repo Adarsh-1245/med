@@ -94,7 +94,9 @@ const NotificationsPage = ({
       payment: '💳',
       security: '🔒',
       promotion: '🎁',
-      appointment: '👨‍⚕️',
+      appointment: '📅',
+      lab: '🧪',
+      health: '🏥',
       default: '🔔'
     };
     return icons[type] || icons.default;
@@ -126,137 +128,167 @@ const NotificationsPage = ({
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'transparent',
+      backgroundColor: 'rgba(0, 0, 0, 0.1)',
       zIndex: 1000,
+      backdropFilter: 'blur(2px)'
     },
     notificationsPage: {
       position: 'fixed',
-      top: '20px',
-      right: '20px',
-      width: '420px',
-      backgroundColor: 'white',
+      top: 'clamp(15px, 3vw, 20px)',
+      right: 'clamp(15px, 3vw, 20px)',
+      width: 'clamp(300px, 90vw, 420px)',
+      backgroundColor: '#FFFFFF',
       borderRadius: '12px',
-      boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+      boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
       zIndex: 1001,
       maxHeight: '80vh',
       overflow: 'hidden',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      border: '1px solid #E0F2F1'
     },
     notificationsHeader: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '20px',
-      borderBottom: '1px solid #e5e7eb',
-      backgroundColor: '#f8fafc'
+      padding: 'clamp(15px, 2vw, 20px)',
+      borderBottom: '1px solid #E0F2F1',
+      backgroundColor: '#E0F2F1'
     },
     headerActions: {
       display: 'flex',
       alignItems: 'center',
-      gap: '10px'
+      gap: 'clamp(8px, 1vw, 10px)',
+      flexWrap: 'wrap'
     },
     unreadBadge: {
-      backgroundColor: '#ef4444',
-      color: 'white',
+      backgroundColor: '#FF5252',
+      color: '#FFFFFF',
       borderRadius: '10px',
       padding: '2px 8px',
-      fontSize: '12px',
-      fontWeight: '600'
+      fontSize: 'clamp(11px, 1.5vw, 12px)',
+      fontWeight: '600',
+      boxShadow: '0 2px 5px rgba(255, 82, 82, 0.3)'
     },
     closeButton: {
       backgroundColor: 'transparent',
       border: 'none',
-      fontSize: '20px',
+      fontSize: 'clamp(18px, 2vw, 20px)',
       cursor: 'pointer',
-      color: '#6b7280',
-      padding: '4px'
+      color: '#4F6F6B',
+      padding: '4px',
+      borderRadius: '4px',
+      transition: 'all 0.2s ease',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '30px',
+      height: '30px'
     },
     markAllReadButton: {
       backgroundColor: 'transparent',
       border: 'none',
-      color: '#7C2A62',
+      color: '#009688',
       cursor: 'pointer',
-      fontSize: '12px',
-      fontWeight: '500',
-      padding: '4px 8px',
-      borderRadius: '4px'
+      fontSize: 'clamp(11px, 1.5vw, 12px)',
+      fontWeight: '600',
+      padding: '6px 12px',
+      borderRadius: '4px',
+      transition: 'all 0.2s ease'
     },
     notificationsList: {
       flex: 1,
       overflowY: 'auto',
-      maxHeight: '400px'
+      maxHeight: 'clamp(300px, 50vh, 400px)'
     },
     notificationItem: {
       display: 'flex',
-      padding: '16px 20px',
-      borderBottom: '1px solid #f3f4f6',
+      padding: 'clamp(12px, 2vw, 16px) clamp(15px, 2vw, 20px)',
+      borderBottom: '1px solid #E0F2F1',
       backgroundColor: 'transparent',
-      cursor: 'pointer'
+      cursor: 'pointer',
+      transition: 'all 0.2s ease'
     },
     unreadNotification: {
-      backgroundColor: '#f0f9ff'
+      backgroundColor: '#E8F5F3'
     },
     notificationIcon: {
-      fontSize: '20px',
-      marginRight: '12px',
+      fontSize: 'clamp(18px, 2vw, 20px)',
+      marginRight: 'clamp(10px, 1.5vw, 12px)',
       marginTop: '2px',
-      flexShrink: 0
+      flexShrink: 0,
+      width: '24px'
     },
     notificationContent: {
       flex: 1,
-      minWidth: 0
+      minWidth: 0,
+      overflow: 'hidden'
     },
     notificationTitle: {
-      fontSize: '14px',
+      fontSize: 'clamp(13px, 1.5vw, 14px)',
       fontWeight: '600',
-      color: '#1f2937',
+      color: '#124441',
       margin: '0 0 4px 0',
       display: 'flex',
       justifyContent: 'space-between',
-      alignItems: 'flex-start'
+      alignItems: 'flex-start',
+      gap: '8px'
     },
     notificationMessage: {
-      fontSize: '13px',
-      color: '#6b7280',
-      margin: '0 0 4px 0',
+      fontSize: 'clamp(12px, 1.5vw, 13px)',
+      color: '#4F6F6B',
+      margin: '0 0 6px 0',
       lineHeight: '1.4',
-      wordWrap: 'break-word'
+      wordWrap: 'break-word',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      maxWidth: '100%'
     },
     notificationTime: {
-      fontSize: '11px',
-      color: '#9ca3af'
+      fontSize: 'clamp(10px, 1.5vw, 11px)',
+      color: '#7B9692',
+      fontWeight: '500'
     },
     deleteButton: {
       backgroundColor: 'transparent',
       border: 'none',
-      color: '#ef4444',
+      color: '#FF5252',
       cursor: 'pointer',
-      fontSize: '12px',
+      fontSize: 'clamp(14px, 2vw, 16px)',
       padding: '2px 6px',
       borderRadius: '3px',
-      marginLeft: '8px'
+      marginLeft: '8px',
+      transition: 'all 0.2s ease',
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '24px',
+      height: '24px'
     },
     emptyState: {
-      padding: '40px 20px',
+      padding: 'clamp(30px, 4vw, 40px) 20px',
       textAlign: 'center',
-      color: '#6b7280'
+      color: '#4F6F6B',
+      fontSize: 'clamp(14px, 2vw, 16px)'
     },
     notificationsFooter: {
-      padding: '16px 20px',
-      borderTop: '1px solid #e5e7eb',
-      backgroundColor: '#f8fafc'
+      padding: 'clamp(12px, 2vw, 16px) clamp(15px, 2vw, 20px)',
+      borderTop: '1px solid #E0F2F1',
+      backgroundColor: '#E0F2F1'
     },
     viewAllButton: {
       width: '100%',
-      padding: '12px',
-      backgroundColor: '#7C2A62',
-      color: 'white',
+      padding: 'clamp(10px, 1.5vw, 12px)',
+      backgroundColor: '#009688',
+      color: '#FFFFFF',
       border: 'none',
-      borderRadius: '6px',
+      borderRadius: '8px',
       cursor: 'pointer',
-      fontWeight: '500',
-      fontSize: '14px'
+      fontWeight: '600',
+      fontSize: 'clamp(13px, 1.5vw, 14px)',
+      transition: 'all 0.3s ease',
+      boxShadow: '0 2px 8px rgba(0, 150, 136, 0.2)'
     }
   };
 
@@ -267,7 +299,12 @@ const NotificationsPage = ({
       <div ref={notificationsRef} style={styles.notificationsPage}>
         <div style={styles.notificationsHeader}>
           <div>
-            <h3 style={{ margin: 0 }}>Notifications</h3>
+            <h3 style={{ 
+              margin: '0 0 4px 0', 
+              color: '#124441',
+              fontSize: 'clamp(16px, 2vw, 18px)',
+              fontWeight: '700'
+            }}>Notifications</h3>
             {unreadCount > 0 && (
               <span style={styles.unreadBadge}>
                 {unreadCount} unread
@@ -279,6 +316,14 @@ const NotificationsPage = ({
               <button
                 style={styles.markAllReadButton}
                 onClick={handleMarkAllAsRead}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#4DB6AC';
+                  e.target.style.color = '#FFFFFF';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                  e.target.style.color = '#009688';
+                }}
               >
                 Mark all read
               </button>
@@ -287,6 +332,14 @@ const NotificationsPage = ({
               style={styles.closeButton}
               onClick={onClose}
               aria-label="Close notifications"
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#4DB6AC';
+                e.target.style.color = '#FFFFFF';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.color = '#4F6F6B';
+              }}
             >
               ✕
             </button>
@@ -304,18 +357,42 @@ const NotificationsPage = ({
                     ...(!notification.read ? styles.unreadNotification : {})
                   }}
                   onClick={() => handleMarkAsRead(notification.id)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = !notification.read ? '#F0F9F7' : '#F8FCFB';
+                    e.currentTarget.style.boxShadow = 'inset 0 0 0 1px #4DB6AC';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = !notification.read ? '#E8F5F3' : 'transparent';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
                 >
                   <div style={styles.notificationIcon}>
                     {getNotificationIcon(notification.type)}
                   </div>
                   <div style={styles.notificationContent}>
                     <div style={styles.notificationTitle}>
-                      <span>{notification.title || 'Notification'}</span>
+                      <span style={{ 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {notification.title || 'Notification'}
+                      </span>
                       <button
                         style={styles.deleteButton}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteNotification(notification.id);
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#FF5252';
+                          e.target.style.color = '#FFFFFF';
+                          e.target.style.transform = 'scale(1.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                          e.target.style.color = '#FF5252';
+                          e.target.style.transform = 'scale(1)';
                         }}
                         aria-label="Delete notification"
                       >
@@ -334,6 +411,14 @@ const NotificationsPage = ({
             </>
           ) : (
             <div style={styles.emptyState}>
+              <div style={{ 
+                fontSize: 'clamp(24px, 4vw, 32px)',
+                marginBottom: '12px',
+                color: '#4DB6AC',
+                opacity: '0.7'
+              }}>
+                🔔
+              </div>
               No notifications available
             </div>
           )}
@@ -343,6 +428,16 @@ const NotificationsPage = ({
           <button
             style={styles.viewAllButton}
             onClick={handleViewAll}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#4DB6AC';
+              e.target.style.boxShadow = '0 4px 12px rgba(0, 150, 136, 0.3)';
+              e.target.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#009688';
+              e.target.style.boxShadow = '0 2px 8px rgba(0, 150, 136, 0.2)';
+              e.target.style.transform = 'translateY(0)';
+            }}
           >
             View All Notifications
           </button>

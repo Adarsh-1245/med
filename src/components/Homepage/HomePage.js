@@ -1,27 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Hero from './Hero';
 import AboutUs from './AboutUs';
 import Services from './Services';
 import Reviews from './Reviews';
-import Footer from './Footer';
-import AdminLoginModal from './AdminLoginModal';
-import ReviewModal from './ReviewModal';
-import ServiceDetailsModal from './ServiceDetailsModal';
 import Contact from './Contact';
 import Doctors from './Doctors';
 
-const HomePage = ({ onNavigateToAuth, onNavigateToAdmin, onNavigateToHome, onNavigateToLogin, reviews, onWriteReview }) => {
+const HomePage = ({ onNavigateToAuth, onNavigateToHome, onNavigateToLogin, reviews, onWriteReview }) => {
   const [activeSection, setActiveSection] = useState('home');
-  const [showAdminModal, setShowAdminModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Sync activeSection with URL path
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/' || path === '/home') {
+      setActiveSection('home');
+    } else if (path === '/about') {
+      setActiveSection('about');
+    } else if (path === '/services') {
+      setActiveSection('services');
+    } else if (path === '/doctors') {
+      setActiveSection('doctors');
+    } else if (path === '/reviews') {
+      setActiveSection('reviews');
+    } else if (path === '/contact') {
+      setActiveSection('contact');
+    }
+  }, [location.pathname]);
 
   const handleSectionChange = (section) => {
     setActiveSection(section);
     setIsMobileMenuOpen(false);
+    
+    // Navigate to corresponding route
+    switch(section) {
+      case 'home':
+        navigate('/');
+        break;
+      case 'about':
+        navigate('/about');
+        break;
+      case 'services':
+        navigate('/services');
+        break;
+      case 'doctors':
+        navigate('/doctors');
+        break;
+      case 'reviews':
+        navigate('/reviews');
+        break;
+      case 'contact':
+        navigate('/contact');
+        break;
+      default:
+        navigate('/');
+    }
     
     // Scroll to top when changing sections
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -45,6 +86,24 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin, onNavigateToHome, onNav
     }
   };
 
+  // Handle navigation to login
+  const handleNavigateToLogin = () => {
+    if (onNavigateToLogin) {
+      onNavigateToLogin();
+    } else {
+      navigate('/login');
+    }
+  };
+
+  // Handle navigation to home
+  const handleNavigateToHome = () => {
+    if (onNavigateToHome) {
+      onNavigateToHome();
+    } else {
+      navigate('/');
+    }
+  };
+
   const styles = {
     homepage: {
       minHeight: '100vh',
@@ -60,8 +119,7 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin, onNavigateToHome, onNav
       <Navbar 
         activeSection={activeSection}
         onSectionChange={handleSectionChange}
-        onNavigateToAuth={onNavigateToAuth}
-        onNavigateToAdmin={() => setShowAdminModal(true)}
+        onNavigateToAuth={handleNavigateToLogin}
         isMobileMenuOpen={isMobileMenuOpen}
         onMobileMenuToggle={handleMobileMenuToggle}
       />
@@ -70,23 +128,23 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin, onNavigateToHome, onNav
         {activeSection === 'home' && (
           <Hero 
             onSectionChange={handleSectionChange}
-            onNavigateToAuth={onNavigateToLogin}
+            onNavigateToAuth={handleNavigateToLogin}
           />
         )}
         {activeSection === 'about' && (
           <AboutUs 
-            onNavigateToAuth={onNavigateToLogin}
+            onNavigateToAuth={handleNavigateToLogin}
           />
         )}
         {activeSection === 'services' && (
           <Services 
             onLearnMore={handleServiceLearnMore}
-            onNavigateToLogin={onNavigateToLogin}
+            onNavigateToLogin={handleNavigateToLogin}
           />
         )}
         {activeSection === 'doctors' && (
           <Doctors 
-            onNavigateToLogin={onNavigateToLogin}
+            onNavigateToLogin={handleNavigateToLogin}
           />
         )}
         {activeSection === 'reviews' && (
@@ -97,31 +155,6 @@ const HomePage = ({ onNavigateToAuth, onNavigateToAdmin, onNavigateToHome, onNav
         )}
         {activeSection === 'contact' && <Contact />}
       </main>
-
-      <Footer onSectionChange={handleSectionChange} />
-
-      {/* Modals */}
-      {showAdminModal && (
-        <AdminLoginModal 
-          onClose={() => setShowAdminModal(false)}
-          onLoginSuccess={onNavigateToAdmin}
-          onBackToHome={onNavigateToHome}
-        />
-      )}
-
-      {showReviewModal && (
-        <ReviewModal 
-          onClose={() => setShowReviewModal(false)}
-        />
-      )}
-
-      {showServiceModal && selectedService && (
-        <ServiceDetailsModal 
-          service={selectedService}
-          onClose={() => setShowServiceModal(false)}
-          onBookService={onNavigateToAuth}
-        />
-      )}
     </div>
   );
 };

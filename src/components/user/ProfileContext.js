@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 
 const ProfileContext = createContext();
 
@@ -14,16 +15,46 @@ const defaultProfile = {
   age: '',
   gender: '',
   profilePhoto: null,
-  lastUpdated: ''
+  lastUpdated: '',
+  // Enhanced health profile fields
+  bloodGroup: 'Not specified',
+  emergencyContact: '',
+  healthMetrics: {
+    height: '',
+    weight: '',
+    bmi: '',
+    bloodPressure: '',
+    lastCheckup: ''
+  },
+  medicalHistory: {
+    conditions: [],
+    allergies: [],
+    medications: [],
+    surgeries: []
+  },
+  insurance: {
+    provider: '',
+    policyNumber: '',
+    validity: ''
+  }
 };
 
 export const ProfileProvider = ({ children, user }) => {
   const [profile, setProfile] = useState(() => {
     try {
-      // First priority: user data from props (login data)
+      // Load from localStorage first
+      const saved = localStorage.getItem('userProfile');
+      if (saved) {
+        console.log('Initializing profile from localStorage');
+        const parsed = JSON.parse(saved);
+        return { ...defaultProfile, ...parsed };
+      }
+      
+      // Then use user data from props (login data)
       if (user && user.email) {
         console.log('Initializing profile from user props:', user);
         const userProfile = {
+          ...defaultProfile,
           fullName: user.fullName || user.name || '',
           email: user.email || '',
           phone: user.phone || '',
@@ -34,19 +65,27 @@ export const ProfileProvider = ({ children, user }) => {
           age: user.age || '',
           gender: user.gender || '',
           profilePhoto: user.profilePhoto || null,
-          lastUpdated: user.lastUpdated || new Date().toISOString()
+          lastUpdated: user.lastUpdated || new Date().toISOString(),
+          // Enhanced health fields - SAFE ACCESS
+          bloodGroup: user.bloodGroup || defaultProfile.bloodGroup,
+          emergencyContact: user.emergencyContact || '',
+          healthMetrics: {
+            ...defaultProfile.healthMetrics,
+            ...(user.healthMetrics || {})
+          },
+          medicalHistory: {
+            ...defaultProfile.medicalHistory,
+            ...(user.medicalHistory || {})
+          },
+          insurance: {
+            ...defaultProfile.insurance,
+            ...(user.insurance || {})
+          }
         };
         
-        // Save user data to localStorage
+        // Save to localStorage
         localStorage.setItem('userProfile', JSON.stringify(userProfile));
         return userProfile;
-      }
-      
-      // Second priority: localStorage data
-      const saved = localStorage.getItem('userProfile');
-      if (saved) {
-        console.log('Initializing profile from localStorage');
-        return JSON.parse(saved);
       }
       
       // Fallback: default profile
@@ -58,33 +97,32 @@ export const ProfileProvider = ({ children, user }) => {
     }
   });
 
+  // Enhanced health data management
+  const [healthData, setHealthData] = useState({
+    vitalHistory: [],
+    medicationAdherence: {},
+    labResults: [],
+    appointmentHistory: []
+  });
+
   // Sync profile to localStorage whenever it changes
   useEffect(() => {
     try {
+      console.log('Saving profile to localStorage:', profile);
       localStorage.setItem('userProfile', JSON.stringify(profile));
-      console.log('Profile saved to localStorage:', profile.fullName);
     } catch (error) {
       console.error('Error saving profile to localStorage:', error);
     }
   }, [profile]);
 
-  // Update profile when user prop changes (login/logout) - IMMEDIATE UPDATE
+  // Update profile when user prop changes (login/logout) - FIXED
   useEffect(() => {
     if (user && user.email) {
       console.log('User data received in ProfileProvider - UPDATING PROFILE:', user);
       setProfile(prevProfile => {
         const updatedProfile = {
           ...prevProfile,
-          fullName: user.fullName || user.name || prevProfile.fullName,
-          email: user.email || prevProfile.email,
-          phone: user.phone || prevProfile.phone,
-          address: user.address || prevProfile.address,
-          city: user.city || prevProfile.city,
-          pincode: user.pincode || prevProfile.pincode,
-          dateOfBirth: user.dateOfBirth || prevProfile.dateOfBirth,
-          age: user.age || prevProfile.age,
-          gender: user.gender || prevProfile.gender,
-          profilePhoto: user.profilePhoto || prevProfile.profilePhoto,
+          ...user,
           lastUpdated: new Date().toISOString()
         };
         
@@ -92,9 +130,9 @@ export const ProfileProvider = ({ children, user }) => {
         return updatedProfile;
       });
     }
-  }, [user]); // This will trigger immediately when user prop changes
+  }, [user]);
 
-  // Enhanced updateProfile function
+  // Enhanced updateProfile function - FIXED: Merge properly with existing profile
   const updateProfile = (newProfileData) => {
     console.log('Updating profile with new data:', newProfileData);
     setProfile(prevProfile => {
@@ -162,6 +200,12 @@ export const ProfileProvider = ({ children, user }) => {
     console.log('Clearing profile data');
     localStorage.removeItem('userProfile');
     setProfile(defaultProfile);
+    setHealthData({
+      vitalHistory: [],
+      medicationAdherence: {},
+      labResults: [],
+      appointmentHistory: []
+    });
   };
 
   // Check if profile is complete
@@ -178,16 +222,34 @@ export const ProfileProvider = ({ children, user }) => {
     }
   };
 
+  const value = {
+    profile,
+    updateProfile,
+    updateProfilePhoto,
+    removeProfilePhoto,
+    clearProfile,
+    isProfileComplete,
+    forceProfileUpdate,
+    // Health data functions
+    healthData,
+    // Additional utility functions
+    getProfileCompletion: () => {
+      const requiredFields = ['fullName', 'email', 'phone', 'address', 'city', 'pincode', 'dateOfBirth', 'gender'];
+      const completedFields = requiredFields.filter(field => 
+        profile[field] && profile[field].toString().trim() !== ''
+      ).length;
+      return Math.round((completedFields / requiredFields.length) * 100);
+    },
+    getMissingFields: () => {
+      const requiredFields = ['fullName', 'email', 'phone', 'address', 'city', 'pincode', 'dateOfBirth', 'gender'];
+      return requiredFields.filter(field => 
+        !profile[field] || profile[field].toString().trim() === ''
+      );
+    }
+  };
+
   return (
-    <ProfileContext.Provider value={{ 
-      profile, 
-      updateProfile,
-      updateProfilePhoto,
-      removeProfilePhoto,
-      clearProfile,
-      isProfileComplete,
-      forceProfileUpdate // Add this new function
-    }}>
+    <ProfileContext.Provider value={value}>
       {children}
     </ProfileContext.Provider>
   );
@@ -199,6 +261,34 @@ export const useProfile = () => {
     throw new Error('useProfile must be used within a ProfileProvider');
   }
   return context;
+};
+
+// PropTypes for better development experience
+ProfileProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+  user: PropTypes.shape({
+    email: PropTypes.string,
+    fullName: PropTypes.string,
+    name: PropTypes.string,
+    phone: PropTypes.string,
+    address: PropTypes.string,
+    city: PropTypes.string,
+    pincode: PropTypes.string,
+    dateOfBirth: PropTypes.string,
+    age: PropTypes.string,
+    gender: PropTypes.string,
+    profilePhoto: PropTypes.string,
+    lastUpdated: PropTypes.string,
+    bloodGroup: PropTypes.string,
+    emergencyContact: PropTypes.string,
+    healthMetrics: PropTypes.object,
+    medicalHistory: PropTypes.object,
+    insurance: PropTypes.object
+  })
+};
+
+ProfileProvider.defaultProps = {
+  user: null
 };
 
 export default ProfileContext;

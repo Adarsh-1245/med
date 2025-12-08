@@ -26,10 +26,11 @@ const MedicineCard = ({ medicine, cart, addToCart, updateQuantity }) => {
 
   return (
     <div style={{
-      border: '2px solid #F7D9EB',
+      border: '2px solid #E0F2F1',
       borderRadius: '12px',
       padding: '1.5rem',
       display: 'flex',
+      marginTop: '60px',
       flexDirection: 'column',
       transition: 'all 0.3s ease',
       backgroundColor: 'white',
@@ -41,13 +42,13 @@ const MedicineCard = ({ medicine, cart, addToCart, updateQuantity }) => {
       }}>
         <h4 style={{
           margin: '0 0 0.5rem 0',
-          color: '#7C2A62',
+          color: '#124441',
           fontSize: '1.1rem',
           fontWeight: '600',
         }}>{medicine.name}</h4>
         <p style={{
           margin: '0 0 0.5rem 0',
-          color: '#666',
+          color: '#4F6F6B',
           fontSize: '0.9rem',
         }}>{medicine.vendor}</p>
         <div style={{
@@ -55,8 +56,8 @@ const MedicineCard = ({ medicine, cart, addToCart, updateQuantity }) => {
         }}>
           <span style={{
             padding: '0.25rem 0.75rem',
-            backgroundColor: '#F7D9EB',
-            color: '#7C2A62',
+            backgroundColor: '#E0F2F1',
+            color: '#124441',
             borderRadius: '12px',
             fontSize: '0.8rem',
             fontWeight: '500',
@@ -69,7 +70,7 @@ const MedicineCard = ({ medicine, cart, addToCart, updateQuantity }) => {
           marginTop: 'auto',
         }}>
           <p style={{
-            color: '#7C2A62',
+            color: '#009688',
             fontWeight: 'bold',
             fontSize: '1.2rem',
             margin: 0,
@@ -85,7 +86,7 @@ const MedicineCard = ({ medicine, cart, addToCart, updateQuantity }) => {
                   style={{
                     width: '32px',
                     height: '32px',
-                    border: '1px solid #7C2A62',
+                    border: '1px solid #009688',
                     backgroundColor: 'transparent',
                     borderRadius: '4px',
                     cursor: 'pointer',
@@ -110,7 +111,7 @@ const MedicineCard = ({ medicine, cart, addToCart, updateQuantity }) => {
                   style={{
                     width: '32px',
                     height: '32px',
-                    border: '1px solid #7C2A62',
+                    border: '1px solid #009688',
                     backgroundColor: 'transparent',
                     borderRadius: '4px',
                     cursor: 'pointer',
@@ -130,7 +131,7 @@ const MedicineCard = ({ medicine, cart, addToCart, updateQuantity }) => {
               <button 
                 style={{
                   padding: '0.75rem 1rem',
-                  backgroundColor: '#7C2A62',
+                  backgroundColor: '#009688',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',

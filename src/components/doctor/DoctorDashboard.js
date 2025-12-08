@@ -1,8 +1,10 @@
 import React from 'react';
+import { Routes, Route, useParams, useNavigate, useLocation } from 'react-router-dom';
 import DoctorSidebar from './DoctorSidebar';
 import DoctorHeader from './DoctorHeader';
 import DashboardContent from './DashboardContent';
 import AppointmentsContent from './AppointmentsContent';
+import PregnancyCareContent from './PregnancyCareContent';
 import PatientsContent from './PatientsContent';
 import EarningsContent from './EarningsContent';
 import MessagesContent from './MessagesContent';
@@ -15,8 +17,78 @@ import {
   navigationItems 
 } from './doctorUtils';
 
+// Sub-components for specific routes
+const DoctorAppointmentDetail = () => {
+  const { appointmentId } = useParams();
+  return (
+    <div>
+      <h2>Appointment Details</h2>
+      <p>Viewing appointment: {appointmentId}</p>
+      {/* Add appointment detail view here */}
+    </div>
+  );
+};
+
+const DoctorPatientDetail = () => {
+  const { patientId } = useParams();
+  return (
+    <div>
+      <h2>Patient Profile</h2>
+      <p>Viewing patient: {patientId}</p>
+      {/* Add patient detail view here */}
+    </div>
+  );
+};
+
+const DoctorMessagesDetail = () => {
+  const { conversationId } = useParams();
+  return (
+    <div>
+      <h2>Conversation</h2>
+      <p>Viewing conversation: {conversationId}</p>
+      {/* Add conversation detail view here */}
+    </div>
+  );
+};
+
+const DoctorPregnancyDetail = () => {
+  const { pregnancyId } = useParams();
+  return (
+    <div>
+      <h2>Pregnancy Care Details</h2>
+      <p>Viewing pregnancy case: {pregnancyId}</p>
+      {/* Add pregnancy care detail view here */}
+    </div>
+  );
+};
+
+const DoctorEarningDetail = () => {
+  const { period } = useParams();
+  return (
+    <div>
+      <h2>Earnings Details</h2>
+      <p>Viewing earnings for: {period}</p>
+      {/* Add earning detail view here */}
+    </div>
+  );
+};
+
+const DoctorTimeslotDetail = () => {
+  const { timeslotId } = useParams();
+  return (
+    <div>
+      <h2>Timeslot Management</h2>
+      <p>Managing timeslot: {timeslotId}</p>
+      {/* Add timeslot detail view here */}
+    </div>
+  );
+};
+
+// Main DoctorDashboard component with routing
 const DoctorDashboard = ({ user, onLogout }) => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Get state and state setters
   const state = useDoctorState(user);
@@ -39,7 +111,8 @@ const DoctorDashboard = ({ user, onLogout }) => {
     selectedPatient,
     formErrors,
     windowSize,
-    timeslots
+    timeslots,
+    pregnancyFilter
   } = state;
 
   // Get actions
@@ -64,7 +137,8 @@ const DoctorDashboard = ({ user, onLogout }) => {
     setFormErrors: state.setFormErrors,
     setSelectedPatient: state.setSelectedPatient,
     setIsSidebarOpen: state.setIsSidebarOpen,
-    setTimeslots: state.setTimeslots
+    setTimeslots: state.setTimeslots,
+    setPregnancyFilter: state.setPregnancyFilter
   });
 
   const {
@@ -88,10 +162,28 @@ const DoctorDashboard = ({ user, onLogout }) => {
     addTimeslot,
     updateTimeslot,
     deleteTimeslot,
-    toggleTimeslotAvailability
+    toggleTimeslotAvailability,
+    handleApprovePregnancyAppointment,
+    handleScheduleHomeVisit,
+    handleUploadReportToLocker,
+    handleViewPregnancyReports,
+    handleUpdatePregnancyPackage
   } = actions;
 
-  const renderMainContent = () => {
+  // Update activePage based on route
+  React.useEffect(() => {
+    const path = location.pathname;
+    if (path.includes('/appointments')) state.setActivePage('appointments');
+    else if (path.includes('/pregnancy-care')) state.setActivePage('pregnancyCare');
+    else if (path.includes('/patients')) state.setActivePage('patients');
+    else if (path.includes('/earnings')) state.setActivePage('earnings');
+    else if (path.includes('/messages')) state.setActivePage('messages');
+    else if (path.includes('/timeslots')) state.setActivePage('timeslots');
+    else state.setActivePage('dashboard');
+  }, [location.pathname]);
+
+  // Common props for all content components
+  const getCommonContentProps = () => {
     const commonActions = {
       handleStartConversation,
       handleViewFullHistory,
@@ -111,7 +203,15 @@ const DoctorDashboard = ({ user, onLogout }) => {
       setTimeslots: state.setTimeslots
     };
 
-    const contentProps = {
+    const pregnancyActions = {
+      handleApprovePregnancyAppointment,
+      handleScheduleHomeVisit,
+      handleUploadReportToLocker,
+      handleViewPregnancyReports,
+      handleUpdatePregnancyPackage
+    };
+
+    return {
       dashboardData,
       state: {
         activePage,
@@ -122,7 +222,8 @@ const DoctorDashboard = ({ user, onLogout }) => {
         appointments,
         patientMessages,
         userProfile,
-        timeslots
+        timeslots,
+        pregnancyFilter
       },
       actions: {
         setActivePage: state.setActivePage,
@@ -133,35 +234,37 @@ const DoctorDashboard = ({ user, onLogout }) => {
         setConsultationDetails: state.setConsultationDetails,
         getUnreadMessagesCount,
         getUnreadNotificationsCount,
+        setPregnancyFilter: state.setPregnancyFilter,
         ...commonActions,
-        ...timeslotActions
+        ...timeslotActions,
+        ...pregnancyActions
       }
     };
-
-    switch (activePage) {
-      case 'dashboard':
-        return <DashboardContent {...contentProps} />;
-      case 'appointments':
-        return <AppointmentsContent {...contentProps} />;
-      case 'patients':
-        return <PatientsContent {...contentProps} />;
-      case 'earnings':
-        return <EarningsContent {...contentProps} />;
-      case 'messages':
-        return <MessagesContent {...contentProps} />;
-      case 'timeslots':
-        return <TimeSlotsContent {...contentProps} />;
-      default:
-        return <DashboardContent {...contentProps} />;
-    }
   };
+
+  // Check if current route is messages page
+  const isMessagesPage = location.pathname.includes('/messages');
 
   return (
     <div style={styles.container}>
-      {activePage !== 'messages' && (
+      {/* Sidebar - hidden on messages detail pages */}
+      {!isMessagesPage && (
         <DoctorSidebar
           activePage={activePage}
-          setActivePage={state.setActivePage}
+          setActivePage={(page) => {
+            state.setActivePage(page);
+            // Navigate to corresponding route
+            const routeMap = {
+              dashboard: '/doctor/dashboard',
+              appointments: '/doctor/dashboard/appointments',
+              pregnancyCare: '/doctor/dashboard/pregnancy-care',
+              patients: '/doctor/dashboard/patients',
+              earnings: '/doctor/dashboard/earnings',
+              messages: '/doctor/dashboard/messages',
+              timeslots: '/doctor/dashboard/timeslots'
+            };
+            navigate(routeMap[page] || '/doctor/dashboard');
+          }}
           userProfile={userProfile}
           getUnreadMessagesCount={getUnreadMessagesCount}
           setShowProfileModal={state.setShowProfileModal}
@@ -174,8 +277,8 @@ const DoctorDashboard = ({ user, onLogout }) => {
 
       <div style={{
         ...styles.content,
-        marginLeft: activePage !== 'messages' && window.innerWidth > 768 ? '280px' : '0',
-        width: activePage !== 'messages' && window.innerWidth > 768 ? 'calc(100% - 280px)' : '100%'
+        marginLeft: !isMessagesPage && window.innerWidth > 768 ? '280px' : '0',
+        width: !isMessagesPage && window.innerWidth > 768 ? 'calc(100% - 280px)' : '100%'
       }}>
         <DoctorHeader
           activePage={activePage}
@@ -186,7 +289,39 @@ const DoctorDashboard = ({ user, onLogout }) => {
           setIsSidebarOpen={state.setIsSidebarOpen}
         />
         
-        {renderMainContent()}
+        {/* Main Content with Routing */}
+        <Routes>
+          {/* Dashboard */}
+          <Route path="/" element={<DashboardContent {...getCommonContentProps()} />} />
+          <Route path="/dashboard" element={<DashboardContent {...getCommonContentProps()} />} />
+          
+          {/* Appointments */}
+          <Route path="/appointments" element={<AppointmentsContent {...getCommonContentProps()} />} />
+          <Route path="/appointments/:appointmentId" element={<DoctorAppointmentDetail />} />
+          
+          {/* Pregnancy Care */}
+          <Route path="/pregnancy-care" element={<PregnancyCareContent {...getCommonContentProps()} />} />
+          <Route path="/pregnancy-care/:pregnancyId" element={<DoctorPregnancyDetail />} />
+          
+          {/* Patients */}
+          <Route path="/patients" element={<PatientsContent {...getCommonContentProps()} />} />
+          <Route path="/patients/:patientId" element={<DoctorPatientDetail />} />
+          
+          {/* Earnings */}
+          <Route path="/earnings" element={<EarningsContent {...getCommonContentProps()} />} />
+          <Route path="/earnings/:period" element={<DoctorEarningDetail />} />
+          
+          {/* Messages */}
+          <Route path="/messages" element={<MessagesContent {...getCommonContentProps()} />} />
+          <Route path="/messages/:conversationId" element={<DoctorMessagesDetail />} />
+          
+          {/* Timeslots */}
+          <Route path="/timeslots" element={<TimeSlotsContent {...getCommonContentProps()} />} />
+          <Route path="/timeslots/:timeslotId" element={<DoctorTimeslotDetail />} />
+          
+          {/* Catch all - redirect to dashboard */}
+          <Route path="*" element={<DashboardContent {...getCommonContentProps()} />} />
+        </Routes>
       </div>
 
       {/* Floating Chatbot Button */}

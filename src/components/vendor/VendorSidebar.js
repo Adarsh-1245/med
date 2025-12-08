@@ -30,7 +30,7 @@ const VendorSidebar = ({
 
   const sidebarHeaderStyle = {
     padding: '24px 20px 16px',
-    borderBottom: '1px solid rgba(0,0,0,0.1)',
+    // Removed borderBottom
     position: 'relative',
     flexShrink: 0
   };
@@ -99,7 +99,7 @@ const VendorSidebar = ({
 
   const vendorProfileSectionStyle = {
     padding: '16px 20px',
-    borderBottom: '1px solid rgba(0,0,0,0.1)',
+    // Removed borderBottom
     flexShrink: 0,
     backgroundColor: 'rgba(0,0,0,0.05)'
   };
@@ -112,7 +112,7 @@ const VendorSidebar = ({
     borderRadius: '10px',
     cursor: 'pointer',
     transition: 'all 0.3s ease',
-    border: '1px solid rgba(0,0,0,0.1)',
+    // Removed border
     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
     '&:hover': {
       backgroundColor: 'rgba(0,0,0,0.12)',
@@ -185,7 +185,7 @@ const VendorSidebar = ({
   const navButtonActiveStyle = {
     backgroundColor: 'rgba(0,0,0,0.08)',
     opacity: 1,
-    borderRight: '3px solid #7C2A62',
+    // Removed borderRight - this was the sidebar line for active items
     fontWeight: '600'
   };
 
@@ -204,7 +204,7 @@ const VendorSidebar = ({
 
   const sidebarFooterStyle = {
     padding: '16px 20px',
-    borderTop: '1px solid rgba(0,0,0,0.1)',
+    // Removed borderTop
     flexShrink: 0,
     backgroundColor: 'rgba(0,0,0,0.05)'
   };

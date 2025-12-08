@@ -1,57 +1,41 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 const SearchBar = ({ searchTerm, onSearchChange, onClearSearch, filteredStock }) => {
-  const searchContainerStyle = {
-    marginBottom: '24px'
-  };
-
-  const searchInputContainerStyle = {
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    border: '1px solid #e5e7eb',
-    borderRadius: '8px',
-    padding: '8px 12px',
-    transition: 'border-color 0.3s ease'
-  };
-
-  const searchInputStyle = {
-    flex: 1,
-    border: 'none',
-    outline: 'none',
-    fontSize: '14px',
-    padding: '4px 0'
-  };
-
-  const clearSearchButtonStyle = {
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    color: '#6b7280',
-    fontSize: '16px',
-    padding: '4px'
-  };
-
-  const searchResultsInfoStyle = {
-    marginTop: '8px',
-    fontSize: '14px',
-    color: '#6b7280'
-  };
-
   return (
-    <div style={searchContainerStyle}>
-      <div style={searchInputContainerStyle}>
+    <div style={{ marginBottom: '24px' }}>
+      <div style={{
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        backgroundColor: 'white',
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px',
+        padding: '8px 12px',
+        transition: 'border-color 0.3s ease'
+      }}>
         <input
           type="text"
-          style={searchInputStyle}
+          style={{
+            flex: 1,
+            border: 'none',
+            outline: 'none',
+            fontSize: '14px',
+            padding: '4px 0'
+          }}
           placeholder="Search medicines by name, category, or batch number..."
           value={searchTerm}
           onChange={onSearchChange}
         />
         {searchTerm && (
           <button 
-            style={clearSearchButtonStyle}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#6b7280',
+              fontSize: '16px',
+              padding: '4px'
+            }}
             onClick={onClearSearch}
             title="Clear search"
           >
@@ -60,10 +44,86 @@ const SearchBar = ({ searchTerm, onSearchChange, onClearSearch, filteredStock })
         )}
       </div>
       {searchTerm && (
-        <div style={searchResultsInfoStyle}>
+        <div style={{ marginTop: '8px', fontSize: '14px', color: '#6b7280' }}>
           Found {filteredStock.length} medicine(s) matching "{searchTerm}"
         </div>
       )}
+    </div>
+  );
+};
+
+const CategoryTopBar = ({ 
+  categories, 
+  activeCategory, 
+  onCategoryClick,
+  categoryStats 
+}) => {
+  const categoryIcons = {
+    all: '📦',
+    pregnancy: '🤰',
+    babycare: '👶',
+    vitamins: '💊',
+    pain: '😷',
+    antibiotics: '🦠',
+    chronic: '❤️',
+    firstaid: '🩹',
+    equipment: '⚙️'
+  };
+
+  return (
+    <div style={{
+      display: 'flex',
+      gap: '8px',
+      marginBottom: '24px',
+      flexWrap: 'wrap',
+      padding: '16px',
+      backgroundColor: 'white',
+      borderRadius: '12px',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      border: '1px solid #e5e7eb'
+    }}>
+      {categories.map(category => (
+        <button
+          key={category.id}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '12px 20px',
+            backgroundColor: activeCategory === category.id ? '#7C2A62' : 'white',
+            color: activeCategory === category.id ? 'white' : 'inherit',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '500',
+            transition: 'all 0.3s ease',
+            minWidth: '120px',
+            justifyContent: 'center',
+            ...(activeCategory === category.id ? {
+              borderColor: '#7C2A62',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 4px 12px rgba(124, 42, 98, 0.2)'
+            } : {})
+          }}
+          onClick={() => onCategoryClick(category.id)}
+        >
+          <span style={{ fontSize: '16px' }}>{categoryIcons[category.id] || '💊'}</span>
+          <span>{category.name}</span>
+          <span style={{
+            backgroundColor: activeCategory === category.id ? 'rgba(255, 255, 255, 0.3)' : '#e5e7eb',
+            color: activeCategory === category.id ? 'white' : 'inherit',
+            borderRadius: '12px',
+            padding: '2px 8px',
+            fontSize: '12px',
+            fontWeight: '600',
+            minWidth: '24px',
+            textAlign: 'center'
+          }}>
+            {categoryStats[category.id] || 0}
+          </span>
+        </button>
+      ))}
     </div>
   );
 };
@@ -88,309 +148,429 @@ const VendorStockManagement = ({
   notifications,
   setStockFilter
 }) => {
-  const mainContentStyle = {
-    padding: '24px',
-    minHeight: '100vh',
-    '@media (max-width: 768px)': {
-      padding: '16px'
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [categoryFilteredStock, setCategoryFilteredStock] = useState([]);
+
+  // Simplified categories
+  const categories = [
+    { id: 'all', name: 'All Medicines' },
+    { id: 'pregnancy', name: 'Pregnancy Care' },
+    { id: 'babycare', name: 'Baby & Child Care' },
+    { id: 'vitamins', name: 'Vitamins & Supplements' },
+    { id: 'pain', name: 'Pain Relief' },
+    { id: 'antibiotics', name: 'Antibiotics' },
+    { id: 'chronic', name: 'Chronic Care' },
+    { id: 'firstaid', name: 'First Aid' },
+    { id: 'equipment', name: 'Medical Equipment' }
+  ];
+
+  // Initialize comprehensive sample data
+  const initializeSampleMedicines = () => {
+    const today = new Date();
+    const nextMonth = new Date(today);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const nextYear = new Date(today);
+    nextYear.setFullYear(nextYear.getFullYear() + 1);
+    const expiredDate = new Date(today);
+    expiredDate.setMonth(expiredDate.getMonth() - 2);
+    
+    const formatDate = (date) => date.toISOString().split('T')[0];
+    
+    const mockData = [
+      // ================= PREGNANCY CARE =================
+      {
+        id: 'PC-001',
+        name: 'Folic Acid 5mg Tablets',
+        category: 'Pregnancy Care',
+        batchNo: 'FA-2024-001',
+        quantity: 8,
+        price: 65,
+        expiryDate: formatDate(nextYear),
+        prescriptionRequired: false,
+        description: 'Essential for preventing neural tube defects'
+      },
+      {
+        id: 'PC-002',
+        name: 'Iron Supplement',
+        category: 'Pregnancy Care',
+        batchNo: 'IRN-2024-002',
+        quantity: 12,
+        price: 1250,
+        expiryDate: formatDate(nextYear),
+        prescriptionRequired: true,
+        description: 'For anemia during pregnancy'
+      },
+      {
+        id: 'PC-003',
+        name: 'Prenatal Multivitamin',
+        category: 'Pregnancy Care',
+        batchNo: 'PMV-2024-003',
+        quantity: 28,
+        price: 380,
+        expiryDate: formatDate(nextMonth),
+        prescriptionRequired: false,
+        description: 'Complete prenatal nutrition'
+      },
+      {
+        id: 'PC-004',
+        name: 'Calcium + Vitamin D3',
+        category: 'Pregnancy Care',
+        batchNo: 'CAL-2024-004',
+        quantity: 45,
+        price: 220,
+        expiryDate: formatDate(nextYear),
+        prescriptionRequired: false,
+        description: 'Bone health supplement'
+      },
+      {
+        id: 'PC-005',
+        name: 'Progesterone Gel',
+        category: 'Pregnancy Care',
+        batchNo: 'PRO-2024-005',
+        quantity: 15,
+        price: 1850,
+        expiryDate: formatDate(nextMonth),
+        prescriptionRequired: true,
+        description: 'Hormone support for pregnancy'
+      },
+
+      // ================= BABY & CHILD CARE =================
+      {
+        id: 'BC-001',
+        name: 'Infant Paracetamol Drops',
+        category: 'Baby & Child Care',
+        batchNo: 'IPD-2024-001',
+        quantity: 5,
+        price: 95,
+        expiryDate: formatDate(nextYear),
+        prescriptionRequired: true,
+        description: 'Fever reducer for infants'
+      },
+      {
+        id: 'BC-002',
+        name: 'Diaper Rash Cream',
+        category: 'Baby & Child Care',
+        batchNo: 'DRC-2024-002',
+        quantity: 25,
+        price: 150,
+        expiryDate: formatDate(nextYear),
+        prescriptionRequired: false,
+        description: 'For diaper rash prevention'
+      },
+      {
+        id: 'BC-003',
+        name: 'Baby Nasal Drops',
+        category: 'Baby & Child Care',
+        batchNo: 'BND-2024-003',
+        quantity: 38,
+        price: 85,
+        expiryDate: formatDate(nextYear),
+        prescriptionRequired: false,
+        description: 'Nasal congestion relief'
+      },
+      {
+        id: 'BC-004',
+        name: 'Teething Gel',
+        category: 'Baby & Child Care',
+        batchNo: 'TG-2024-004',
+        quantity: 8,
+        price: 110,
+        expiryDate: formatDate(nextYear),
+        prescriptionRequired: false,
+        description: 'Pain relief for teething'
+      },
+      {
+        id: 'BC-005',
+        name: 'Baby Sunscreen SPF 50+',
+        category: 'Baby & Child Care',
+        batchNo: 'BSS-2024-005',
+        quantity: 22,
+        price: 220,
+        expiryDate: formatDate(nextYear),
+        prescriptionRequired: false,
+        description: 'Mineral-based sunscreen'
+      },
+
+      // ================= MEDICAL EQUIPMENT =================
+      {
+        id: 'ME-001',
+        name: 'Blood Pressure Monitor',
+        category: 'Medical Equipment',
+        batchNo: 'BPM-2024-001',
+        quantity: 8,
+        price: 2250,
+        expiryDate: 'N/A',
+        prescriptionRequired: false,
+        description: 'Digital BP monitor'
+      },
+      {
+        id: 'ME-002',
+        name: 'Glucometer Kit',
+        category: 'Medical Equipment',
+        batchNo: 'GLU-2024-002',
+        quantity: 6,
+        price: 1250,
+        expiryDate: formatDate(nextYear),
+        prescriptionRequired: false,
+        description: 'Blood glucose monitor'
+      },
+      {
+        id: 'ME-003',
+        name: 'Digital Thermometer',
+        category: 'Medical Equipment',
+        batchNo: 'DT-2024-003',
+        quantity: 15,
+        price: 550,
+        expiryDate: 'N/A',
+        prescriptionRequired: false,
+        description: 'Infrared thermometer'
+      },
+      {
+        id: 'ME-004',
+        name: 'Nebulizer Machine',
+        category: 'Medical Equipment',
+        batchNo: 'NEB-2024-004',
+        quantity: 5,
+        price: 3800,
+        expiryDate: 'N/A',
+        prescriptionRequired: true,
+        description: 'For asthma treatment'
+      },
+      {
+        id: 'ME-005',
+        name: 'Oxygen Concentrator',
+        category: 'Medical Equipment',
+        batchNo: 'OXC-2024-005',
+        quantity: 2,
+        price: 52000,
+        expiryDate: 'N/A',
+        prescriptionRequired: true,
+        description: '5L oxygen therapy device'
+      },
+
+      // ================= OTHER CATEGORIES =================
+      {
+        id: 'VIT-001',
+        name: 'Vitamin C Tablets',
+        category: 'Vitamins & Supplements',
+        batchNo: 'VC-2024-001',
+        quantity: 65,
+        price: 150,
+        expiryDate: formatDate(nextYear),
+        prescriptionRequired: false,
+        description: 'Immune support'
+      },
+      {
+        id: 'PAIN-001',
+        name: 'Ibuprofen Tablets',
+        category: 'Pain Relief',
+        batchNo: 'IBU-2024-001',
+        quantity: 120,
+        price: 45,
+        expiryDate: formatDate(nextYear),
+        prescriptionRequired: false,
+        description: 'Pain relief'
+      },
+      {
+        id: 'ANT-001',
+        name: 'Amoxicillin Capsules',
+        category: 'Antibiotics',
+        batchNo: 'AMX-2024-001',
+        quantity: 85,
+        price: 95,
+        expiryDate: formatDate(nextYear),
+        prescriptionRequired: true,
+        description: 'Antibiotic'
+      },
+      {
+        id: 'CHR-001',
+        name: 'Metformin Tablets',
+        category: 'Chronic Care',
+        batchNo: 'MET-2024-001',
+        quantity: 150,
+        price: 55,
+        expiryDate: formatDate(nextYear),
+        prescriptionRequired: true,
+        description: 'Diabetes medication'
+      },
+      {
+        id: 'FA-001',
+        name: 'First Aid Kit',
+        category: 'First Aid',
+        batchNo: 'FAK-2024-001',
+        quantity: 18,
+        price: 550,
+        expiryDate: formatDate(nextYear),
+        prescriptionRequired: false,
+        description: 'Emergency kit'
+      }
+    ];
+
+    return mockData;
+  };
+
+  // Handle category selection
+  const handleCategoryClick = (categoryId) => {
+    setSelectedCategory(categoryId);
+  };
+
+  // Filter products based on category first, then apply stock filters
+  const filterByCategory = (products) => {
+    if (selectedCategory === 'all') {
+      return products;
+    }
+    
+    // Map categories to keywords for filtering
+    const categoryMappings = {
+      'pregnancy': ['Pregnancy Care'],
+      'babycare': ['Baby & Child Care'],
+      'equipment': ['Medical Equipment'],
+      'vitamins': ['Vitamins & Supplements'],
+      'pain': ['Pain Relief'],
+      'antibiotics': ['Antibiotics'],
+      'chronic': ['Chronic Care'],
+      'firstaid': ['First Aid']
+    };
+    
+    const targetCategory = categoryMappings[selectedCategory];
+    if (!targetCategory) return products;
+    
+    return products.filter(item => targetCategory.includes(item.category));
+  };
+
+  // Apply stock filters
+  const applyStockFilter = (products) => {
+    switch (stockFilter) {
+      case 'lowstock':
+        return products.filter(isLowStock);
+      case 'expiring':
+        return products.filter(isExpiringSoon);
+      case 'prescription':
+        return products.filter(m => m.prescriptionRequired);
+      default:
+        return products;
     }
   };
 
-  const headerStyle = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '30px',
-    '@media (max-width: 768px)': {
-      flexDirection: 'column',
-      gap: '15px'
-    }
+  // Get initial stock
+  const initialStock = stock.length > 0 ? stock : initializeSampleMedicines();
+  
+  // Calculate what to display
+  useEffect(() => {
+    // First filter by category
+    const categoryFiltered = filterByCategory(initialStock);
+    
+    // Then apply stock filter
+    const stockFiltered = applyStockFilter(categoryFiltered);
+    
+    // Set the filtered stock
+    setCategoryFilteredStock(stockFiltered);
+  }, [selectedCategory, stockFilter, initialStock]);
+
+  // Calculate category statistics - this should work on ALL data, not filtered
+  const calculateCategoryStats = () => {
+    const stats = {};
+    const allData = stock.length > 0 ? stock : initializeSampleMedicines();
+    
+    categories.forEach(category => {
+      if (category.id === 'all') {
+        stats['all'] = allData.length;
+      } else {
+        // Map categories to keywords for counting
+        const categoryMappings = {
+          'pregnancy': ['Pregnancy Care'],
+          'babycare': ['Baby & Child Care'],
+          'equipment': ['Medical Equipment'],
+          'vitamins': ['Vitamins & Supplements'],
+          'pain': ['Pain Relief'],
+          'antibiotics': ['Antibiotics'],
+          'chronic': ['Chronic Care'],
+          'firstaid': ['First Aid']
+        };
+        
+        const targetCategory = categoryMappings[category.id];
+        if (!targetCategory) {
+          stats[category.id] = 0;
+          return;
+        }
+        
+        const count = allData.filter(item => targetCategory.includes(item.category)).length;
+        stats[category.id] = count;
+      }
+    });
+    
+    return stats;
   };
 
-  const headerActionsStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    '@media (max-width: 768px)': {
-      width: '100%',
-      justifyContent: 'space-between'
-    }
-  };
-
-  const notificationBellStyle = {
-    position: 'relative',
-    backgroundColor: 'white',
-    border: '1px solid #e5e7eb',
-    borderRadius: '8px',
-    padding: '10px 12px',
-    fontSize: '18px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-  };
-
-  const notificationBadgeStyle = {
-    position: 'absolute',
-    top: '-5px',
-    right: '-5px',
-    backgroundColor: '#EF4444',
-    color: 'white',
-    borderRadius: '50%',
-    width: '18px',
-    height: '18px',
-    fontSize: '10px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: '600'
-  };
-
-  const greetingStyle = {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#1f2937',
-    margin: '0 0 8px 0',
-    '@media (max-width: 768px)': {
-      fontSize: '24px'
-    }
-  };
-
-  const subtitleStyle = {
-    fontSize: '16px',
-    color: '#6b7280',
-    margin: 0,
-    '@media (max-width: 768px)': {
-      fontSize: '14px'
-    }
-  };
-
-  const primaryButtonStyle = {
-    backgroundColor: '#7C2A62',
-    color: 'white',
-    border: 'none',
-    padding: '12px 20px',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s ease'
-  };
-
-  const filterTabsStyle = {
-    display: 'flex',
-    gap: '8px',
-    marginBottom: '24px',
-    flexWrap: 'wrap'
-  };
-
-  const filterTabStyle = {
-    padding: '10px 20px',
-    backgroundColor: 'white',
-    border: '1px solid #e5e7eb',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '500',
-    transition: 'all 0.3s ease'
-  };
-
-  const filterTabActiveStyle = {
-    backgroundColor: '#7C2A62',
-    color: 'white',
-    borderColor: '#7C2A62'
-  };
-
-  const statsGridStyle = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: '20px',
-    marginBottom: '30px',
-    '@media (max-width: 1024px)': {
-      gridTemplateColumns: 'repeat(2, 1fr)'
-    },
-    '@media (max-width: 480px)': {
-      gridTemplateColumns: '1fr'
-    }
-  };
-
-  const statCardStyle = {
-    backgroundColor: 'white',
-    padding: '20px',
-    borderRadius: '12px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    display: 'flex',
-    alignItems: 'center',
-    border: '1px solid #e5e7eb'
-  };
-
-  const statIconStyle = {
-    fontSize: '24px',
-    marginRight: '16px',
-    width: '50px',
-    height: '50px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '10px'
-  };
-
-  const statContentStyle = {
-    flex: 1
-  };
-
-  const statNumberStyle = {
-    fontSize: '24px',
-    fontWeight: '700',
-    color: '#1f2937',
-    margin: '0 0 4px 0'
-  };
-
-  const statLabelStyle = {
-    fontSize: '14px',
-    color: '#6b7280',
-    margin: 0
-  };
-
-  const sectionStyle = {
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    padding: '24px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    border: '1px solid #e5e7eb'
-  };
-
-  const sectionHeaderStyle = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '20px'
-  };
-
-  const sectionTitleStyle = {
-    fontSize: '20px',
-    fontWeight: '600',
-    color: '#1f2937',
-    margin: 0
-  };
-
-  const viewAllStyle = {
-    fontSize: '14px',
-    color: '#7C2A62',
-    fontWeight: '500',
-    cursor: 'pointer'
-  };
-
-  const tableContainerStyle = {
-    overflowX: 'auto'
-  };
-
-  const tableStyle = {
-    width: '100%',
-    borderCollapse: 'collapse',
-    minWidth: '800px'
-  };
-
-  const tableHeaderStyle = {
-    backgroundColor: '#f8fafc',
-    borderBottom: '2px solid #e5e7eb'
-  };
-
-  const tableRowStyle = {
-    borderBottom: '1px solid #e5e7eb',
-    transition: 'background-color 0.2s ease'
-  };
-
-  const tableCellStyle = {
-    padding: '12px 16px',
-    textAlign: 'left',
-    fontSize: '14px'
-  };
-
-  const medicineInfoStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '2px'
-  };
-
-  const batchNoStyle = {
-    fontSize: '12px',
-    color: '#6b7280'
-  };
-
-  const quantityStyle = {
-    fontWeight: '600'
-  };
-
-  const lowStockStyle = {
-    color: '#EF4444'
-  };
-
-  const expiringSoonStyle = {
-    color: '#F59E0B'
-  };
-
-  const expiredStyle = {
-    color: '#EF4444',
-    fontWeight: '600'
-  };
-
-  const actionButtonsStyle = {
-    display: 'flex',
-    gap: '4px',
-    flexWrap: 'wrap'
-  };
-
-  const smallButtonStyle = {
-    backgroundColor: '#7C2A62',
-    color: 'white',
-    border: 'none',
-    padding: '6px 12px',
-    borderRadius: '4px',
-    fontSize: '12px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    marginRight: '8px'
-  };
-
-  const noResultsStyle = {
-    textAlign: 'center',
-    padding: '40px',
-    color: '#6b7280'
-  };
-
-  const secondaryButtonStyle = {
-    backgroundColor: 'transparent',
-    color: '#7C2A62',
-    border: '2px solid #7C2A62',
-    padding: '10px 18px',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease'
-  };
+  const categoryStats = calculateCategoryStats();
+  const displayStock = selectedCategory === 'all' 
+    ? applyStockFilter(initialStock)
+    : categoryFilteredStock;
+  const currentCategory = categories.find(c => c.id === selectedCategory);
 
   return (
-    <div style={mainContentStyle}>
-      <div style={headerStyle}>
+    <div style={{ padding: '24px', minHeight: '100vh' }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: '30px'
+      }}>
         <div>
-          <h1 style={greetingStyle}>{getCurrentGreeting()}, {userProfile.fullName?.split(' ')[0] || 'User'}</h1>
-          <p style={subtitleStyle}>Manage your medicine inventory and stock levels</p>
+          <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#1f2937', margin: '0 0 8px 0' }}>
+            {getCurrentGreeting()}, {userProfile.fullName?.split(' ')[0] || 'User'}
+          </h1>
+          <p style={{ fontSize: '16px', color: '#6b7280', margin: 0 }}>
+            Manage your medicine inventory and stock levels
+          </p>
         </div>
-        <div style={headerActionsStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button 
-            style={notificationBellStyle}
+            style={{
+              position: 'relative',
+              backgroundColor: 'white',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              padding: '10px 12px',
+              fontSize: '18px',
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
             onClick={() => setShowNotificationsBellModal(true)}
           >
             🔔
             {notifications.length > 0 && (
-              <span style={notificationBadgeStyle}>
+              <span style={{
+                position: 'absolute',
+                top: '-5px',
+                right: '-5px',
+                backgroundColor: '#EF4444',
+                color: 'white',
+                borderRadius: '50%',
+                width: '18px',
+                height: '18px',
+                fontSize: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: '600'
+              }}>
                 {notifications.length}
               </span>
             )}
           </button>
           <button 
-            style={primaryButtonStyle}
+            style={{
+              backgroundColor: '#7C2A62',
+              color: 'white',
+              border: 'none',
+              padding: '12px 20px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
             onClick={() => setShowAddMedicineModal(true)}
           >
             + Add Medicine
@@ -398,13 +578,20 @@ const VendorStockManagement = ({
         </div>
       </div>
 
-      <div style={filterTabsStyle}>
+      {/* Filter Tabs */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
         {stockFilters.map(filter => (
           <button
             key={filter.id}
             style={{
-              ...filterTabStyle,
-              ...(stockFilter === filter.id ? filterTabActiveStyle : {})
+              padding: '10px 20px',
+              backgroundColor: stockFilter === filter.id ? '#7C2A62' : 'white',
+              color: stockFilter === filter.id ? 'white' : 'inherit',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500'
             }}
             onClick={() => setStockFilter(filter.id)}
           >
@@ -413,114 +600,270 @@ const VendorStockManagement = ({
         ))}
       </div>
 
-      <div style={statsGridStyle}>
-        <div style={statCardStyle}>
-          <div style={{...statIconStyle, backgroundColor: '#F7D9EB'}}>📦</div>
-          <div style={statContentStyle}>
-            <h3 style={statNumberStyle}>{stock.length}</h3>
-            <p style={statLabelStyle}>Total Medicines</p>
+      {/* Stats Cards */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '20px',
+        marginBottom: '30px'
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          padding: '20px',
+          borderRadius: '12px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          border: '1px solid #e5e7eb'
+        }}>
+          <div style={{ fontSize: '24px', marginRight: '16px' }}>📦</div>
+          <div>
+            <h3 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', margin: '0 0 4px 0' }}>
+              {initialStock.length}
+            </h3>
+            <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>Total Items</p>
           </div>
         </div>
 
-        <div style={statCardStyle}>
-          <div style={{...statIconStyle, backgroundColor: '#FFE4E6'}}>⚠️</div>
-          <div style={statContentStyle}>
-            <h3 style={statNumberStyle}>
-              {stock.filter(isLowStock).length}
+        <div style={{
+          backgroundColor: 'white',
+          padding: '20px',
+          borderRadius: '12px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          border: '1px solid #e5e7eb'
+        }}>
+          <div style={{ fontSize: '24px', marginRight: '16px' }}>⚠️</div>
+          <div>
+            <h3 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', margin: '0 0 4px 0' }}>
+              {initialStock.filter(isLowStock).length}
             </h3>
-            <p style={statLabelStyle}>Low Stock</p>
+            <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>Low Stock</p>
           </div>
         </div>
 
-        <div style={statCardStyle}>
-          <div style={{...statIconStyle, backgroundColor: '#FEF3C7'}}>📅</div>
-          <div style={statContentStyle}>
-            <h3 style={statNumberStyle}>
-              {stock.filter(isExpiringSoon).length}
+        <div style={{
+          backgroundColor: 'white',
+          padding: '20px',
+          borderRadius: '12px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          border: '1px solid #e5e7eb'
+        }}>
+          <div style={{ fontSize: '24px', marginRight: '16px' }}>📅</div>
+          <div>
+            <h3 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', margin: '0 0 4px 0' }}>
+              {initialStock.filter(isExpiringSoon).length}
             </h3>
-            <p style={statLabelStyle}>Expiring Soon</p>
+            <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>Expiring Soon</p>
           </div>
         </div>
 
-        <div style={statCardStyle}>
-          <div style={{...statIconStyle, backgroundColor: '#D1FAE5'}}>🩺</div>
-          <div style={statContentStyle}>
-            <h3 style={statNumberStyle}>
-              {stock.filter(m => m.prescriptionRequired).length}
+        <div style={{
+          backgroundColor: 'white',
+          padding: '20px',
+          borderRadius: '12px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          border: '1px solid #e5e7eb'
+        }}>
+          <div style={{ fontSize: '24px', marginRight: '16px' }}>🩺</div>
+          <div>
+            <h3 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', margin: '0 0 4px 0' }}>
+              {initialStock.filter(m => m.prescriptionRequired).length}
             </h3>
-            <p style={statLabelStyle}>Prescription Only</p>
+            <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>Prescription Only</p>
           </div>
         </div>
       </div>
 
-      <div style={sectionStyle}>
-        <div style={sectionHeaderStyle}>
-          <h2 style={sectionTitleStyle}>Medicine Inventory</h2>
-          <span style={viewAllStyle}>{filteredStock.length} items</span>
+      {/* Category Top Bar */}
+      <CategoryTopBar 
+        categories={categories}
+        activeCategory={selectedCategory}
+        onCategoryClick={handleCategoryClick}
+        categoryStats={categoryStats}
+      />
+
+      {/* Category Status */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        backgroundColor: '#F8FAFC',
+        padding: '12px 16px',
+        borderRadius: '8px',
+        marginBottom: '20px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+          <span>Showing:</span>
+          <span style={{ fontWeight: '600' }}>
+            {selectedCategory === 'all' ? 'All Items' : currentCategory?.name}
+            {stockFilter !== 'all' && ` (${stockFilters.find(f => f.id === stockFilter)?.label})`}
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+          <span>Items:</span>
+          <span style={{ fontWeight: '600' }}>{displayStock.length}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+          <span>Category Count:</span>
+          <span style={{ fontWeight: '600' }}>{categoryStats[selectedCategory] || 0}</span>
+        </div>
+        {(selectedCategory !== 'all' || stockFilter !== 'all') && (
+          <button 
+            style={{
+              marginLeft: 'auto',
+              fontSize: '12px',
+              padding: '6px 12px',
+              backgroundColor: 'transparent',
+              border: '1px solid #7C2A62',
+              color: '#7C2A62',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+            onClick={() => {
+              setSelectedCategory('all');
+              setStockFilter('all');
+            }}
+          >
+            Reset Filters
+          </button>
+        )}
+      </div>
+
+      {/* Main Content */}
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        padding: '24px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        border: '1px solid #e5e7eb'
+      }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '20px'
+        }}>
+          <div>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#1f2937', margin: 0 }}>
+              {selectedCategory === 'all' ? 'Medicine & Equipment Inventory' : currentCategory?.name}
+              {stockFilter !== 'all' && ` (${stockFilters.find(f => f.id === stockFilter)?.label})`}
+            </h2>
+            <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
+              {displayStock.length} of {categoryStats[selectedCategory] || 0} items shown
+              {stockFilter !== 'all' ? ` after applying ${stockFilters.find(f => f.id === stockFilter)?.label.toLowerCase()} filter` : ''}
+            </p>
+          </div>
+          <div style={{ fontSize: '14px', color: '#7C2A62', fontWeight: '500' }}>
+            <span>{displayStock.length} items</span>
+          </div>
         </div>
 
         <SearchBar 
           searchTerm={searchTerm}
-          onSearchChange={handleSearchChange}
-          onClearSearch={handleClearSearch}
+          onSearchChange={(e) => {
+            handleSearchChange(e);
+            if (searchTerm && selectedCategory !== 'all') {
+              setSelectedCategory('all');
+            }
+          }}
+          onClearSearch={() => {
+            handleClearSearch();
+            setSelectedCategory('all');
+          }}
           filteredStock={filteredStock}
         />
 
-        <div style={tableContainerStyle}>
-          <table style={tableStyle}>
+        {/* Table */}
+        <div style={{ overflowX: 'auto', marginTop: '20px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
             <thead>
-              <tr style={tableHeaderStyle}>
-                <th style={tableCellStyle}>Medicine Name</th>
-                <th style={tableCellStyle}>Category</th>
-                <th style={tableCellStyle}>Quantity</th>
-                <th style={tableCellStyle}>Price</th>
-                <th style={tableCellStyle}>Expiry Date</th>
-                <th style={tableCellStyle}>Prescription</th>
-                <th style={tableCellStyle}>Actions</th>
+              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e5e7eb' }}>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '14px' }}>Name</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '14px' }}>Category</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '14px' }}>Quantity</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '14px' }}>Price</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '14px' }}>Expiry Date</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '14px' }}>Prescription</th>
+                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '14px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredStock.map(medicine => (
-                <tr key={medicine.id} style={tableRowStyle}>
-                  <td style={tableCellStyle}>
-                    <div style={medicineInfoStyle}>
-                      <strong>{medicine.name}</strong>
-                      <span style={batchNoStyle}>{medicine.batchNo}</span>
+              {displayStock.map(item => (
+                <tr key={item.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                  <td style={{ padding: '12px 16px', fontSize: '14px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <strong>{item.name}</strong>
+                      <span style={{ fontSize: '12px', color: '#6b7280' }}>{item.batchNo}</span>
                     </div>
                   </td>
-                  <td style={tableCellStyle}>{medicine.category}</td>
-                  <td style={tableCellStyle}>
+                  <td style={{ padding: '12px 16px', fontSize: '14px' }}>
                     <span style={{
-                      ...quantityStyle,
-                      ...(isLowStock(medicine) ? lowStockStyle : {})
+                      fontWeight: '500',
+                      backgroundColor: 
+                        item.category === 'Pregnancy Care' ? '#F7D9EB' :
+                        item.category === 'Baby & Child Care' ? '#E0F2FE' : 
+                        item.category === 'Medical Equipment' ? '#E0E7FF' :
+                        item.category === 'Vitamins & Supplements' ? '#FEF3C7' :
+                        item.category === 'Pain Relief' ? '#FEE2E2' :
+                        item.category === 'Antibiotics' ? '#DCFCE7' :
+                        item.category === 'Chronic Care' ? '#F3E8FF' :
+                        item.category === 'First Aid' ? '#FEF9C3' : '#F3F4F6',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      display: 'inline-block'
                     }}>
-                      {medicine.quantity}
-                      {isLowStock(medicine) && ' ⚠️'}
+                      {item.category}
                     </span>
                   </td>
-                  <td style={tableCellStyle}>{formatIndianCurrency(medicine.price)}</td>
-                  <td style={tableCellStyle}>
-                    <span style={{
-                      ...(isExpired(medicine) ? expiredStyle : {}),
-                      ...(isExpiringSoon(medicine) && !isExpired(medicine) ? expiringSoonStyle : {})
-                    }}>
-                      {medicine.expiryDate}
-                      {isExpired(medicine) && ' 🔴'}
-                      {isExpiringSoon(medicine) && !isExpired(medicine) && ' 🟡'}
+                  <td style={{ padding: '12px 16px', fontSize: '14px' }}>
+                    <span style={{ fontWeight: '600', ...(isLowStock(item) ? { color: '#EF4444' } : {}) }}>
+                      {item.quantity}
+                      {isLowStock(item) && ' ⚠️'}
                     </span>
                   </td>
-                  <td style={tableCellStyle}>
-                    {medicine.prescriptionRequired ? 'Yes' : 'No'}
+                  <td style={{ padding: '12px 16px', fontSize: '14px' }}>
+                    {formatIndianCurrency(item.price)}
                   </td>
-                  <td style={tableCellStyle}>
-                    <div style={actionButtonsStyle}>
-                      <button 
-                        style={smallButtonStyle}
-                        onClick={() => handleEditMedicine(medicine)}
-                      >
-                        Update Stock
-                      </button>
-                    </div>
+                  <td style={{ padding: '12px 16px', fontSize: '14px' }}>
+                    <span style={{
+                      ...(isExpired(item) ? { color: '#EF4444', fontWeight: '600' } : {}),
+                      ...(isExpiringSoon(item) && !isExpired(item) ? { color: '#F59E0B' } : {})
+                    }}>
+                      {item.expiryDate}
+                      {isExpired(item) && ' 🔴'}
+                      {isExpiringSoon(item) && !isExpired(item) && ' 🟡'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px 16px', fontSize: '14px' }}>
+                    {item.prescriptionRequired ? (
+                      <span style={{ color: '#EF4444', fontWeight: '500' }}>Yes</span>
+                    ) : (
+                      <span style={{ color: '#10B981', fontWeight: '500' }}>No</span>
+                    )}
+                  </td>
+                  <td style={{ padding: '12px 16px', fontSize: '14px' }}>
+                    <button 
+                      style={{
+                        backgroundColor: '#7C2A62',
+                        color: 'white',
+                        border: 'none',
+                        padding: '6px 12px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => handleEditMedicine(item)}
+                    >
+                      Update Stock
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -528,17 +871,61 @@ const VendorStockManagement = ({
           </table>
         </div>
 
-        {filteredStock.length === 0 && (
-          <div style={noResultsStyle}>
-            <p>No medicines found matching your search criteria.</p>
-            {searchTerm && (
-              <button 
-                style={secondaryButtonStyle}
-                onClick={handleClearSearch}
-              >
-                Clear Search
-              </button>
-            )}
+        {displayStock.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+            <p style={{ fontSize: '16px', marginBottom: '8px' }}>
+              No items found 
+              {selectedCategory !== 'all' ? ` in ${currentCategory?.name}` : ''}
+              {stockFilter !== 'all' ? ` with ${stockFilters.find(f => f.id === stockFilter)?.label.toLowerCase()} filter` : ''}
+              {searchTerm ? ` matching "${searchTerm}"` : ''}.
+            </p>
+            <p style={{ fontSize: '14px', color: '#9CA3AF', marginBottom: '16px' }}>
+              {selectedCategory !== 'all' 
+                ? `There are ${categoryStats[selectedCategory] || 0} items in this category. Try changing the stock filter or search term.`
+                : 'Try changing filters or adding new items to your inventory.'}
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              {(searchTerm || stockFilter !== 'all' || selectedCategory !== 'all') && (
+                <button 
+                  style={{
+                    backgroundColor: 'transparent',
+                    color: '#7C2A62',
+                    border: '2px solid #7C2A62',
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    marginTop: '16px'
+                  }}
+                  onClick={() => {
+                    handleClearSearch();
+                    setSelectedCategory('all');
+                    setStockFilter('all');
+                  }}
+                >
+                  Clear All Filters
+                </button>
+              )}
+              {selectedCategory !== 'all' && (
+                <button 
+                  style={{
+                    backgroundColor: '#7C2A62',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    marginTop: '16px'
+                  }}
+                  onClick={() => setShowAddMedicineModal(true)}
+                >
+                  Add {currentCategory?.name} Item
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>

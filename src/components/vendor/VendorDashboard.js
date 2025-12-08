@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import VendorModals from './VendorModals';
 import VendorSidebar from './VendorSidebar';
 import VendorStockManagement from './VendorStockManagement';
@@ -6,15 +7,28 @@ import VendorOrdersManagement from './VendorOrdersManagement';
 import VendorPrescriptionVerification from './VendorPrescriptionVerification';
 import VendorAnalytics from './VendorAnalytics';
 import VendorProfile from './VendorProfile';
-import { initialData, user as defaultUser, navigationItems, stockFilters, getOrderTabs } from './VendorData';
+import { initialData, user as defaultUser, stockFilters, getOrderTabs } from './VendorData';
 
 const VendorDashboard = ({ user = defaultUser, onLogout }) => {
-  const [activePage, setActivePage] = useState('stock');
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Derive activePage from route
+  const getActivePageFromRoute = () => {
+    const path = location.pathname;
+    if (path.includes('/stock')) return 'stock';
+    if (path.includes('/orders')) return 'orders';
+    if (path.includes('/prescriptions')) return 'prescriptions';
+    if (path.includes('/analytics')) return 'analytics';
+    if (path.includes('/profile')) return 'profile';
+    return 'stock'; // Default
+  };
+
+  const [activePage, setActivePage] = useState(getActivePageFromRoute());
   const [stockFilter, setStockFilter] = useState('all');
   const [orderFilter, setOrderFilter] = useState('pending');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedPrescription, setSelectedPrescription] = useState(null);
-  const [analyticsPeriod, setAnalyticsPeriod] = useState('week');
   
   // State for real-time features
   const [stock, setStock] = useState([]);
@@ -110,6 +124,38 @@ const VendorDashboard = ({ user = defaultUser, onLogout }) => {
       read: false
     }
   ]);
+
+  // Update activePage when route changes
+  useEffect(() => {
+    setActivePage(getActivePageFromRoute());
+  }, [location]);
+
+  // Navigation handler
+  const handleNavigation = (page) => {
+    setActivePage(page);
+    // Navigate to corresponding route
+    switch (page) {
+      case 'stock':
+        navigate('/vendor/dashboard/stock');
+        break;
+      case 'orders':
+        navigate('/vendor/dashboard/orders');
+        break;
+      case 'prescriptions':
+        navigate('/vendor/dashboard/prescriptions');
+        break;
+      case 'analytics':
+        navigate('/vendor/dashboard/analytics');
+        break;
+      case 'profile':
+        navigate('/vendor/dashboard/profile');
+        break;
+      default:
+        navigate('/vendor/dashboard/stock');
+    }
+    // Close mobile menu on navigation
+    setShowMobileMenu(false);
+  };
 
   // Form validation functions
   const validateField = (fieldName, value) => {
@@ -555,6 +601,7 @@ const VendorDashboard = ({ user = defaultUser, onLogout }) => {
     setShowLogoutModal(false);
     if (onLogout) {
       onLogout();
+      navigate('/'); // Navigate to home or login page after logout
     }
   };
 
@@ -565,8 +612,7 @@ const VendorDashboard = ({ user = defaultUser, onLogout }) => {
 
   // Handle vendor click - go directly to profile page
   const handleVendorClick = () => {
-    setActivePage('profile');
-    setShowMobileMenu(false);
+    handleNavigation('profile');
   };
 
   // Analytics data
@@ -598,107 +644,15 @@ const VendorDashboard = ({ user = defaultUser, onLogout }) => {
   // Get dynamic order tabs based on current orders state
   const orderTabs = getOrderTabs(orders);
 
-  const renderMainContent = () => {
-    switch (activePage) {
-      case 'stock':
-        return (
-          <VendorStockManagement
-            userProfile={userProfile}
-            stockFilter={stockFilter}
-            stock={stock}
-            searchTerm={searchTerm}
-            filteredStock={filteredStock}
-            stockFilters={stockFilters}
-            formatIndianCurrency={formatIndianCurrency}
-            getCurrentGreeting={getCurrentGreeting}
-            isLowStock={isLowStock}
-            isExpiringSoon={isExpiringSoon}
-            isExpired={isExpired}
-            handleSearchChange={handleSearchChange}
-            handleClearSearch={handleClearSearch}
-            handleEditMedicine={handleEditMedicine}
-            setShowAddMedicineModal={setShowAddMedicineModal}
-            setShowNotificationsBellModal={setShowNotificationsBellModal}
-            notifications={notifications}
-            setStockFilter={setStockFilter}
-          />
-        );
-      case 'orders':
-        return (
-          <VendorOrdersManagement
-            orderFilter={orderFilter}
-            selectedOrder={selectedOrder}
-            orders={orders}
-            orderTabs={orderTabs}
-            formatIndianCurrency={formatIndianCurrency}
-            setShowNotificationsBellModal={setShowNotificationsBellModal}
-            notifications={notifications}
-            setSelectedOrder={setSelectedOrder}
-            markOrderReady={markOrderReady}
-            markOrderPicked={markOrderPicked}
-            printLabel={printLabel}
-            cancelOrder={cancelOrder}
-            setOrderFilter={setOrderFilter}
-          />
-        );
-      case 'prescriptions':
-        return (
-          <VendorPrescriptionVerification
-            selectedPrescription={selectedPrescription}
-            prescriptions={prescriptions}
-            setShowNotificationsBellModal={setShowNotificationsBellModal}
-            notifications={notifications}
-            setSelectedPrescription={setSelectedPrescription}
-            approvePrescription={approvePrescription}
-            rejectPrescription={rejectPrescription}
-            messageDoctor={messageDoctor}
-          />
-        );
-      case 'analytics':
-        return (
-          <VendorAnalytics
-            analyticsData={analyticsData}
-            formatIndianCurrency={formatIndianCurrency}
-            setShowNotificationsBellModal={setShowNotificationsBellModal}
-            notifications={notifications}
-          />
-        );
-      case 'profile':
-        return (
-          <VendorProfile
-            userProfile={userProfile}
-            stock={stock}
-            orders={orders}
-            prescriptions={prescriptions}
-            setShowNotificationsBellModal={setShowNotificationsBellModal}
-            setShowProfileModal={setShowProfileModal}
-            notifications={notifications}
-          />
-        );
-      default:
-        return (
-          <VendorStockManagement
-            userProfile={userProfile}
-            stockFilter={stockFilter}
-            stock={stock}
-            searchTerm={searchTerm}
-            filteredStock={filteredStock}
-            stockFilters={stockFilters}
-            formatIndianCurrency={formatIndianCurrency}
-            getCurrentGreeting={getCurrentGreeting}
-            isLowStock={isLowStock}
-            isExpiringSoon={isExpiringSoon}
-            isExpired={isExpired}
-            handleSearchChange={handleSearchChange}
-            handleClearSearch={handleClearSearch}
-            handleEditMedicine={handleEditMedicine}
-            setShowAddMedicineModal={setShowAddMedicineModal}
-            setShowNotificationsBellModal={setShowNotificationsBellModal}
-            notifications={notifications}
-            setStockFilter={setStockFilter}
-          />
-        );
-    }
+  // Updated Sidebar props with navigation handler
+  const sidebarProps = {
+    activePage,
+    setActivePage: handleNavigation,
+    userProfile,
+    showMobileMenu,
+    toggleMobileMenu,
+    handleVendorClick,
+    handleLogout
   };
 
   const modalsProps = {
@@ -739,168 +693,92 @@ const VendorDashboard = ({ user = defaultUser, onLogout }) => {
     confirmLogout
   };
 
-  const containerStyle = {
-    display: 'flex',
-    minHeight: '100vh',
-    backgroundColor: '#f8fafc',
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
-  };
-
-  const mobileHeaderStyle = {
-    display: 'none',
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#7C2A62',
-    color: 'white',
-    padding: '12px 16px',
-    zIndex: 999,
-    borderBottom: '1px solid rgba(255,255,255,0.1)',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    '@media (max-width: 768px)': {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-    }
-  };
-
-  const mobileMenuButtonStyle = {
-    backgroundColor: 'transparent',
-    border: 'none',
-    color: 'white',
-    fontSize: '18px',
-    cursor: 'pointer',
-    padding: '6px',
-    borderRadius: '4px',
-    '&:hover': {
-      backgroundColor: 'rgba(255,255,255,0.1)'
-    }
-  };
-
-  const mobileLogoStyle = {
-    textAlign: 'center',
-    flex: 1
-  };
-
-  const mobileActionsStyle = {
-    display: 'flex',
-    gap: '8px'
-  };
-
-  const notificationBellStyle = {
-    position: 'relative',
-    backgroundColor: 'white',
-    border: '1px solid #e5e7eb',
-    borderRadius: '8px',
-    padding: '10px 12px',
-    fontSize: '18px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-  };
-
-  const notificationBadgeStyle = {
-    position: 'absolute',
-    top: '-5px',
-    right: '-5px',
-    backgroundColor: '#EF4444',
-    color: 'white',
-    borderRadius: '50%',
-    width: '18px',
-    height: '18px',
-    fontSize: '10px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: '600'
-  };
-
-  const logoStyle = {
-    fontSize: '22px',
-    fontWeight: '700',
-    margin: '0 0 4px 0',
-    color: 'white',
-    letterSpacing: '0.5px'
-  };
-
-  const vendorTitleStyle = {
-    fontSize: '12px',
-    opacity: 0.8,
-    margin: 0,
-    fontWeight: '400'
-  };
-
-  const contentStyle = {
-    flex: 1,
-    marginLeft: '280px',
-    padding: '0',
-    minHeight: '100vh',
-    '@media (max-width: 768px)': {
-      marginLeft: '0',
-      marginTop: '60px'
-    }
-  };
-
-  const mobileOverlayStyle = {
-    display: 'none',
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    zIndex: 998,
-    '@media (max-width: 768px)': {
-      display: 'block'
-    }
-  };
-
-  const chatbotWidgetStyle = {
-    position: 'fixed',
-    bottom: '20px',
-    right: '20px',
-    zIndex: 1000
-  };
-
-  const chatbotWidgetButtonStyle = {
-    backgroundColor: '#7C2A62',
-    color: 'white',
-    border: 'none',
-    borderRadius: '50%',
-    width: '60px',
-    height: '60px',
-    fontSize: '24px',
-    cursor: 'pointer',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-    transition: 'all 0.3s ease',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  };
-
   return (
-    <div style={containerStyle}>
+    <div style={{
+      display: 'flex',
+      minHeight: '100vh',
+      backgroundColor: '#f8fafc',
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
+    }}>
       {/* Mobile Header */}
-      <div style={mobileHeaderStyle}>
+      <div style={{
+        display: 'none',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#7C2A62',
+        color: 'white',
+        padding: '12px 16px',
+        zIndex: 999,
+        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        '@media (max-width: 768px)': {
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }
+      }}>
         <button 
-          style={mobileMenuButtonStyle}
+          style={{
+            backgroundColor: 'transparent',
+            border: 'none',
+            color: 'white',
+            fontSize: '18px',
+            cursor: 'pointer',
+            padding: '6px',
+            borderRadius: '4px'
+          }}
           onClick={toggleMobileMenu}
         >
           ☰
         </button>
-        <div style={mobileLogoStyle}>
-          <h1 style={logoStyle}>QUICKMED</h1>
-          <p style={vendorTitleStyle}>Vendor Portal</p>
+        <div style={{ textAlign: 'center', flex: 1 }}>
+          <h1 style={{
+            fontSize: '22px',
+            fontWeight: '700',
+            margin: '0 0 4px 0',
+            color: 'white',
+            letterSpacing: '0.5px'
+          }}>QUICKMED</h1>
+          <p style={{
+            fontSize: '12px',
+            opacity: 0.8,
+            margin: 0,
+            fontWeight: '400'
+          }}>Vendor Portal</p>
         </div>
-        <div style={mobileActionsStyle}>
+        <div style={{ display: 'flex', gap: '8px' }}>
           <button 
-            style={notificationBellStyle}
+            style={{
+              position: 'relative',
+              backgroundColor: 'white',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              padding: '10px 12px',
+              fontSize: '18px',
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
             onClick={() => setShowNotificationsBellModal(true)}
           >
             🔔
             {notifications.length > 0 && (
-              <span style={notificationBadgeStyle}>
+              <span style={{
+                position: 'absolute',
+                top: '-5px',
+                right: '-5px',
+                backgroundColor: '#EF4444',
+                color: 'white',
+                borderRadius: '50%',
+                width: '18px',
+                height: '18px',
+                fontSize: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: '600'
+              }}>
                 {notifications.length}
               </span>
             )}
@@ -909,29 +787,134 @@ const VendorDashboard = ({ user = defaultUser, onLogout }) => {
       </div>
 
       {/* Sidebar */}
-      <VendorSidebar
-        activePage={activePage}
-        setActivePage={setActivePage}
-        userProfile={userProfile}
-        showMobileMenu={showMobileMenu}
-        toggleMobileMenu={toggleMobileMenu}
-        handleVendorClick={handleVendorClick}
-        handleLogout={handleLogout}
-      />
+      <VendorSidebar {...sidebarProps} />
 
       {/* Mobile Overlay */}
       {showMobileMenu && (
-        <div style={mobileOverlayStyle} onClick={toggleMobileMenu} />
+        <div style={{
+          display: 'none',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          zIndex: 998,
+          '@media (max-width: 768px)': {
+            display: 'block'
+          }
+        }} onClick={toggleMobileMenu} />
       )}
 
-      <div style={contentStyle}>
-        {renderMainContent()}
+      <div style={{
+        flex: 1,
+        marginLeft: '280px',
+        padding: '0',
+        minHeight: '100vh',
+        '@media (max-width: 768px)': {
+          marginLeft: '0',
+          marginTop: '60px'
+        }
+      }}>
+        <Routes>
+          <Route path="/" element={<Navigate to="/vendor/dashboard/stock" replace />} />
+          <Route path="/stock" element={
+            <VendorStockManagement
+              userProfile={userProfile}
+              stockFilter={stockFilter}
+              stock={stock}
+              searchTerm={searchTerm}
+              filteredStock={filteredStock}
+              stockFilters={stockFilters}
+              formatIndianCurrency={formatIndianCurrency}
+              getCurrentGreeting={getCurrentGreeting}
+              isLowStock={isLowStock}
+              isExpiringSoon={isExpiringSoon}
+              isExpired={isExpired}
+              handleSearchChange={handleSearchChange}
+              handleClearSearch={handleClearSearch}
+              handleEditMedicine={handleEditMedicine}
+              setShowAddMedicineModal={setShowAddMedicineModal}
+              setShowNotificationsBellModal={setShowNotificationsBellModal}
+              notifications={notifications}
+              setStockFilter={setStockFilter}
+            />
+          } />
+          <Route path="/orders" element={
+            <VendorOrdersManagement
+              orderFilter={orderFilter}
+              selectedOrder={selectedOrder}
+              orders={orders}
+              orderTabs={orderTabs}
+              formatIndianCurrency={formatIndianCurrency}
+              setShowNotificationsBellModal={setShowNotificationsBellModal}
+              notifications={notifications}
+              setSelectedOrder={setSelectedOrder}
+              markOrderReady={markOrderReady}
+              markOrderPicked={markOrderPicked}
+              printLabel={printLabel}
+              cancelOrder={cancelOrder}
+              setOrderFilter={setOrderFilter}
+            />
+          } />
+          <Route path="/prescriptions" element={
+            <VendorPrescriptionVerification
+              selectedPrescription={selectedPrescription}
+              prescriptions={prescriptions}
+              setShowNotificationsBellModal={setShowNotificationsBellModal}
+              notifications={notifications}
+              setSelectedPrescription={setSelectedPrescription}
+              approvePrescription={approvePrescription}
+              rejectPrescription={rejectPrescription}
+              messageDoctor={messageDoctor}
+            />
+          } />
+          <Route path="/analytics" element={
+            <VendorAnalytics
+              analyticsData={analyticsData}
+              formatIndianCurrency={formatIndianCurrency}
+              setShowNotificationsBellModal={setShowNotificationsBellModal}
+              notifications={notifications}
+            />
+          } />
+          <Route path="/profile" element={
+            <VendorProfile
+              userProfile={userProfile}
+              stock={stock}
+              orders={orders}
+              prescriptions={prescriptions}
+              setShowNotificationsBellModal={setShowNotificationsBellModal}
+              setShowProfileModal={setShowProfileModal}
+              notifications={notifications}
+            />
+          } />
+          {/* Catch-all route - redirect to stock */}
+          <Route path="*" element={<Navigate to="/vendor/dashboard/stock" replace />} />
+        </Routes>
       </div>
 
       {/* Floating Chatbot Widget */}
-      <div style={chatbotWidgetStyle}>
+      <div style={{
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        zIndex: 1000
+      }}>
         <button 
-          style={chatbotWidgetButtonStyle}
+          style={{
+            backgroundColor: '#7C2A62',
+            color: 'white',
+            border: 'none',
+            borderRadius: '50%',
+            width: '60px',
+            height: '60px',
+            fontSize: '24px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
           onClick={() => setShowChatModal(true)}
           title="Chat Support"
         >

@@ -5,6 +5,7 @@ const AboutUs = ({ onNavigateToAuth }) => {
   const [isTablet, setIsTablet] = useState(false);
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -15,21 +16,24 @@ const AboutUs = ({ onNavigateToAuth }) => {
 
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
-    
-    // Add fade-in animation
     setIsVisible(true);
-    
+
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
   const handleBookAppointment = () => {
-    const confirmLogin = window.confirm(
-      'To book an appointment, you need to login first.\n\nClick OK to proceed to login page.'
-    );
-    
-    if (confirmLogin && onNavigateToAuth) {
+    setShowLoginPrompt(true);
+  };
+
+  const handleLoginConfirm = () => {
+    setShowLoginPrompt(false);
+    if (onNavigateToAuth) {
       onNavigateToAuth();
     }
+  };
+
+  const handleLoginCancel = () => {
+    setShowLoginPrompt(false);
   };
 
   const handleLearnMore = () => {
@@ -46,859 +50,1305 @@ const AboutUs = ({ onNavigateToAuth }) => {
     }
   };
 
+  // Color palette
+  const PRIMARY = '#009688';
+  const MINT = '#4DB6AC';
+  const SOFT_BG = '#E0F2F1';
+  const WHITE = '#FFFFFF';
+  const DARK_TEXT = '#124441';
+  const SOFT_TEXT = '#4F6F6B';
+
   const styles = {
-    // Main About Section with Bubble Background
     about: {
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #F7D9EB 0%, #ffffff 50%, #F7D9EB 100%)',
+      background: `linear-gradient(135deg, ${SOFT_BG} 0%, ${WHITE} 55%, ${SOFT_BG} 100%)`,
       position: 'relative',
-      overflow: 'hidden',
-      padding: isMobile ? '60px 20px' : isTablet ? '70px 30px' : '80px 20px',
-    },
-    floatingElements: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      pointerEvents: 'none',
-      zIndex: 1,
-    },
-    floatingElement: {
-      position: 'absolute',
-      background: 'rgba(124, 42, 98, 0.1)',
-      borderRadius: '50%',
-      animation: 'float 6s ease-in-out infinite',
+      overflowX: 'hidden',
+      padding: isMobile ? '56px 8px 32px' : isTablet ? '72px 16px 40px' : '80px 24px 48px',
     },
     container: {
-      maxWidth: '1200px',
+      maxWidth: '1240px',
+      width: '100%',
       margin: '0 auto',
       position: 'relative',
-      zIndex: 2,
+      zIndex: 1,
     },
+
+    /* HERO */
     header: {
-      textAlign: 'center',
-      marginBottom: isMobile ? '40px' : '60px',
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : 'minmax(0,1.4fr) minmax(0,1fr)',
+      gap: isMobile ? '20px' : '36px',
+      alignItems: 'center',
+      marginBottom: isMobile ? '32px' : '56px',
       opacity: isVisible ? 1 : 0,
       transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
       transition: 'all 0.8s ease-out',
     },
+    heroText: {
+      textAlign: isMobile ? 'center' : 'left',
+      padding: isMobile ? '0 6px' : 0,
+    },
+    badgeRow: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '6px',
+      justifyContent: isMobile ? 'center' : 'flex-start',
+      marginBottom: '10px',
+    },
+    badge: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      backgroundColor: 'rgba(0,150,136,0.12)',
+      color: PRIMARY,
+      padding: '4px 12px',
+      borderRadius: '999px',
+      fontSize: '10px',
+      fontWeight: 600,
+      letterSpacing: '0.08em',
+      textTransform: 'uppercase',
+      maxWidth: '100%',
+      whiteSpace: 'nowrap',
+    },
     sectionTitle: {
-      fontSize: isMobile ? '36px' : isTablet ? '42px' : '48px',
-      fontWeight: '700',
-      color: '#7C2A62',
-      marginBottom: '16px',
-      background: 'linear-gradient(45deg, #7C2A62, #9C3A7A)',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
+      fontSize: isMobile ? '26px' : isTablet ? '34px' : '40px',
+      fontWeight: 700,
+      color: DARK_TEXT,
+      marginBottom: '10px',
+      lineHeight: 1.25,
+      wordBreak: 'break-word',
+    },
+    highlight: {
+      backgroundImage: `linear-gradient(120deg, rgba(0,150,136,0.18), rgba(77,182,172,0.18))`,
+      borderRadius: '12px',
+      padding: '3px 8px',
+      display: 'inline-block',
     },
     sectionSubtitle: {
-      fontSize: isMobile ? '16px' : '20px',
-      color: '#666',
-      fontWeight: '300',
-      maxWidth: '600px',
-      margin: '0 auto',
-      lineHeight: '1.6',
+      fontSize: isMobile ? '13px' : '15px',
+      color: SOFT_TEXT,
+      maxWidth: '580px',
+      lineHeight: 1.7,
+      margin: isMobile ? '0 auto' : '0',
     },
-    mainContent: {
-      display: 'grid',
-      gridTemplateColumns: '1fr',
-      gap: isMobile ? '30px' : '40px',
-      alignItems: 'start',
-      marginBottom: isMobile ? '60px' : '80px',
+    heroStats: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '10px',
+      marginTop: '18px',
+      justifyContent: isMobile ? 'center' : 'flex-start',
+    },
+    heroStatChip: {
+      padding: '7px 12px',
+      borderRadius: '999px',
+      backgroundColor: WHITE,
+      border: `1px solid rgba(0,150,136,0.2)`,
+      fontSize: '11px',
+      color: SOFT_TEXT,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      boxShadow: '0 4px 14px rgba(0,0,0,0.04)',
+      maxWidth: isMobile ? '100%' : '320px',
+    },
+
+    heroCard: {
+      backgroundColor: WHITE,
+      borderRadius: '22px',
+      padding: isMobile ? '12px' : '18px',
+      boxShadow: '0 18px 42px rgba(0,0,0,0.08)',
+      border: `1px solid rgba(0,150,136,0.15)`,
+      width: '100%',
+    },
+    heroImageWrapper: {
+      borderRadius: '16px',
+      overflow: 'hidden',
+      position: 'relative',
+      marginBottom: '10px',
+      width: '100%',
+    },
+    heroImage: {
+      width: '100%',
+      height: isMobile ? '210px' : isTablet ? '230px' : '260px',
+      objectFit: 'cover',
+      display: 'block',
+    },
+    heroTag: {
+      position: 'absolute',
+      left: '10px',
+      right: '10px',
+      bottom: '10px',
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      color: WHITE,
+      padding: '6px 10px',
+      borderRadius: '10px',
+      fontSize: '10px',
+      lineHeight: 1.5,
+    },
+    heroMetaRow: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      flexWrap: 'wrap',
+      gap: '8px',
+      fontSize: '11px',
+      color: SOFT_TEXT,
+    },
+    heroScore: {
+      fontWeight: 700,
+      color: PRIMARY,
+      fontSize: '16px',
+    },
+
+    /* ABOUT QUICKMED */
+    aboutQuickMedSection: {
+      marginBottom: isMobile ? '32px' : '48px',
       opacity: isVisible ? 1 : 0,
       transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-      transition: 'all 0.8s ease-out 0.2s',
+      transition: 'all 0.8s ease-out 0.15s',
     },
-    textSection: {
+    sectionHeaderRow: {
+      display: 'flex',
+      flexDirection: isMobile ? 'column' : 'row',
+      justifyContent: 'space-between',
+      alignItems: isMobile ? 'flex-start' : 'center',
+      gap: '10px',
+      marginBottom: '14px',
+    },
+    sectionHeading: {
+      fontSize: isMobile ? '18px' : '22px',
+      fontWeight: 700,
+      color: DARK_TEXT,
+    },
+    sectionSmallText: {
+      fontSize: '13px',
+      color: SOFT_TEXT,
+      maxWidth: isMobile ? '100%' : '520px',
+      lineHeight: 1.7,
+    },
+    aboutQuickGrid: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : 'minmax(0,1.5fr) minmax(0,1fr)',
+      gap: isMobile ? '12px' : '20px',
+    },
+    aboutCard: {
+      backgroundColor: WHITE,
+      borderRadius: '16px',
+      padding: isMobile ? '12px 10px' : '16px 14px',
+      border: `1px solid rgba(0,150,136,0.15)`,
+      boxShadow: '0 8px 28px rgba(0,0,0,0.04)',
+      fontSize: '13px',
+      color: SOFT_TEXT,
+      lineHeight: 1.8,
+    },
+    aboutList: {
+      marginTop: '8px',
+      paddingLeft: '16px',
+      fontSize: '12px',
+    },
+    aboutHighlight: {
+      backgroundColor: SOFT_BG,
+      borderRadius: '14px',
+      padding: isMobile ? '10px' : '12px',
+      fontSize: '12px',
+      color: DARK_TEXT,
+      border: `1px solid rgba(0,150,136,0.2)`,
+    },
+
+    /* CARE PROGRAMS */
+    careSection: {
+      backgroundColor: WHITE,
+      borderRadius: '22px',
+      padding: isMobile ? '18px 10px' : '24px 18px',
+      boxShadow: '0 12px 40px rgba(0,0,0,0.06)',
+      border: `1px solid rgba(0,150,136,0.15)`,
+      marginBottom: isMobile ? '34px' : '52px',
+      opacity: isVisible ? 1 : 0,
+      transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+      transition: 'all 0.8s ease-out 0.3s',
+    },
+    careHeaderText: {
+      fontSize: '13px',
+      color: SOFT_TEXT,
+      maxWidth: isMobile ? '100%' : '560px',
+      lineHeight: 1.7,
+      marginBottom: '8px',
+    },
+    careGrid: {
+      display: 'grid',
+      gridTemplateColumns: isMobile
+        ? '1fr'
+        : isTablet
+        ? 'repeat(2, minmax(0,1fr))'
+        : 'repeat(3, minmax(0,1fr))',
+      gap: isMobile ? '14px' : '18px',
+    },
+    careCard: {
+      borderRadius: '18px',
+      overflow: 'hidden',
+      border: `1px solid rgba(0,150,136,0.18)`,
+      backgroundColor: SOFT_BG,
       display: 'flex',
       flexDirection: 'column',
-      gap: isMobile ? '20px' : '30px',
+      height: '100%',
+      transition: 'all 0.3s ease',
     },
-    paragraph: {
-      fontSize: isMobile ? '16px' : '18px',
-      lineHeight: '1.8',
-      color: '#333',
-      textAlign: 'left',
+    careImageWrapper: {
+      height: isMobile ? '140px' : '160px',
+      overflow: 'hidden',
+      width: '100%',
     },
-    highlightBox: {
-      backgroundColor: 'rgba(124, 42, 98, 0.05)',
-      padding: isMobile ? '20px' : '30px',
-      borderRadius: '15px',
-      borderLeft: '4px solid #7C2A62',
-      textAlign: 'center',
-      margin: isMobile ? '20px 0' : '30px 0',
+    careImage: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+      display: 'block',
+      transform: 'scale(1.02)',
+      transition: 'transform 0.3s ease',
     },
-    highlightText: {
-      fontSize: isMobile ? '18px' : '20px',
-      color: '#7C2A62',
-      fontWeight: '600',
-      fontStyle: 'italic',
-      lineHeight: '1.6',
-      margin: 0,
+    careBody: {
+      padding: '12px 12px 14px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '4px',
+      flex: 1,
     },
-    missionVisionSection: {
-      display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-      gap: isMobile ? '25px' : '40px',
-      marginBottom: isMobile ? '40px' : '60px',
+    careLabelRow: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      fontSize: '11px',
+      color: PRIMARY,
+      fontWeight: 600,
+      textTransform: 'uppercase',
+      letterSpacing: '0.08em',
+    },
+    careTitle: {
+      fontSize: '15px',
+      fontWeight: 700,
+      color: DARK_TEXT,
+    },
+    careText: {
+      fontSize: '12px',
+      color: SOFT_TEXT,
+      lineHeight: 1.7,
+    },
+    careTagList: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '6px',
+      marginTop: '4px',
+      fontSize: '10px',
+    },
+    careTag: {
+      padding: '4px 7px',
+      borderRadius: '999px',
+      backgroundColor: WHITE,
+      border: `1px solid rgba(0,150,136,0.18)`,
+      color: SOFT_TEXT,
+      whiteSpace: 'nowrap',
+    },
+
+    /* MODULES */
+    modulesSection: {
+      marginBottom: isMobile ? '34px' : '50px',
       opacity: isVisible ? 1 : 0,
       transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-      transition: 'all 0.8s ease-out 0.4s',
+      transition: 'all 0.8s ease-out 0.45s',
     },
-    missionCard: {
-      backgroundColor: 'white',
-      padding: isMobile ? '30px 20px' : '40px 30px',
-      borderRadius: '20px',
-      boxShadow: '0 8px 30px rgba(124, 42, 98, 0.1)',
-      textAlign: 'center',
-      transition: 'all 0.3s ease',
-      border: '2px solid transparent',
-      backdropFilter: 'blur(10px)',
-    },
-    missionIcon: {
-      fontSize: isMobile ? '40px' : '48px',
-      marginBottom: isMobile ? '15px' : '20px',
-      color: '#7C2A62',
-    },
-    missionTitle: {
-      fontSize: isMobile ? '24px' : '28px',
-      fontWeight: '700',
-      color: '#7C2A62',
-      marginBottom: isMobile ? '15px' : '20px',
-    },
-    missionDescription: {
-      fontSize: isMobile ? '14px' : '16px',
-      color: '#555',
-      lineHeight: '1.7',
-      marginBottom: '20px',
-    },
-    missionPoints: {
-      textAlign: 'left',
-    },
-    missionPoint: {
-      fontSize: isMobile ? '13px' : '14px',
-      color: '#666',
-      marginBottom: '12px',
-      paddingLeft: '20px',
-      position: 'relative',
-      lineHeight: '1.5',
-    },
-    pointIcon: {
-      position: 'absolute',
-      left: '0',
-      color: '#7C2A62',
-      fontWeight: 'bold',
-    },
-    statsSection: {
+    modulesGrid: {
       display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-      gap: isMobile ? '20px' : isTablet ? '25px' : '30px',
-      marginBottom: isMobile ? '40px' : '80px',
+      gridTemplateColumns: isMobile
+        ? '1fr'
+        : isTablet
+        ? 'repeat(2,minmax(0,1fr))'
+        : 'repeat(4,minmax(0,1fr))',
+      gap: isMobile ? '14px' : '18px',
     },
-    statCard: {
-      backgroundColor: 'white',
-      padding: isMobile ? '30px 15px' : '40px 20px',
-      borderRadius: '15px',
-      boxShadow: '0 5px 20px rgba(124, 42, 98, 0.1)',
-      textAlign: 'center',
+    moduleCard: {
+      backgroundColor: WHITE,
+      borderRadius: '16px',
+      padding: isMobile ? '12px 10px' : '14px 12px',
+      border: `1px solid rgba(0,150,136,0.15)`,
+      boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '4px',
+      fontSize: '12px',
+      color: SOFT_TEXT,
+      height: '100%',
       transition: 'all 0.3s ease',
-      backdropFilter: 'blur(10px)',
     },
-    statNumber: {
-      fontSize: isMobile ? '32px' : isTablet ? '36px' : '42px',
-      fontWeight: '700',
-      color: '#7C2A62',
-      marginBottom: '10px',
-      background: 'linear-gradient(45deg, #7C2A62, #9C3A7A)',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
+    modulePill: {
+      alignSelf: 'flex-start',
+      padding: '3px 9px',
+      borderRadius: '999px',
+      backgroundColor: SOFT_BG,
+      color: PRIMARY,
+      fontSize: '10px',
+      fontWeight: 600,
+      letterSpacing: '0.08em',
+      textTransform: 'uppercase',
     },
-    statLabel: {
-      fontSize: isMobile ? '14px' : '16px',
-      color: '#666',
-      fontWeight: '500',
+    moduleTitleRow: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      flexWrap: 'wrap',
     },
-    valuesSection: {
-      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-      padding: isMobile ? '40px 20px' : '60px 40px',
-      borderRadius: '25px',
-      boxShadow: '0 10px 40px rgba(124, 42, 98, 0.1)',
-      marginBottom: isMobile ? '40px' : '60px',
-      backdropFilter: 'blur(10px)',
+    moduleIcon: {
+      fontSize: '18px',
+    },
+    moduleTitle: {
+      fontSize: '14px',
+      fontWeight: 700,
+      color: DARK_TEXT,
+    },
+    moduleList: {
+      marginTop: '4px',
+      paddingLeft: '16px',
+    },
+
+    /* FLOW */
+    flowSection: {
+      backgroundColor: WHITE,
+      borderRadius: '22px',
+      padding: isMobile ? '16px 10px' : '22px 18px',
+      boxShadow: '0 12px 38px rgba(0,0,0,0.05)',
+      border: `1px solid rgba(0,150,136,0.15)`,
+      marginBottom: isMobile ? '34px' : '50px',
       opacity: isVisible ? 1 : 0,
       transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
       transition: 'all 0.8s ease-out 0.6s',
     },
-    valuesTitle: {
-      fontSize: isMobile ? '28px' : isTablet ? '32px' : '36px',
-      textAlign: 'center',
-      fontWeight: '700',
-      color: '#7C2A62',
-      marginBottom: isMobile ? '30px' : '50px',
-    },
-    valuesGrid: {
+    flowGrid: {
       display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-      gap: isMobile ? '20px' : isTablet ? '25px' : '30px',
+      gridTemplateColumns: isMobile ? '1fr' : 'minmax(0,2fr) minmax(0,1.2fr)',
+      gap: isMobile ? '12px' : '20px',
+      alignItems: 'stretch',
     },
-    valueCard: {
-      backgroundColor: '#F7D9EB',
-      padding: isMobile ? '25px 15px' : '30px 20px',
-      borderRadius: '15px',
-      textAlign: 'center',
-      transition: 'all 0.3s ease',
-      backdropFilter: 'blur(5px)',
-    },
-    valueIcon: {
-      fontSize: isMobile ? '35px' : '40px',
-      marginBottom: isMobile ? '15px' : '20px',
-      color: '#7C2A62',
-    },
-    valueTitle: {
-      fontSize: isMobile ? '18px' : '20px',
-      fontWeight: '600',
-      color: '#333',
-      marginBottom: isMobile ? '12px' : '15px',
-    },
-    valueDescription: {
-      fontSize: isMobile ? '13px' : '14px',
-      color: '#666',
-      lineHeight: '1.6',
-    },
-    aboutGrid: {
+    flowList: {
       display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-      gap: isMobile ? '40px' : '60px',
-      alignItems: 'center',
-      marginBottom: isMobile ? '60px' : '80px',
+      gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0,1fr))',
+      gap: '8px',
+      fontSize: '12px',
     },
-    aboutText: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: isMobile ? '20px' : '25px',
+    flowStep: {
+      backgroundColor: SOFT_BG,
+      borderRadius: '12px',
+      padding: '8px 8px',
+      border: `1px solid rgba(0,150,136,0.2)`,
+      height: '100%',
     },
-    aboutImage: {
-      position: 'relative',
-      borderRadius: '20px',
+    flowStepNumber: {
+      fontSize: '10px',
+      textTransform: 'uppercase',
+      letterSpacing: '0.08em',
+      color: PRIMARY,
+      marginBottom: '3px',
+      fontWeight: 600,
+    },
+    flowStepText: {
+      fontSize: '12px',
+      color: SOFT_TEXT,
+    },
+    flowMiniMap: {
+      borderRadius: '16px',
       overflow: 'hidden',
-      boxShadow: '0 15px 40px rgba(124, 42, 98, 0.15)',
-    },
-    aboutImg: {
+      border: `1px solid rgba(0,150,136,0.2)`,
+      position: 'relative',
       width: '100%',
-      height: isMobile ? '300px' : '400px',
+    },
+    flowImage: {
+      width: '100%',
+      height: isMobile ? '170px' : isTablet ? '190px' : '210px',
       objectFit: 'cover',
       display: 'block',
     },
-    imageOverlay: {
+    flowOverlay: {
       position: 'absolute',
-      bottom: '0',
-      left: '0',
-      right: '0',
-      background: 'linear-gradient(transparent, rgba(124, 42, 98, 0.8))',
-      padding: isMobile ? '20px 15px' : '30px 20px',
-      color: 'white',
+      bottom: '8px',
+      left: '8px',
+      right: '8px',
+      backgroundColor: 'rgba(0, 0, 0, 0.55)',
+      color: WHITE,
+      borderRadius: '10px',
+      padding: '6px 8px',
+      fontSize: '10px',
+      lineHeight: 1.5,
     },
-    overlayContent: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '15px',
-    },
-    overlayIcon: {
-      fontSize: isMobile ? '28px' : '32px',
-    },
-    teamSection: {
-      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-      padding: isMobile ? '40px 20px' : '60px 40px',
-      borderRadius: '25px',
-      boxShadow: '0 10px 40px rgba(124, 42, 98, 0.1)',
-      marginBottom: isMobile ? '40px' : '60px',
-      backdropFilter: 'blur(10px)',
+
+    /* TECH & WHY */
+    techWhyWrapper: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0,1fr))',
+      gap: isMobile ? '14px' : '18px',
+      marginBottom: isMobile ? '30px' : '44px',
       opacity: isVisible ? 1 : 0,
       transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-      transition: 'all 0.8s ease-out 0.8s',
+      transition: 'all 0.8s ease-out 0.75s',
     },
-    teamTitle: {
-      fontSize: isMobile ? '28px' : isTablet ? '32px' : '36px',
+    infoCard: {
+      backgroundColor: WHITE,
+      borderRadius: '18px',
+      padding: isMobile ? '14px 12px' : '16px 14px',
+      boxShadow: '0 10px 34px rgba(0,0,0,0.05)',
+      border: `1px solid rgba(0,150,136,0.15)`,
+      fontSize: '12px',
+      color: SOFT_TEXT,
+      lineHeight: 1.7,
+    },
+    infoTitle: {
+      fontSize: isMobile ? '17px' : '19px',
+      fontWeight: 700,
+      color: DARK_TEXT,
+      marginBottom: '6px',
+    },
+    infoList: {
+      marginTop: '6px',
+      paddingLeft: '16px',
+    },
+
+    /* NUTSHELL + TEAM + CTA */
+    nutshellSection: {
+      marginBottom: isMobile ? '26px' : '36px',
       textAlign: 'center',
-      fontWeight: '700',
-      color: '#7C2A62',
-      marginBottom: isMobile ? '30px' : '50px',
+      opacity: isVisible ? 1 : 0,
+      transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+      transition: 'all 0.8s ease-out 0.9s',
     },
-    teamGrid: {
-      display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
-      gap: isMobile ? '20px' : isTablet ? '25px' : '40px',
+    nutshellText: {
+      fontSize: '13px',
+      color: SOFT_TEXT,
+      maxWidth: '640px',
+      margin: '0 auto',
+      lineHeight: 1.7,
+      padding: '0 8px',
     },
-    teamMember: {
-      backgroundColor: '#F7D9EB',
-      padding: isMobile ? '30px 20px' : '40px 30px',
-      borderRadius: '20px',
-      textAlign: 'center',
-      transition: 'all 0.3s ease',
-      backdropFilter: 'blur(5px)',
-    },
-    memberAvatar: {
-      fontSize: isMobile ? '50px' : '60px',
-      marginBottom: isMobile ? '15px' : '20px',
-    },
-    memberName: {
-      fontSize: isMobile ? '20px' : '22px',
-      fontWeight: '600',
-      color: '#333',
-      marginBottom: '10px',
-    },
-    memberRole: {
-      fontSize: isMobile ? '14px' : '16px',
-      color: '#7C2A62',
-      fontWeight: '500',
-      marginBottom: '15px',
-    },
-    memberBio: {
-      fontSize: isMobile ? '13px' : '14px',
-      color: '#666',
-      lineHeight: '1.6',
-    },
-    ctaSection: {
-      backgroundColor: 'rgba(124, 42, 98, 0.05)',
-      padding: isMobile ? '60px 20px' : '80px 40px',
-      borderRadius: '25px',
-      textAlign: 'center',
-      marginBottom: '40px',
-      backdropFilter: 'blur(10px)',
+
+    teamSection: {
+      marginBottom: isMobile ? '32px' : '46px',
       opacity: isVisible ? 1 : 0,
       transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
       transition: 'all 0.8s ease-out 1s',
     },
+    teamTitle: {
+      fontSize: isMobile ? '20px' : '24px',
+      textAlign: 'center',
+      fontWeight: 700,
+      color: DARK_TEXT,
+      marginBottom: '18px',
+    },
+    teamGrid: {
+      display: 'grid',
+      gridTemplateColumns: isMobile
+        ? '1fr'
+        : isTablet
+        ? 'repeat(2,minmax(0,1fr))'
+        : 'repeat(3,minmax(0,1fr))',
+      gap: isMobile ? '14px' : '18px',
+    },
+    teamMember: {
+      backgroundColor: WHITE,
+      borderRadius: '16px',
+      padding: isMobile ? '14px 10px' : '16px 12px',
+      textAlign: 'center',
+      border: `1px solid rgba(0,150,136,0.15)`,
+      boxShadow: '0 10px 30px rgba(0,0,0,0.06)',
+      transition: 'all 0.3s ease',
+      height: '100%',
+    },
+    memberAvatar: {
+      fontSize: isMobile ? '38px' : '44px',
+      marginBottom: '6px',
+    },
+    memberName: {
+      fontSize: '14px',
+      fontWeight: 600,
+      color: DARK_TEXT,
+      marginBottom: '3px',
+    },
+    memberRole: {
+      fontSize: '12px',
+      color: PRIMARY,
+      fontWeight: 500,
+      marginBottom: '4px',
+    },
+    memberBio: {
+      fontSize: '11px',
+      color: SOFT_TEXT,
+      lineHeight: 1.6,
+    },
+
+    ctaSection: {
+      backgroundColor: 'rgba(0,150,136,0.06)',
+      padding: isMobile ? '22px 12px' : '28px 18px',
+      borderRadius: '22px',
+      textAlign: 'center',
+      border: `1px solid rgba(0,150,136,0.18)`,
+      backdropFilter: 'blur(6px)',
+    },
     ctaTitle: {
-      fontSize: isMobile ? '28px' : isTablet ? '32px' : '36px',
-      fontWeight: '700',
-      color: '#7C2A62',
-      marginBottom: '20px',
+      fontSize: isMobile ? '20px' : '24px',
+      fontWeight: 700,
+      color: DARK_TEXT,
+      marginBottom: '8px',
     },
     ctaDescription: {
-      fontSize: isMobile ? '16px' : '18px',
-      color: '#666',
-      marginBottom: isMobile ? '30px' : '40px',
-      maxWidth: '600px',
-      margin: '0 auto 40px',
-      lineHeight: '1.6',
+      fontSize: '13px',
+      color: SOFT_TEXT,
+      marginBottom: '18px',
+      maxWidth: '620px',
+      marginInline: 'auto',
+      lineHeight: 1.7,
+      padding: '0 8px',
     },
     ctaButtons: {
       display: 'flex',
-      gap: '20px',
+      gap: '10px',
       justifyContent: 'center',
       flexWrap: 'wrap',
       flexDirection: isMobile ? 'column' : 'row',
       alignItems: 'center',
     },
     btnPrimary: {
-      backgroundColor: '#7C2A62',
-      color: 'white',
+      backgroundColor: PRIMARY,
+      color: WHITE,
       border: 'none',
-      padding: isMobile ? '12px 25px' : '15px 30px',
-      borderRadius: '50px',
-      fontSize: isMobile ? '14px' : '16px',
-      fontWeight: '600',
+      padding: isMobile ? '9px 18px' : '11px 22px',
+      borderRadius: '999px',
+      fontSize: '14px',
+      fontWeight: 600,
       cursor: 'pointer',
       transition: 'all 0.3s ease',
-      boxShadow: '0 5px 15px rgba(124, 42, 98, 0.3)',
+      boxShadow: '0 6px 18px rgba(0,150,136,0.4)',
       minWidth: isMobile ? '200px' : 'auto',
     },
     btnSecondary: {
       backgroundColor: 'transparent',
-      color: '#7C2A62',
-      border: '2px solid #7C2A62',
-      padding: isMobile ? '12px 25px' : '15px 30px',
-      borderRadius: '50px',
-      fontSize: isMobile ? '14px' : '16px',
-      fontWeight: '600',
+      color: PRIMARY,
+      border: `2px solid ${PRIMARY}`,
+      padding: isMobile ? '9px 18px' : '11px 22px',
+      borderRadius: '999px',
+      fontSize: '14px',
+      fontWeight: 600,
       cursor: 'pointer',
       transition: 'all 0.3s ease',
       minWidth: isMobile ? '200px' : 'auto',
     },
-    // Learn More Modal Styles
+
+    /* MODALS */
     modalOverlay: {
       position: 'fixed',
       top: 0,
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      backgroundColor: 'rgba(0,0,0,0.7)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 1000,
       padding: isMobile ? '1rem' : '2rem',
-      backdropFilter: 'blur(5px)',
+      backdropFilter: 'blur(4px)',
     },
     modalContent: {
-      backgroundColor: 'white',
-      padding: isMobile ? '1.5rem' : '2.5rem',
-      borderRadius: '15px',
-      maxWidth: isMobile ? '95%' : '800px',
+      backgroundColor: WHITE,
+      padding: isMobile ? '1.2rem' : '2.1rem',
+      borderRadius: '18px',
+      maxWidth: isMobile ? '95%' : '840px',
       width: '100%',
       maxHeight: isMobile ? '90vh' : '80vh',
       overflowY: 'auto',
-      boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+      boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
+      border: `1px solid rgba(0,150,136,0.2)`,
       position: 'relative',
     },
     modalHeader: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: '2rem',
-      paddingBottom: '1rem',
-      borderBottom: '2px solid #7C2A62',
+      marginBottom: '1.2rem',
+      paddingBottom: '0.7rem',
+      borderBottom: `2px solid ${PRIMARY}`,
+      gap: '8px',
     },
     modalTitle: {
-      fontSize: isMobile ? '1.5rem' : '2rem',
-      color: '#7C2A62',
-      fontWeight: 'bold',
+      fontSize: isMobile ? '1.25rem' : '1.5rem',
+      color: DARK_TEXT,
+      fontWeight: 700,
       margin: 0,
     },
     closeButton: {
       background: 'none',
       border: 'none',
-      fontSize: '1.5rem',
-      color: '#7C2A62',
+      fontSize: '1.3rem',
+      color: PRIMARY,
       cursor: 'pointer',
-      padding: '0.5rem',
-      borderRadius: '50%',
-      width: '40px',
-      height: '40px',
+      padding: '0.35rem',
+      borderRadius: '999px',
+      width: '34px',
+      height: '34px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       transition: 'all 0.3s ease',
+      flexShrink: 0,
     },
     modalBody: {
-      color: '#333',
-      lineHeight: '1.6',
+      color: DARK_TEXT,
+      lineHeight: 1.7,
+      fontSize: isMobile ? '0.9rem' : '0.96rem',
     },
     modalSection: {
-      marginBottom: '2rem',
+      marginBottom: '1.3rem',
     },
     modalHeading: {
-      fontSize: isMobile ? '1.1rem' : '1.3rem',
-      color: '#7C2A62',
-      fontWeight: '600',
-      marginBottom: '1rem',
+      fontSize: isMobile ? '0.98rem' : '1.05rem',
+      color: PRIMARY,
+      fontWeight: 600,
+      marginBottom: '0.45rem',
     },
     modalText: {
-      fontSize: isMobile ? '0.9rem' : '1rem',
-      color: '#666',
-      marginBottom: '1rem',
-      lineHeight: '1.6',
+      fontSize: '0.9rem',
+      color: SOFT_TEXT,
+      marginBottom: '0.45rem',
     },
     featureList: {
       listStyle: 'none',
       padding: 0,
-      margin: '1rem 0',
+      margin: '0.5rem 0',
     },
     featureItem: {
-      padding: '0.5rem 0',
+      padding: '0.4rem 0',
       borderBottom: '1px solid #f0f0f0',
       display: 'flex',
+      gap: '0.7rem',
+      fontSize: '0.88rem',
+      color: SOFT_TEXT,
       alignItems: 'flex-start',
-      gap: '0.8rem',
     },
     featureIcon: {
-      color: '#7C2A62',
-      fontSize: '1.2rem',
-      marginTop: '0.2rem',
+      color: PRIMARY,
+      fontSize: '1.05rem',
+      marginTop: '0.12rem',
       flexShrink: 0,
+    },
+
+    loginPromptModal: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      padding: isMobile ? '0.7rem' : '1rem',
+      backdropFilter: 'blur(3px)',
+    },
+    loginPromptContent: {
+      backgroundColor: WHITE,
+      padding: isMobile ? '1.2rem' : '1.8rem',
+      borderRadius: '16px',
+      maxWidth: isMobile ? '92%' : '380px',
+      width: '100%',
+      boxShadow: '0 22px 50px rgba(0,0,0,0.32)',
+      textAlign: 'center',
+      border: `1px solid rgba(0,150,136,0.18)`,
+    },
+    loginPromptTitle: {
+      fontSize: isMobile ? '1.15rem' : '1.3rem',
+      color: DARK_TEXT,
+      marginBottom: '0.7rem',
+      fontWeight: 700,
+    },
+    loginPromptText: {
+      fontSize: isMobile ? '0.92rem' : '0.98rem',
+      color: SOFT_TEXT,
+      marginBottom: '1.3rem',
+      lineHeight: 1.6,
+    },
+    loginPromptButtons: {
+      display: 'flex',
+      gap: '0.7rem',
+      justifyContent: 'center',
+      flexDirection: isMobile ? 'column' : 'row',
+    },
+    loginButton: {
+      padding: isMobile ? '0.75rem 2rem' : '0.85rem 2.2rem',
+      backgroundColor: PRIMARY,
+      color: WHITE,
+      border: 'none',
+      borderRadius: '999px',
+      cursor: 'pointer',
+      fontSize: isMobile ? '0.9rem' : '0.98rem',
+      fontWeight: 'bold',
+      transition: 'all 0.3s ease',
+      flex: isMobile ? 1 : 'none',
+      boxShadow: '0 6px 18px rgba(0,150,136,0.45)',
+    },
+    cancelLoginButton: {
+      padding: isMobile ? '0.75rem 2rem' : '0.85rem 2.2rem',
+      backgroundColor: SOFT_TEXT,
+      color: WHITE,
+      border: 'none',
+      borderRadius: '999px',
+      cursor: 'pointer',
+      fontSize: isMobile ? '0.9rem' : '0.98rem',
+      fontWeight: 'bold',
+      transition: 'all 0.3s ease',
+      flex: isMobile ? 1 : 'none',
     },
   };
 
-  const values = [
+  /* DATA */
+
+  const carePrograms = [
     {
-      icon: '❤️',
-      title: 'Compassion',
-      description: 'We treat every patient with empathy, understanding, and genuine care for their well-being.'
+      label: 'Pregnancy Care',
+      icon: '🤰',
+      image:
+        'https://images.pexels.com/photos/3845129/pexels-photo-3845129.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      text:
+        'End-to-end antenatal and postnatal care with trimester-wise plans, doctor consults, and smart reminders for scans, tests, and medicines.',
+      tags: ['Trimester plans', 'Diet & exercise', 'High-risk monitoring', '24/7 support'],
     },
     {
-      icon: '⚡',
-      title: 'Innovation',
-      description: 'Leveraging cutting-edge technology to make healthcare faster, smarter, and more accessible.'
+      label: 'Baby & Child Care',
+      icon: '👶',
+      image:
+        'https://images.pexels.com/photos/3952069/pexels-photo-3952069.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      text:
+        'Support from newborn to school-going age—vaccination tracking, growth charts, online paediatric consults, and parent guidance.',
+      tags: ['Vaccination tracker', 'Growth charts', 'Paediatric consults', 'Parent education'],
     },
     {
-      icon: '🛡️',
-      title: 'Trust',
-      description: 'Building lasting relationships based on reliability, transparency, and medical excellence.'
+      label: 'General & Family Care',
+      icon: '🏥',
+      image:
+        'https://images.pexels.com/photos/6129681/pexels-photo-6129681.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      text:
+        'Everyday health services for the full family—e-consultations, chronic disease management, diagnostics, and medicine delivery.',
+      tags: ['Online doctors', 'Chronic care', 'Diagnostics', 'Doorstep medicines'],
+    },
+  ];
+
+  const modules = [
+    {
+      icon: '👤',
+      title: 'User Module',
+      pill: 'Patients & Families',
+      points: [
+        'Create and manage multi-member family profiles.',
+        'Order medicines with prescription upload and real-time tracking.',
+        'Book doctor consultations and follow-up appointments.',
+        'Use AutoPay for monthly refills and access chatbot assistance.',
+      ],
     },
     {
-      icon: '🤝',
-      title: 'Collaboration',
-      description: 'Working together with patients, doctors, and partners to achieve the best health outcomes.'
-    }
+      icon: '🩺',
+      title: 'Doctor Module',
+      pill: 'Clinicians',
+      points: [
+        'Maintain professional profile and availability slots.',
+        'View patient history and previous prescriptions in one place.',
+        'Provide secure online consultations and digital prescriptions.',
+        'Track earnings, appointment volume, and performance metrics.',
+      ],
+    },
+    {
+      icon: '🏪',
+      title: 'Vendor Module',
+      pill: 'Pharmacies',
+      points: [
+        'Register pharmacy and manage live stock and pricing.',
+        'Receive orders based on location and prescription validation.',
+        'View order history and fulfillment metrics.',
+        'Monitor earnings and performance dashboards.',
+      ],
+    },
+    {
+      icon: '🚚',
+      title: 'Delivery Module',
+      pill: 'Delivery Partners',
+      points: [
+        'Register as a delivery partner and verify identity.',
+        'Receive daily delivery tasks with route optimisation.',
+        'Use real-time GPS navigation to reach users quickly.',
+        'Update delivery status and track earnings transparently.',
+      ],
+    },
+  ];
+
+  const flowSteps = [
+    'User places a medicine order or books a consultation.',
+    'System validates prescription and checks availability.',
+    'Nearest eligible pharmacy/vendor receives the request.',
+    'Vendor prepares and confirms the order in the system.',
+    'Delivery partner picks up the order from the pharmacy.',
+    'Real-time GPS tracking guides delivery to the user.',
+    'User receives medicine, leaves feedback, and records are updated.',
+  ];
+
+  const techPoints = [
+    'Secure authentication and role-based access for all modules.',
+    'Automated prescription verification and compliance checks.',
+    'Real-time GPS navigation for delivery partners.',
+    'Cloud-based storage for scalable and safe health data.',
+    'Automated subscription billing for monthly medicines.',
+    'Analytics dashboards for doctors, vendors, and admins.',
+  ];
+
+  const whyPoints = [
+    'Fast access to medicines with location-aware delivery.',
+    'Quicker online doctor consultations with proper history.',
+    'Reliable vendor–pharmacy integration to avoid stockouts.',
+    'Transparent, real-time delivery updates for patients.',
+    'Strong support for chronic patients, new mothers, and families.',
+    '24/7 availability of essential digital healthcare services.',
   ];
 
   const teamMembers = [
     {
-      avatar: '👨‍💼',
-      name: 'Dr. Simhadri Naidu',
-      role: 'Chief Medical Officer',
-      bio: '20+ years of experience in healthcare management and patient care.'
+      avatar: '👩‍⚕️',
+      name: 'Dr. Ananya Reddy',
+      role: 'Lead Obstetrician & Women’s Health',
+      bio: '15+ years in high-risk pregnancy care and evidence-based maternal medicine.',
     },
     {
-      avatar: '👨‍💼',
-      name: 'Sai Krishna',
-      role: 'CEO & Founder',
-      bio: 'Visionary leader passionate about healthcare technology and accessibility.'
+      avatar: '👨‍⚕️',
+      name: 'Dr. Arjun Mehta',
+      role: 'Senior Paediatrician',
+      bio: 'Focused on newborn, infant, and child health with preventive care programs.',
     },
     {
       avatar: '👨‍💻',
-      name: 'Sankar Rao',
-      role: 'CTO',
-      bio: 'Technology expert driving innovation in healthcare platforms.'
-    }
+      name: 'Suresh Kumar',
+      role: 'Head of Digital Health',
+      bio: 'Leads product & engineering for secure, real-time digital healthcare journeys.',
+    },
   ];
 
-  // Generate floating elements
-  const floatingElements = Array.from({ length: isMobile ? 8 : 15 }, (_, i) => ({
-    id: i,
-    size: Math.random() * (isMobile ? 50 : 100) + (isMobile ? 30 : 50),
-    left: Math.random() * 100,
-    top: Math.random() * 100,
-    animationDelay: Math.random() * 5,
-  }));
+  /* MODALS */
 
-  // Learn More Modal Component
-  const LearnMoreModal = ({ onClose }) => {
-    return (
-      <div style={styles.modalOverlay} onClick={handleBackdropClick}>
-        <div style={styles.modalContent}>
-          <div style={styles.modalHeader}>
-            <h2 style={styles.modalTitle}>Why Choose QuickMed?</h2>
-            <button
-              style={styles.closeButton}
-              onClick={onClose}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#F7D9EB';
-                e.target.style.color = '#7C2A62';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'transparent';
-                e.target.style.color = '#7C2A62';
-              }}
-              aria-label="Close modal"
-            >
-              ✕
-            </button>
+  const LearnMoreModal = ({ onClose }) => (
+    <div style={styles.modalOverlay} onClick={handleBackdropClick}>
+      <div style={styles.modalContent}>
+        <div style={styles.modalHeader}>
+          <h2 style={styles.modalTitle}>Deep-dive into our care experience</h2>
+          <button
+            style={styles.closeButton}
+            onClick={onClose}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = SOFT_BG;
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+            }}
+            aria-label="Close modal"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div style={styles.modalBody}>
+          <div style={styles.modalSection}>
+            <h3 style={styles.modalHeading}>Real-time, end-to-end healthcare flow</h3>
+            <p style={styles.modalText}>
+              Every order or appointment on QuickMed travels across the same integrated
+              flow: user → doctor → pharmacy → delivery, backed by secure cloud services
+              and live status updates.
+            </p>
+            <ul style={styles.featureList}>
+              <li style={styles.featureItem}>
+                <span style={styles.featureIcon}>📍</span>
+                <div>Live delivery tracking with GPS for complete transparency.</div>
+              </li>
+              <li style={styles.featureItem}>
+                <span style={styles.featureIcon}>📱</span>
+                <div>Digital prescriptions and health records on web and mobile.</div>
+              </li>
+              <li style={styles.featureItem}>
+                <span style={styles.featureIcon}>⏱️</span>
+                <div>Reminders for refills, vaccines, scans, and follow-ups.</div>
+              </li>
+            </ul>
           </div>
-          
-          <div style={styles.modalBody}>
-            <div style={styles.modalSection}>
-              <h3 style={styles.modalHeading}>Comprehensive Healthcare Solutions</h3>
-              <p style={styles.modalText}>
-                QuickMed offers a complete ecosystem of healthcare services designed to meet all your medical needs in one platform.
-              </p>
-              
-              <ul style={styles.featureList}>
-                <li style={styles.featureItem}>
-                  <span style={styles.featureIcon}>💊</span>
-                  <div>
-                    <strong>Medicine Delivery</strong> - Get prescribed and OTC medicines delivered to your doorstep within 30-40 minutes
-                  </div>
-                </li>
-                <li style={styles.featureItem}>
-                  <span style={styles.featureIcon}>🎥</span>
-                  <div>
-                    <strong>Online Consultations</strong> - Connect with specialist doctors via secure video calls from anywhere
-                  </div>
-                </li>
-                <li style={styles.featureItem}>
-                  <span style={styles.featureIcon}>🏥</span>
-                  <div>
-                    <strong>Emergency Services</strong> - 24/7 emergency medical assistance with rapid response teams
-                  </div>
-                </li>
-                <li style={styles.featureItem}>
-                  <span style={styles.featureIcon}>📱</span>
-                  <div>
-                    <strong>Health Tracking</strong> - Monitor your health records, prescriptions, and appointments in one place
-                  </div>
-                </li>
-              </ul>
-            </div>
 
-            <div style={styles.modalSection}>
-              <h3 style={styles.modalHeading}>Our Technology Advantage</h3>
-              <p style={styles.modalText}>
-                Powered by advanced technology to ensure seamless healthcare experiences:
-              </p>
-              
-              <ul style={styles.featureList}>
-                <li style={styles.featureItem}>
-                  <span style={styles.featureIcon}>🔒</span>
-                  <div>Secure and encrypted medical data storage</div>
-                </li>
-                <li style={styles.featureItem}>
-                  <span style={styles.featureIcon}>⚡</span>
-                  <div>AI-powered symptom checker and health recommendations</div>
-                </li>
-                <li style={styles.featureItem}>
-                  <span style={styles.featureIcon}>📊</span>
-                  <div>Real-time prescription and health monitoring</div>
-                </li>
-                <li style={styles.featureItem}>
-                  <span style={styles.featureIcon}>🌐</span>
-                  <div>Multi-platform accessibility (Web, iOS, Android)</div>
-                </li>
-              </ul>
-            </div>
+          <div style={styles.modalSection}>
+            <h3 style={styles.modalHeading}>Designed for pregnant women & new parents</h3>
+            <p style={styles.modalText}>
+              QuickMed combines clinical expertise, reminders, and digital records to
+              make pregnancy and early parenthood safer and simpler.
+            </p>
+            <ul style={styles.featureList}>
+              <li style={styles.featureItem}>
+                <span style={styles.featureIcon}>🤰</span>
+                <div>Trimester-based checklists, symptom logs, and risk alerts.</div>
+              </li>
+              <li style={styles.featureItem}>
+                <span style={styles.featureIcon}>👶</span>
+                <div>Baby vaccination tracker with alerts and paediatrician sync.</div>
+              </li>
+              <li style={styles.featureItem}>
+                <span style={styles.featureIcon}>👨‍👩‍👧</span>
+                <div>One login for mother, baby, elders, and the whole family.</div>
+              </li>
+            </ul>
+          </div>
 
-            <div style={styles.modalSection}>
-              <h3 style={styles.modalHeading}>Quality Assurance</h3>
-              <p style={styles.modalText}>
-                We maintain the highest standards in healthcare delivery:
-              </p>
-              
-              <ul style={styles.featureList}>
-                <li style={styles.featureItem}>
-                  <span style={styles.featureIcon}>✅</span>
-                  <div>All doctors are verified and licensed practitioners</div>
-                </li>
-                <li style={styles.featureItem}>
-                  <span style={styles.featureIcon}>💯</span>
-                  <div>Medicines sourced from certified pharmacies only</div>
-                </li>
-                <li style={styles.featureItem}>
-                  <span style={styles.featureIcon}>⭐</span>
-                  <div>4.9/5 patient satisfaction rating</div>
-                </li>
-                <li style={styles.featureItem}>
-                  <span style={styles.featureIcon}>🕒</span>
-                  <div>24/7 customer support and emergency services</div>
-                </li>
-              </ul>
-            </div>
+          <div style={styles.modalSection}>
+            <h3 style={styles.modalHeading}>Built on secure, modern technology</h3>
+            <p style={styles.modalText}>
+              We use secure authentication, encrypted data, and cloud infrastructure with
+              monitoring and analytics built in.
+            </p>
+            <ul style={styles.featureList}>
+              <li style={styles.featureItem}>
+                <span style={styles.featureIcon}>🔒</span>
+                <div>End-to-end encryption for sensitive medical data.</div>
+              </li>
+              <li style={styles.featureItem}>
+                <span style={styles.featureIcon}>☁️</span>
+                <div>Highly available cloud storage for fast, reliable access.</div>
+              </li>
+              <li style={styles.featureItem}>
+                <span style={styles.featureIcon}>📊</span>
+                <div>Real-time dashboards to monitor quality and performance.</div>
+              </li>
+            </ul>
+          </div>
 
-            <div style={styles.modalSection}>
-              <h3 style={styles.modalHeading}>Get Started Today</h3>
-              <p style={styles.modalText}>
-                Join over 50,000 satisfied patients who trust QuickMed for their healthcare needs. 
-                Download our app or visit our website to experience the future of healthcare.
-              </p>
-              <p style={{...styles.modalText, fontStyle: 'italic', color: '#7C2A62'}}>
-                Your health journey starts here. We're committed to making it smooth, safe, and successful.
-              </p>
-            </div>
+          <div style={styles.modalSection}>
+            <h3 style={styles.modalHeading}>Start small, grow with us</h3>
+            <p style={styles.modalText}>
+              Begin with a single consultation or order and gradually move more of your
+              family’s healthcare into QuickMed as you gain confidence.
+            </p>
           </div>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+
+  const LoginPromptModal = ({ onConfirm, onCancel }) => (
+    <div style={styles.loginPromptModal} onClick={onCancel}>
+      <div style={styles.loginPromptContent} onClick={(e) => e.stopPropagation()}>
+        <h2 style={styles.loginPromptTitle}>Login to continue</h2>
+        <p style={styles.loginPromptText}>
+          Please login or create an account to book pregnancy, baby care, or general
+          health appointments and manage your family’s health records in real time.
+        </p>
+        <div style={styles.loginPromptButtons}>
+          <button
+            style={styles.cancelLoginButton}
+            onClick={onCancel}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#2f4f4b';
+              e.target.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = SOFT_TEXT;
+              e.target.style.transform = 'translateY(0)';
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            style={styles.loginButton}
+            onClick={onConfirm}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = MINT;
+              e.target.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = PRIMARY;
+              e.target.style.transform = 'translateY(0)';
+            }}
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  /* JSX */
 
   return (
     <>
       <section style={styles.about}>
-        {/* Floating Background Elements */}
-        <div style={styles.floatingElements}>
-          {floatingElements.map((element) => (
-            <div
-              key={element.id}
-              style={{
-                ...styles.floatingElement,
-                width: element.size,
-                height: element.size,
-                left: `${element.left}%`,
-                top: `${element.top}%`,
-                animationDelay: `${element.animationDelay}s`,
-              }}
-            />
-          ))}
-        </div>
-
         <div style={styles.container}>
-          {/* Header Section */}
-          <div style={styles.header}>
-            <h2 style={styles.sectionTitle}>About QuickMed</h2>
-            <p style={styles.sectionSubtitle}>
-              Revolutionizing healthcare delivery since 2025
-            </p>
-          </div>
+          {/* HERO */}
+          <header style={styles.header}>
+            <div style={styles.heroText}>
+              <div style={styles.badgeRow}>
+                <span style={styles.badge}>Pregnancy Care</span>
+                <span style={styles.badge}>Baby & Child Care</span>
+                <span style={styles.badge}>Family & General Care</span>
+              </div>
+              <h1 style={styles.sectionTitle}>
+                Care you need,
+                <br />
+                <span style={styles.highlight}>when you need it.</span>
+              </h1>
+              <p style={styles.sectionSubtitle}>
+                QuickMed is your all-in-one digital healthcare partner. From pregnancy
+                journeys and baby vaccinations to daily family health needs, we connect
+                users, doctors, pharmacies, and delivery partners on one secure platform.
+              </p>
 
-          {/* Main Content Section */}
-          <div style={styles.mainContent}>
-            <div style={styles.aboutGrid}>
-              <div style={styles.aboutText}>
-                <h2 style={{...styles.valuesTitle, textAlign: 'left', marginBottom: '20px', fontSize: isMobile ? '24px' : '32px'}}>Our Story</h2>
-                <p style={styles.paragraph}>
-                  QuickMed was founded with a simple mission: to make quality healthcare
-                  accessible to everyone. We believe that getting medical help should be
-                  quick, convenient, and reliable.
-                </p>
-                <p style={styles.paragraph}>
-                  Our platform connects patients with healthcare providers, pharmacies,
-                  and diagnostic centers, creating a seamless healthcare ecosystem that
-                  puts your health first.
-                </p>
-
-                {/* Stats Grid */}
-                <div style={styles.statsSection}>
-                  <div 
-                    style={styles.statCard}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'scale(1.05)';
-                      e.currentTarget.style.boxShadow = '0 10px 30px rgba(124, 42, 98, 0.15)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                      e.currentTarget.style.boxShadow = '0 5px 20px rgba(124, 42, 98, 0.1)';
-                    }}
-                  >
-                    <div style={styles.statNumber}>50,000+</div>
-                    <div style={styles.statLabel}>Happy Patients</div>
-                  </div>
-                  <div 
-                    style={styles.statCard}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'scale(1.05)';
-                      e.currentTarget.style.boxShadow = '0 10px 30px rgba(124, 42, 98, 0.15)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                      e.currentTarget.style.boxShadow = '0 5px 20px rgba(124, 42, 98, 0.1)';
-                    }}
-                  >
-                    <div style={styles.statNumber}>500+</div>
-                    <div style={styles.statLabel}>Verified Doctors</div>
-                  </div>
-                  <div 
-                    style={styles.statCard}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'scale(1.05)';
-                      e.currentTarget.style.boxShadow = '0 10px 30px rgba(124, 42, 98, 0.15)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                      e.currentTarget.style.boxShadow = '0 5px 20px rgba(124, 42, 98, 0.1)';
-                    }}
-                  >
-                    <div style={styles.statNumber}>100+</div>
-                    <div style={styles.statLabel}>Cities Served</div>
-                  </div>
-                  <div 
-                    style={styles.statCard}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'scale(1.05)';
-                      e.currentTarget.style.boxShadow = '0 10px 30px rgba(124, 42, 98, 0.15)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                      e.currentTarget.style.boxShadow = '0 5px 20px rgba(124, 42, 98, 0.1)';
-                    }}
-                  >
-                    <div style={styles.statNumber}>24/7</div>
-                    <div style={styles.statLabel}>Service Available</div>
-                  </div>
+              <div style={styles.heroStats}>
+                <div style={styles.heroStatChip}>
+                  <span>👨‍👩‍👧‍👦</span>
+                  <span>20,000+ families supported across pregnancy, baby, and general care</span>
+                </div>
+                <div style={styles.heroStatChip}>
+                  <span>⏱️</span>
+                  <span>Real-time tracking for orders and appointments</span>
                 </div>
               </div>
+            </div>
 
-              <div style={styles.aboutImage}>
+            <div style={styles.heroCard}>
+              <div style={styles.heroImageWrapper}>
                 <img
-                  src="https://png.pngtree.com/background/20250710/original/pngtree-medical-tools-and-supplies-arranged-on-a-white-surface-representing-healthcare-picture-image_16678403.jpg"
-                  alt="Healthcare professionals providing medical care"
-                  style={styles.aboutImg}
+                  src="https://images.pexels.com/photos/6129045/pexels-photo-6129045.jpeg?auto=compress&cs=tinysrgb&w=1200"
+                  alt="Doctor with a pregnant woman and her partner during consultation"
+                  style={styles.heroImage}
                 />
-                <div style={styles.imageOverlay}>
-                  <div style={styles.overlayContent}>
-                    <span style={styles.overlayIcon}>🏥</span>
-                    <div>
-                      <h4 style={{margin: '0 0 5px 0', color: 'white', fontSize: isMobile ? '16px' : '18px'}}>Quality Care</h4>
-                      <p style={{margin: 0, color: 'white', fontSize: isMobile ? '12px' : '14px'}}>Committed to excellence in healthcare delivery</p>
+                <div style={styles.heroTag}>
+                  Integrated pregnancy, baby, and family care backed by doctors, verified
+                  pharmacies, and live delivery tracking.
+                </div>
+              </div>
+              <div style={styles.heroMetaRow}>
+                <div>
+                  <div style={styles.heroScore}>4.9 / 5</div>
+                  <div>Average patient experience rating</div>
+                </div>
+                <div>
+                  <strong>Modules:</strong> User • Doctor • Vendor • Delivery
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* ABOUT QUICKMED */}
+          <section style={styles.aboutQuickMedSection}>
+            <div style={styles.sectionHeaderRow}>
+              <h2 style={styles.sectionHeading}>What is QuickMed?</h2>
+              <p style={styles.sectionSmallText}>
+                QuickMed is a unified digital healthcare system. It combines user,
+                doctor, vendor, and delivery modules so that ordering medicines, booking
+                consultations, and tracking care happens in one continuous, real-time
+                flow.
+              </p>
+            </div>
+            <div style={styles.aboutQuickGrid}>
+              <div style={styles.aboutCard}>
+                QuickMed brings together patients, doctors, pharmacies, and delivery
+                partners into a single ecosystem. Users can upload prescriptions, book
+                both in-person and online consultations, and track each step—from
+                prescription validation to dispatch and doorstep delivery—in real time.
+                <ul style={styles.aboutList}>
+                  <li>All modules stay in sync to reduce delays and confusion.</li>
+                  <li>Digital prescriptions and records avoid paper loss and repetition.</li>
+                  <li>Every family member’s records stay organised under one account.</li>
+                </ul>
+              </div>
+              <div style={styles.aboutHighlight}>
+                <strong>Built for modern families:</strong> chronic patients, expecting
+                mothers, infants, and elders can all use the same platform, with
+                personalised journeys and reminders tuned to their stage of life.
+              </div>
+            </div>
+          </section>
+
+          {/* CARE PROGRAMS */}
+          <section style={styles.careSection}>
+            <div style={styles.sectionHeaderRow}>
+              <h2 style={styles.sectionHeading}>Care programs on our website</h2>
+              <p style={styles.careHeaderText}>
+                We offer specialised programs for pregnancy care, baby & child health,
+                and general family care. Each program combines doctor guidance, digital
+                tracking, and pharmacy + delivery services.
+              </p>
+            </div>
+            <div style={styles.careGrid}>
+              {carePrograms.map((item, idx) => (
+                <div
+                  key={idx}
+                  style={styles.careCard}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    const img = e.currentTarget.querySelector('img');
+                    if (img) img.style.transform = 'scale(1.06)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    const img = e.currentTarget.querySelector('img');
+                    if (img) img.style.transform = 'scale(1.02)';
+                  }}
+                >
+                  <div style={styles.careImageWrapper}>
+                    <img src={item.image} alt={item.label} style={styles.careImage} />
+                  </div>
+                  <div style={styles.careBody}>
+                    <div style={styles.careLabelRow}>
+                      <span>{item.icon}</span>
+                      <span>{item.label}</span>
+                    </div>
+                    <h3 style={styles.careTitle}>{item.label}</h3>
+                    <p style={styles.careText}>{item.text}</p>
+                    <div style={styles.careTagList}>
+                      {item.tags.map((tag, i) => (
+                        <span key={i} style={styles.careTag}>
+                          {tag}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
-          </div>
+          </section>
 
-          {/* Mission & Vision Section */}
-          <div style={styles.missionVisionSection}>
-            <div 
-              style={styles.missionCard}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-10px)';
-                e.currentTarget.style.boxShadow = '0 15px 40px rgba(124, 42, 98, 0.15)';
-                e.currentTarget.style.borderColor = '#7C2A62';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 8px 30px rgba(124, 42, 98, 0.1)';
-                e.currentTarget.style.borderColor = 'transparent';
-              }}
-            >
-              <div style={styles.missionIcon}>🎯</div>
-              <h3 style={styles.missionTitle}>Our Mission</h3>
-              <p style={styles.missionDescription}>
-                To provide accessible, affordable, and high-quality healthcare services to every household through technology innovation and compassionate care.
+          {/* MODULES */}
+          <section style={styles.modulesSection}>
+            <div style={styles.sectionHeaderRow}>
+              <h2 style={styles.sectionHeading}>Four integrated modules</h2>
+              <p style={styles.sectionSmallText}>
+                The website and app are powered by four modules that work together in
+                real time. Every action—order, consult, dispatch, or delivery—is routed
+                through these modules to keep care transparent and efficient.
               </p>
             </div>
-            
-            <div 
-              style={styles.missionCard}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-10px)';
-                e.currentTarget.style.boxShadow = '0 15px 40px rgba(124, 42, 98, 0.15)';
-                e.currentTarget.style.borderColor = '#7C2A62';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 8px 30px rgba(124, 42, 98, 0.1)';
-                e.currentTarget.style.borderColor = 'transparent';
-              }}
-            >
-              <div style={styles.missionIcon}>🔭</div>
-              <h3 style={styles.missionTitle}>Our Vision</h3>
-              <p style={styles.missionDescription}>
-                To become the most trusted healthcare platform that transforms how people access medical services globally, making quality healthcare a fundamental right.
-              </p>
-            </div>
-          </div>
-
-          {/* Values Section */}
-          <div style={styles.valuesSection}>
-            <h2 style={styles.valuesTitle}>Our Values</h2>
-            <div style={styles.valuesGrid}>
-              {values.map((value, index) => (
-                <div 
-                  key={index}
-                  style={styles.valueCard}
+            <div style={styles.modulesGrid}>
+              {modules.map((mod, idx) => (
+                <div
+                  key={idx}
+                  style={styles.moduleCard}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-5px)';
-                    e.currentTarget.style.boxShadow = '0 10px 25px rgba(124, 42, 98, 0.15)';
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow =
+                      '0 14px 34px rgba(0,0,0,0.08)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.boxShadow =
+                      '0 10px 30px rgba(0,0,0,0.05)';
                   }}
                 >
-                  <div style={styles.valueIcon}>{value.icon}</div>
-                  <h3 style={styles.valueTitle}>{value.title}</h3>
-                  <p style={styles.valueDescription}>{value.description}</p>
+                  <span style={styles.modulePill}>{mod.pill}</span>
+                  <div style={styles.moduleTitleRow}>
+                    <span style={styles.moduleIcon}>{mod.icon}</span>
+                    <h3 style={styles.moduleTitle}>{mod.title}</h3>
+                  </div>
+                  <ul style={styles.moduleList}>
+                    {mod.points.map((p, i) => (
+                      <li key={i}>{p}</li>
+                    ))}
+                  </ul>
                 </div>
               ))}
             </div>
-          </div>
+          </section>
 
-          {/* Team Section */}
-          <div style={styles.teamSection}>
-            <h2 style={styles.teamTitle}>Leadership Team</h2>
+          {/* FLOW */}
+          <section style={styles.flowSection}>
+            <div style={styles.sectionHeaderRow}>
+              <h2 style={styles.sectionHeading}>How QuickMed works (end-to-end)</h2>
+              <p style={styles.sectionSmallText}>
+                From the moment a user places an order or books a consultation, the
+                platform coordinates doctors, vendors, and delivery agents to fulfil the
+                request quickly and safely.
+              </p>
+            </div>
+            <div style={styles.flowGrid}>
+              <div>
+                <div style={styles.flowList}>
+                  {flowSteps.map((text, index) => (
+                    <div key={index} style={styles.flowStep}>
+                      <div style={styles.flowStepNumber}>STEP {index + 1}</div>
+                      <div style={styles.flowStepText}>{text}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={styles.flowMiniMap}>
+                <img
+                  src="https://images.pexels.com/photos/7446670/pexels-photo-7446670.jpeg?auto=compress&cs=tinysrgb&w=1200"
+                  alt="Delivery agent following GPS route"
+                  style={styles.flowImage}
+                />
+                <div style={styles.flowOverlay}>
+                  Real-time GPS navigation guides delivery partners while live status
+                  updates keep users informed from dispatch to doorstep.
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* TECH + WHY */}
+          <section style={styles.techWhyWrapper}>
+            <div style={styles.infoCard}>
+              <h3 style={styles.infoTitle}>Technology & architecture</h3>
+              <p>
+                QuickMed runs on a secure, scalable architecture built to handle
+                high-volume consultations and orders while protecting sensitive health
+                data.
+              </p>
+              <ul style={styles.infoList}>
+                {techPoints.map((t, i) => (
+                  <li key={i}>{t}</li>
+                ))}
+              </ul>
+            </div>
+            <div style={styles.infoCard}>
+              <h3 style={styles.infoTitle}>Why QuickMed?</h3>
+              <p>
+                We focus on closing everyday gaps in healthcare—speed, transparency,
+                availability, and continuity across different care providers.
+              </p>
+              <ul style={styles.infoList}>
+                {whyPoints.map((t, i) => (
+                  <li key={i}>{t}</li>
+                ))}
+              </ul>
+            </div>
+          </section>
+
+          {/* NUTSHELL */}
+          <section style={styles.nutshellSection}>
+            <h2 style={styles.sectionHeading}>In a nutshell</h2>
+            <p style={styles.nutshellText}>
+              QuickMed is a complete digital healthcare system that unites users,
+              doctors, vendors, and delivery teams on one platform—simplifying services,
+              improving accessibility, and ensuring timely care when it matters most.
+            </p>
+          </section>
+
+          {/* TEAM */}
+          <section style={styles.teamSection}>
+            <h2 style={styles.teamTitle}>Clinical & digital leadership</h2>
             <div style={styles.teamGrid}>
-              {teamMembers.map((member, index) => (
-                <div 
-                  key={index}
+              {teamMembers.map((member, idx) => (
+                <div
+                  key={idx}
                   style={styles.teamMember}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-10px)';
-                    e.currentTarget.style.boxShadow = '0 15px 40px rgba(124, 42, 98, 0.15)';
+                    e.currentTarget.style.transform = 'translateY(-6px)';
+                    e.currentTarget.style.boxShadow =
+                      '0 16px 40px rgba(0,0,0,0.12)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.boxShadow =
+                      '0 10px 30px rgba(0,0,0,0.06)';
                   }}
                 >
                   <div style={styles.memberAvatar}>{member.avatar}</div>
@@ -908,55 +1358,64 @@ const AboutUs = ({ onNavigateToAuth }) => {
                 </div>
               ))}
             </div>
-          </div>
+          </section>
 
-          {/* CTA Section */}
-          <div style={styles.ctaSection}>
-            <h2 style={styles.ctaTitle}>Ready to Experience Better Healthcare?</h2>
+          {/* CTA */}
+          <section style={styles.ctaSection}>
+            <h2 style={styles.ctaTitle}>Ready to experience QuickMed?</h2>
             <p style={styles.ctaDescription}>
-              Join thousands of satisfied patients who trust QuickMed for their healthcare needs.
+              Start with a pregnancy consult, book a baby vaccination, or order your
+              monthly medicines. Your family’s complete healthcare journey—from
+              appointments and prescriptions to delivery and records—can live in one
+              simple, secure place.
             </p>
             <div style={styles.ctaButtons}>
-              <button 
+              <button
                 style={styles.btnPrimary}
                 onClick={handleBookAppointment}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#9C3A7A';
+                  e.currentTarget.style.backgroundColor = MINT;
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(124, 42, 98, 0.4)';
+                  e.currentTarget.style.boxShadow =
+                    '0 10px 24px rgba(0,150,136,0.5)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#7C2A62';
+                  e.currentTarget.style.backgroundColor = PRIMARY;
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 5px 15px rgba(124, 42, 98, 0.3)';
+                  e.currentTarget.style.boxShadow =
+                    '0 6px 18px rgba(0,150,136,0.4)';
                 }}
               >
                 Book Appointment
               </button>
-              <button 
+              <button
                 style={styles.btnSecondary}
                 onClick={handleLearnMore}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#7C2A62';
-                  e.currentTarget.style.color = 'white';
+                  e.currentTarget.style.backgroundColor = PRIMARY;
+                  e.currentTarget.style.color = WHITE;
                   e.currentTarget.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = '#7C2A62';
+                  e.currentTarget.style.color = PRIMARY;
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
                 Learn More
               </button>
             </div>
-          </div>
+          </section>
         </div>
       </section>
 
-      {/* Learn More Modal */}
-      {showLearnMoreModal && (
-        <LearnMoreModal onClose={closeLearnMoreModal} />
+      {/* MODALS */}
+      {showLearnMoreModal && <LearnMoreModal onClose={closeLearnMoreModal} />}
+      {showLoginPrompt && (
+        <LoginPromptModal
+          onConfirm={handleLoginConfirm}
+          onCancel={handleLoginCancel}
+        />
       )}
     </>
   );

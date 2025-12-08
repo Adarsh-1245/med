@@ -13,7 +13,7 @@ const Dashboard = ({
   setActivePage 
 }) => {
   const [selectedStat, setSelectedStat] = useState(null);
-  const [isOnline, setIsOnline] = useState(false); // Default to offline on login
+  const [isOnline, setIsOnline] = useState(false);
   const [acceptedOrders, setAcceptedOrders] = useState([]);
   const [completedOrders, setCompletedOrders] = useState([]);
   const [availableOrders, setAvailableOrders] = useState([]);
@@ -31,15 +31,20 @@ const Dashboard = ({
     dailyOrdersCompleted: 1,
     dailyTargetAchieved: false
   });
+  const [showProofModal, setShowProofModal] = useState(false);
+  const [currentDeliveryForProof, setCurrentDeliveryForProof] = useState(null);
+  const [proofImage, setProofImage] = useState(null);
+  const [proofSignature, setProofSignature] = useState(null);
+  const [customerOTP, setCustomerOTP] = useState('');
   const audioRef = useRef(null);
   const notificationIntervalRef = useRef(null);
+  const proofImageInputRef = useRef(null);
+  const signatureCanvasRef = useRef(null);
 
   // Safe function calls
   const safeSetActivePage = (page) => {
     if (typeof setActivePage === 'function') {
       setActivePage(page);
-    } else {
-      console.warn('setActivePage is not available');
     }
   };
 
@@ -149,14 +154,17 @@ const Dashboard = ({
       backgroundColor: '#7C2A62',
       color: 'white',
       border: 'none',
-      borderRadius: '8px',
-      padding: '8px 16px',
+      borderRadius: '50%',
+      padding: '16px',
       cursor: 'pointer',
       fontSize: '14px',
       fontWeight: '500',
       transition: 'all 0.3s ease',
       display: 'flex',
       alignItems: 'center',
+      justifyContent: 'center',
+      width: '56px',
+      height: '56px',
       gap: '6px',
       position: 'fixed',
       bottom: '20px',
@@ -488,23 +496,6 @@ const Dashboard = ({
       alignItems: 'center',
       gap: '6px'
     },
-    offlineMessage: {
-      backgroundColor: isOnline ? '#FEF3C7' : '#1a0f1a',
-      border: isOnline ? '1px solid #F59E0B' : '1px solid #F7D9EB40',
-      borderRadius: '8px',
-      padding: '20px',
-      textAlign: 'center',
-      marginBottom: '20px',
-      transition: 'all 0.3s ease',
-      boxShadow: isOnline ? 'none' : '0 2px 10px rgba(247, 217, 235, 0.1)'
-    },
-    offlineText: {
-      color: isOnline ? '#92400E' : '#F7D9EB',
-      fontSize: '16px',
-      fontWeight: '500',
-      margin: 0,
-      transition: 'color 0.3s ease'
-    },
     incentivesSection: {
       backgroundColor: isOnline ? 'white' : '#1a0f1a',
       borderRadius: '12px',
@@ -675,14 +666,6 @@ const Dashboard = ({
     progressLineCompleted: {
       backgroundColor: '#10B981'
     },
-    medicineDetails: {
-      backgroundColor: isOnline ? '#F0FDF4' : '#1a2a1a',
-      padding: '12px',
-      borderRadius: '8px',
-      marginBottom: '16px',
-      border: isOnline ? '1px solid #BBF7D0' : '1px solid #2a4a2a',
-      transition: 'all 0.3s ease'
-    },
     medicineTitle: {
       fontSize: '14px',
       fontWeight: '600',
@@ -745,6 +728,150 @@ const Dashboard = ({
       fontSize: '11px',
       color: isOnline ? '#9ca3af' : '#F7D9EB80',
       margin: 0
+    },
+    // New Styles for Proof Modal
+    proofModal: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 2000,
+      padding: '20px'
+    },
+    proofModalContent: {
+      backgroundColor: isOnline ? 'white' : '#1a0f1a',
+      borderRadius: '12px',
+      padding: '30px',
+      maxWidth: '500px',
+      width: '100%',
+      maxHeight: '90vh',
+      overflowY: 'auto',
+      border: isOnline ? '1px solid #e5e7eb' : '1px solid #F7D9EB20',
+      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+      transition: 'all 0.3s ease'
+    },
+    proofModalTitle: {
+      fontSize: '22px',
+      fontWeight: '700',
+      color: isOnline ? '#1f2937' : '#F7D9EB',
+      margin: '0 0 20px 0',
+      textAlign: 'center'
+    },
+    proofSection: {
+      marginBottom: '25px'
+    },
+    proofLabel: {
+      fontSize: '16px',
+      fontWeight: '600',
+      color: isOnline ? '#1f2937' : '#F7D9EB',
+      margin: '0 0 12px 0',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px'
+    },
+    proofInput: {
+      width: '100%',
+      padding: '12px',
+      borderRadius: '8px',
+      border: isOnline ? '1px solid #d1d5db' : '1px solid #F7D9EB40',
+      backgroundColor: isOnline ? 'white' : '#1a0f1a',
+      color: isOnline ? '#1f2937' : '#F7D9EB',
+      fontSize: '16px',
+      marginBottom: '15px',
+      transition: 'all 0.3s ease'
+    },
+    proofImageUpload: {
+      border: '2px dashed',
+      borderColor: isOnline ? '#d1d5db' : '#F7D9EB40',
+      borderRadius: '8px',
+      padding: '30px 20px',
+      textAlign: 'center',
+      cursor: 'pointer',
+      marginBottom: '15px',
+      transition: 'all 0.3s ease'
+    },
+    proofImagePreview: {
+      maxWidth: '100%',
+      maxHeight: '200px',
+      borderRadius: '8px',
+      marginBottom: '15px',
+      border: '1px solid #d1d5db'
+    },
+    signatureCanvas: {
+      border: '1px solid #d1d5db',
+      borderRadius: '8px',
+      backgroundColor: 'white',
+      width: '100%',
+      height: '150px',
+      cursor: 'crosshair',
+      marginBottom: '15px'
+    },
+    proofButtons: {
+      display: 'flex',
+      gap: '12px',
+      marginTop: '25px'
+    },
+    proofSubmitButton: {
+      backgroundColor: '#10B981',
+      color: 'white',
+      border: 'none',
+      padding: '14px 20px',
+      borderRadius: '8px',
+      fontSize: '16px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      flex: 1,
+      transition: 'all 0.3s ease',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '8px'
+    },
+    proofCancelButton: {
+      backgroundColor: 'transparent',
+      color: isOnline ? '#6b7280' : '#F7D9EBB0',
+      border: isOnline ? '1px solid #d1d5db' : '1px solid #F7D9EB40',
+      padding: '14px 20px',
+      borderRadius: '8px',
+      fontSize: '16px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      flex: 1,
+      transition: 'all 0.3s ease'
+    },
+    customerDirectionButton: {
+      backgroundColor: '#8B5CF6',
+      color: 'white',
+      border: 'none',
+      padding: '8px 12px',
+      borderRadius: '6px',
+      fontSize: '12px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      marginLeft: '8px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '4px',
+      transition: 'all 0.3s ease'
+    },
+    cancelOrderButton: {
+      backgroundColor: '#EF4444',
+      color: 'white',
+      border: 'none',
+      padding: '10px 16px',
+      borderRadius: '6px',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      transition: 'all 0.3s ease'
     }
   };
 
@@ -759,7 +886,7 @@ const Dashboard = ({
     }
   }, [completedOrders.length, incentives.dailyTargetAchieved]);
 
-  // Initialize available orders with pharmacy details
+  // Initialize available orders with pharmacy details for Visakhapatnam
   useEffect(() => {
     const initialOrders = [
       {
@@ -769,36 +896,45 @@ const Dashboard = ({
         customerPhone: '+91 98765 43210',
         pharmacyName: 'Apollo Pharmacy',
         pharmacyPhone: '+91 98765 43211',
-        pharmacyLocation: 'Apollo Pharmacy, Sector 18, Noida',
-        deliveryLocation: 'H-Block, Sector 62, Noida',
+        pharmacyLocation: 'Apollo Pharmacy, MVP Colony, Visakhapatnam',
+        deliveryLocation: 'H-Block, Seethammadhara, Visakhapatnam',
         estimatedTime: '25 mins',
         distance: '3.2 km',
         amount: 45,
         tip: 10,
         status: 'pending',
         priority: 'High',
-        instructions: 'Handle with care. Keep medicines in original packaging.'
+        instructions: 'Handle with care. Keep medicines in original packaging.',
+        customerOTP: Math.floor(1000 + Math.random() * 9000).toString()
       }
     ];
     setAvailableOrders(initialOrders);
   }, []);
 
-  // Simulate new pharmacy orders coming in real-time ONLY when no active orders AND no available orders
+  // Simulate new pharmacy orders for Visakhapatnam
   useEffect(() => {
     if (!isOnline || acceptedOrders.length > 0 || availableOrders.length > 0 || incentives.dailyTargetAchieved) return;
 
     const orderInterval = setInterval(() => {
       setAvailableOrders(prev => {
-        if (prev.length >= 1) return prev; // Only allow one order at a time
+        if (prev.length >= 1) return prev;
         
-        const pharmacies = [
-          { name: 'Apollo Pharmacy', phone: '+91 98765 43211' },
-          { name: 'MedPlus Pharmacy', phone: '+91 98765 43213' },
-          { name: 'Fortis Pharmacy', phone: '+91 98765 43215' },
-          { name: 'Max Healthcare Pharmacy', phone: '+91 98765 43217' }
+        const visakhapatnamPharmacies = [
+          { name: 'Apollo Pharmacy', phone: '+91 98765 43211', area: 'MVP Colony' },
+          { name: 'MedPlus Pharmacy', phone: '+91 98765 43213', area: 'Dwarakanagar' },
+          { name: 'Fortis Pharmacy', phone: '+91 98765 43215', area: 'Siripuram' },
+          { name: 'Max Healthcare Pharmacy', phone: '+91 98765 43217', area: 'Gajuwaka' },
+          { name: 'City Pharmacy', phone: '+91 98765 43219', area: 'Akkayyapalem' }
         ];
         
-        const pharmacy = pharmacies[Math.floor(Math.random() * pharmacies.length)];
+        const visakhapatnamAreas = [
+          'MVP Colony', 'Dwarakanagar', 'Siripuram', 'Gajuwaka', 'Akkayyapalem',
+          'Seethammadhara', 'Madhurawada', 'Pendurthi', 'Anakapalle', 'Bheemili'
+        ];
+        
+        const pharmacy = visakhapatnamPharmacies[Math.floor(Math.random() * visakhapatnamPharmacies.length)];
+        const deliveryArea = visakhapatnamAreas.filter(a => a !== pharmacy.area)[Math.floor(Math.random() * (visakhapatnamAreas.length - 1))];
+        
         const tipAmount = Math.random() > 0.3 ? Math.floor(Math.random() * 30) + 5 : 0;
         const newOrder = {
           id: `ORD${Date.now()}`,
@@ -807,25 +943,26 @@ const Dashboard = ({
           customerPhone: `+91 9${Math.floor(10000000 + Math.random() * 90000000)}`,
           pharmacyName: pharmacy.name,
           pharmacyPhone: pharmacy.phone,
-          pharmacyLocation: `${pharmacy.name}, Sector ${15 + Math.floor(Math.random() * 10)}, Noida`,
-          deliveryLocation: `Sector ${30 + Math.floor(Math.random() * 50)}, Noida`,
+          pharmacyLocation: `${pharmacy.name}, ${pharmacy.area}, Visakhapatnam`,
+          deliveryLocation: `${deliveryArea}, Visakhapatnam`,
           estimatedTime: `${20 + Math.floor(Math.random() * 20)} mins`,
           distance: `${(2 + Math.random() * 4).toFixed(1)} km`,
           amount: 30 + Math.floor(Math.random() * 50),
           tip: tipAmount,
           status: 'pending',
           priority: ['Low', 'Medium', 'High'][Math.floor(Math.random() * 3)],
-          instructions: 'Handle with care. Keep medicines in original packaging.'
+          instructions: 'Handle with care. Keep medicines in original packaging.',
+          customerOTP: Math.floor(1000 + Math.random() * 9000).toString()
         };
         
-        return [newOrder]; // Only return one order
+        return [newOrder];
       });
-    }, 30000); // Check every 30 seconds for new orders
+    }, 30000);
 
     return () => clearInterval(orderInterval);
   }, [isOnline, acceptedOrders.length, availableOrders.length, incentives.dailyTargetAchieved]);
 
-  // Notification sound system - only when online and has available orders but no active orders
+  // Notification sound system
   useEffect(() => {
     if (isOnline && availableOrders.length > 0 && acceptedOrders.length === 0 && !incentives.dailyTargetAchieved) {
       notificationIntervalRef.current = setInterval(() => {
@@ -845,6 +982,16 @@ const Dashboard = ({
       }
     }
   }, [isOnline, availableOrders.length, acceptedOrders.length, incentives.dailyTargetAchieved]);
+
+  // Initialize signature canvas
+  useEffect(() => {
+    if (signatureCanvasRef.current && showProofModal) {
+      const canvas = signatureCanvasRef.current;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  }, [showProofModal]);
 
   const formatIndianCurrency = (amount) => {
     return `₹${amount.toLocaleString('en-IN')}`;
@@ -896,7 +1043,6 @@ const Dashboard = ({
       setSelectedStat(null);
       setCurrentStep('available');
     } else {
-      // When going offline, clear accepted orders but keep completed orders for history
       setAcceptedOrders([]);
       setCurrentStep('available');
     }
@@ -916,13 +1062,17 @@ const Dashboard = ({
     };
 
     setAcceptedOrders([acceptedOrder]);
-    setAvailableOrders([]); // Clear available orders when accepting
+    setAvailableOrders([]);
     setCurrentStep('accepted');
     
     setIncentives(prev => ({
       ...prev,
       today: prev.today + order.amount
     }));
+  };
+
+  const handleCancelAvailableOrder = (order) => {
+    setAvailableOrders(prev => prev.filter(o => o.id !== order.id));
   };
 
   const handleReachedPharmacy = (order) => {
@@ -952,15 +1102,84 @@ const Dashboard = ({
     setCurrentStep('delivery_reached');
   };
 
-  const handleDeliveryCompleted = (order) => {
+  const handleOpenProofModal = (order) => {
+    setCurrentDeliveryForProof(order);
+    setShowProofModal(true);
+  };
+
+  const handleProofImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProofImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSignatureStart = (e) => {
+    const canvas = signatureCanvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const ctx = canvas.getContext('2d');
+    
+    ctx.beginPath();
+    ctx.moveTo(
+      e.clientX - rect.left,
+      e.clientY - rect.top
+    );
+    
+    canvas.isDrawing = true;
+  };
+
+  const handleSignatureMove = (e) => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas.isDrawing) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const ctx = canvas.getContext('2d');
+    
+    ctx.lineTo(
+      e.clientX - rect.left,
+      e.clientY - rect.top
+    );
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  };
+
+  const handleSignatureEnd = () => {
+    const canvas = signatureCanvasRef.current;
+    canvas.isDrawing = false;
+    setProofSignature(canvas.toDataURL());
+  };
+
+  const handleClearSignature = () => {
+    const canvas = signatureCanvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    setProofSignature(null);
+  };
+
+  const handleSubmitProof = () => {
+    if (!customerOTP || customerOTP !== currentDeliveryForProof?.customerOTP) {
+      alert('Please enter valid OTP');
+      return;
+    }
+
+    if (!proofImage && !proofSignature) {
+      alert('Please provide either photo proof or signature');
+      return;
+    }
+
     const deliveredOrder = {
-      ...order,
+      ...currentDeliveryForProof,
       status: 'delivery_completed',
       deliveredAt: new Date(),
-      deliveryDate: new Date().toISOString().split('T')[0],
-      completedTime: new Date().toLocaleTimeString(),
-      rating: Math.floor(Math.random() * 2) + 4, // Random rating 4-5
-      feedback: Math.random() > 0.5 ? 'Great service! Very professional and on time.' : 'Excellent delivery service!'
+      proofImage,
+      proofSignature,
+      proofOTP: customerOTP
     };
 
     setCompletedOrders(prev => [...prev, deliveredOrder]);
@@ -971,13 +1190,18 @@ const Dashboard = ({
       ...prev,
       completedDeliveries: prev.completedDeliveries + 1,
       dailyOrdersCompleted: prev.dailyOrdersCompleted + 1,
-      weekly: prev.weekly + order.amount,
-      monthly: prev.monthly + order.amount,
-      today: prev.today + order.amount + (order.tip || 0),
-      customerTips: prev.customerTips + (order.tip || 0)
+      weekly: prev.weekly + currentDeliveryForProof.amount,
+      monthly: prev.monthly + currentDeliveryForProof.amount,
+      today: prev.today + currentDeliveryForProof.amount + (currentDeliveryForProof.tip || 0),
+      customerTips: prev.customerTips + (currentDeliveryForProof.tip || 0)
     }));
 
-    // Auto-navigate to delivery history after 2 seconds
+    setShowProofModal(false);
+    setCurrentDeliveryForProof(null);
+    setProofImage(null);
+    setProofSignature(null);
+    setCustomerOTP('');
+
     setTimeout(() => {
       safeSetActivePage('delivery-history');
     }, 2000);
@@ -997,23 +1221,25 @@ const Dashboard = ({
     window.open(`tel:${phoneNumber}`, '_self');
   };
 
-  const handleGetDirections = (location) => {
-    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(location)}`;
+  const handleGetDirections = (location, isCustomer = false) => {
+    // Add "Visakhapatnam" to ensure directions are within the city
+    const locationWithCity = `${location}, Visakhapatnam, Andhra Pradesh`;
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(locationWithCity)}`;
     window.open(mapsUrl, '_blank');
   };
 
-  // Safe function to get medicines array
   const getMedicines = (task) => {
     return task?.medicines || [];
   };
 
+  // Update the progress steps to include proof submission
   const getProgressSteps = () => {
     const steps = [
       { label: 'Order Accepted', key: 'accepted' },
       { label: 'Reached Pharmacy', key: 'pickup_reached' },
       { label: 'Pickup Completed', key: 'pickup_completed' },
       { label: 'Reached Customer', key: 'delivery_reached' },
-      { label: 'Delivery Completed', key: 'delivery_completed' }
+      { label: 'Proof Submitted', key: 'proof_submitted' }
     ];
 
     const currentIndex = steps.findIndex(step => step.key === currentStep);
@@ -1055,7 +1281,124 @@ const Dashboard = ({
     });
   };
 
-  // If offline or target achieved, show special offline dashboard with black background
+  // Proof of Delivery Modal
+  const ProofModal = () => {
+    if (!showProofModal) return null;
+
+    return (
+      <div style={styles.proofModal}>
+        <div style={styles.proofModalContent}>
+          <h2 style={styles.proofModalTitle}>📦 Proof of Delivery</h2>
+          
+          <div style={styles.proofSection}>
+            <label style={styles.proofLabel}>
+              🔢 Enter Customer OTP
+            </label>
+            <input
+              type="text"
+              placeholder="Enter 4-digit OTP shared by customer"
+              value={customerOTP}
+              onChange={(e) => setCustomerOTP(e.target.value)}
+              maxLength="4"
+              style={styles.proofInput}
+            />
+          </div>
+
+          <div style={styles.proofSection}>
+            <label style={styles.proofLabel}>
+              📸 Upload Delivery Photo
+            </label>
+            <div 
+              style={styles.proofImageUpload}
+              onClick={() => proofImageInputRef.current.click()}
+            >
+              {proofImage ? (
+                <img 
+                  src={proofImage} 
+                  alt="Proof" 
+                  style={styles.proofImagePreview}
+                />
+              ) : (
+                <>
+                  <div style={{ fontSize: '48px', marginBottom: '10px' }}>📷</div>
+                  <p style={{ color: isOnline ? '#6b7280' : '#F7D9EBB0', margin: 0 }}>
+                    Click to take/upload photo
+                  </p>
+                  <p style={{ fontSize: '12px', color: isOnline ? '#9ca3af' : '#F7D9EB80', margin: '5px 0 0 0' }}>
+                    Show delivered items with customer/house number
+                  </p>
+                </>
+              )}
+            </div>
+            <input
+              type="file"
+              ref={proofImageInputRef}
+              accept="image/*"
+              capture="environment"
+              onChange={handleProofImageUpload}
+              style={{ display: 'none' }}
+            />
+          </div>
+
+          <div style={styles.proofSection}>
+            <label style={styles.proofLabel}>
+              ✍️ Customer Signature
+            </label>
+            <canvas
+              ref={signatureCanvasRef}
+              style={styles.signatureCanvas}
+              onMouseDown={handleSignatureStart}
+              onMouseMove={handleSignatureMove}
+              onMouseUp={handleSignatureEnd}
+              onMouseLeave={handleSignatureEnd}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                handleSignatureStart(e.touches[0]);
+              }}
+              onTouchMove={(e) => {
+                e.preventDefault();
+                handleSignatureMove(e.touches[0]);
+              }}
+              onTouchEnd={handleSignatureEnd}
+            />
+            <button
+              style={{
+                ...styles.secondaryButton,
+                padding: '8px 12px',
+                fontSize: '12px'
+              }}
+              onClick={handleClearSignature}
+            >
+              🗑️ Clear Signature
+            </button>
+          </div>
+
+          <div style={styles.proofButtons}>
+            <button
+              style={styles.proofCancelButton}
+              onClick={() => {
+                setShowProofModal(false);
+                setCurrentDeliveryForProof(null);
+                setProofImage(null);
+                setProofSignature(null);
+                setCustomerOTP('');
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              style={styles.proofSubmitButton}
+              onClick={handleSubmitProof}
+            >
+              ✅ Submit Proof & Complete Delivery
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // If offline or target achieved, show special offline dashboard
   if (!isOnline || incentives.dailyTargetAchieved) {
     return (
       <div style={styles.mainContent}>
@@ -1159,9 +1502,11 @@ const Dashboard = ({
     );
   }
 
-  // Online mode - show full dashboard with light background
+  // Online mode - show full dashboard
   return (
     <div style={styles.mainContent}>
+      <ProofModal />
+      
       <div style={styles.header}>
         <div>
           <h1 style={styles.greeting}>{getCurrentGreeting()}, {getDisplayName()}</h1>
@@ -1329,7 +1674,7 @@ const Dashboard = ({
             <h2 style={styles.sectionTitle}>
               {acceptedOrders.length > 0 ? 'Current Deliveries' : 'Available Deliveries'}
             </h2>
-            {isOnline && completedOrders.length > 0 && (
+            {completedOrders.length > 0 && (
               <span
                 style={styles.viewAll}
                 onClick={handleViewAllTasks}
@@ -1348,23 +1693,9 @@ const Dashboard = ({
 
           <div style={styles.tasksList}>
             {acceptedOrders.length > 0 ? (
-              // Show accepted/current delivery with pharmacy details
               acceptedOrders.map(task => (
                 <div key={task.id} style={styles.taskCard}>
-                  {/* Medicine Details */}
-                  <div style={styles.medicineDetails}>
-                    <h4 style={styles.medicineTitle}>📦 Medicine Details</h4>
-                    <ul style={styles.medicineList}>
-                      {getMedicines(task).map((medicine, index) => (
-                        <li key={index}>• {medicine}</li>
-                      ))}
-                    </ul>
-                    <p style={{...styles.medicineList, marginTop: '8px', fontStyle: 'italic'}}>
-                      📝 {task.instructions}
-                    </p>
-                  </div>
-
-                  <div style={styles.taskHeader}>
+                    <div style={styles.taskHeader}>
                     <div style={styles.taskInfo}>
                       <h4 style={styles.orderId}>{task.orderId}</h4>
                       <p style={styles.customerName}>{task.customerName}</p>
@@ -1421,10 +1752,10 @@ const Dashboard = ({
                             📞 {task.customerPhone}
                           </button>
                           <button
-                            style={styles.directionButton}
-                            onClick={() => handleGetDirections(task.deliveryLocation)}
+                            style={styles.customerDirectionButton}
+                            onClick={() => handleGetDirections(task.deliveryLocation, true)}
                           >
-                            🗺️ Get Directions
+                            🗺️ Customer Directions
                           </button>
                         </div>
                       </span>
@@ -1443,7 +1774,6 @@ const Dashboard = ({
                   </div>
 
                   <div style={styles.taskActions}>
-                    {/* Step-based actions */}
                     {task.status === 'assigned' && (
                       <>
                         <button
@@ -1482,18 +1812,17 @@ const Dashboard = ({
                     {task.status === 'delivery_reached' && (
                       <button
                         style={styles.successButton}
-                        onClick={() => handleDeliveryCompleted(task)}
+                        onClick={() => handleOpenProofModal(task)}
                       >
-                        ✅ Mark Delivery Completed
+                        📸 Submit Proof of Delivery
                       </button>
                     )}
 
-                    {/* Cancel button available in all states */}
                     <button
-                      style={styles.dangerButton}
+                      style={styles.cancelOrderButton}
                       onClick={() => handleCancelOrder(task)}
                     >
-                      ❌ Cancel
+                      ❌ Cancel Order
                     </button>
 
                     <button
@@ -1509,20 +1838,9 @@ const Dashboard = ({
                 </div>
               ))
             ) : (
-              // Show available deliveries (only one at a time)
               availableOrders.map(task => (
                 <div key={task.id} style={styles.taskCard}>
-                  {/* Medicine Details */}
-                  <div style={styles.medicineDetails}>
-                    <h4 style={styles.medicineTitle}>📦 Medicine Details</h4>
-                    <ul style={styles.medicineList}>
-                      {getMedicines(task).map((medicine, index) => (
-                        <li key={index}>• {medicine}</li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div style={styles.taskHeader}>
+                    <div style={styles.taskHeader}>
                     <div style={styles.taskInfo}>
                       <h4 style={styles.orderId}>{task.orderId}</h4>
                       <p style={styles.customerName}>{task.customerName}</p>
@@ -1550,7 +1868,15 @@ const Dashboard = ({
                     </div>
                     <div style={styles.locationRow}>
                       <span style={styles.locationLabel}>🏠 Delivery:</span>
-                      <span style={styles.locationText}>{task.deliveryLocation}</span>
+                      <span style={styles.locationText}>
+                        {task.deliveryLocation}
+                        <button
+                          style={styles.customerDirectionButton}
+                          onClick={() => handleGetDirections(task.deliveryLocation, true)}
+                        >
+                          🗺️ Customer Directions
+                        </button>
+                      </span>
                     </div>
                   </div>
 
@@ -1573,6 +1899,12 @@ const Dashboard = ({
                       ✅ Accept Delivery
                     </button>
                     <button
+                      style={styles.cancelOrderButton}
+                      onClick={() => handleCancelAvailableOrder(task)}
+                    >
+                      ❌ Cancel Order
+                    </button>
+                    <button
                       style={styles.secondaryButton}
                       onClick={() => safeSetSelectedTask({
                         ...task,
@@ -1589,7 +1921,7 @@ const Dashboard = ({
         </div>
 
         <div style={styles.sidebarSection}>
-          {/* Live Route Tracker - Always active when online and has current order */}
+          {/* Live Route Tracker */}
           {isOnline && acceptedOrders.length > 0 && (
             <LiveRouteTracker 
               deliveryData={deliveryData} 
@@ -1599,7 +1931,6 @@ const Dashboard = ({
             />
           )}
 
-          {/* Live Route Tracker - Show even when no active orders but online */}
           {isOnline && acceptedOrders.length === 0 && (
             <LiveRouteTracker 
               deliveryData={deliveryData} 
@@ -1609,7 +1940,7 @@ const Dashboard = ({
             />
           )}
 
-          {/* Delivery History Section - Always show when there are completed orders */}
+          {/* Delivery History Section */}
           {completedOrders.length > 0 && (
             <div style={styles.deliveryHistorySection}>
               <div style={styles.sectionHeader}>
@@ -1629,6 +1960,11 @@ const Dashboard = ({
                       {order.customerName} • {formatIndianCurrency(order.amount)}
                       {order.tip > 0 && ` + ${formatIndianCurrency(order.tip)} tip`}
                     </p>
+                    {order.proofImage && (
+                      <p style={{ fontSize: '11px', color: '#10B981', margin: '4px 0' }}>
+                        📸 Proof submitted
+                      </p>
+                    )}
                     <p style={styles.historyTime}>
                       Delivered: {order.deliveredAt?.toLocaleTimeString() || 'Just now'}
                     </p>
@@ -1640,7 +1976,7 @@ const Dashboard = ({
         </div>
       </div>
 
-      {/* AI Chat Button - Fixed at bottom right */}
+      {/* AI Chat Button */}
       <button
         style={styles.aiChatButton}
         onClick={safeToggleAIChat}

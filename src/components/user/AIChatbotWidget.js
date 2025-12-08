@@ -1,5 +1,15 @@
 import React, { useRef, useEffect } from 'react';
 
+// Color Scheme Constants
+const COLORS = {
+  primary: '#009688',
+  mint: '#4DB6AC',
+  softbg: '#E0F2F1',
+  white: '#FFFFFF',
+  darktext: '#124441',
+  softtext: '#4F6F6B'
+};
+
 // AI Chatbot Widget Component
 const AIChatbotWidget = ({ 
   showChatbot, 
@@ -69,7 +79,7 @@ const AIChatbotWidget = ({
           style={{
             width: '350px',
             height: '500px',
-            backgroundColor: 'white',
+            backgroundColor: COLORS.white,
             borderRadius: '20px',
             boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
             display: 'flex',
@@ -82,8 +92,8 @@ const AIChatbotWidget = ({
         >
           {/* Chat Header */}
           <div style={{
-            backgroundColor: '#7C2A62',
-            color: 'white',
+            backgroundColor: COLORS.primary,
+            color: COLORS.white,
             padding: '15px 20px',
             display: 'flex',
             alignItems: 'center',
@@ -100,7 +110,7 @@ const AIChatbotWidget = ({
                 justifyContent: 'center',
                 fontSize: '16px'
               }}>
-                🤖
+                
               </div>
               <div>
                 <div style={{ fontWeight: 'bold', fontSize: '14px' }}>QuickMed Assistant</div>
@@ -112,7 +122,7 @@ const AIChatbotWidget = ({
               style={{
                 background: 'none',
                 border: 'none',
-                color: 'white',
+                color: COLORS.white,
                 fontSize: '18px',
                 cursor: 'pointer',
                 padding: '5px',
@@ -149,8 +159,8 @@ const AIChatbotWidget = ({
                 }}
               >
                 <div style={{
-                  backgroundColor: message.sender === 'user' ? '#7C2A62' : 'white',
-                  color: message.sender === 'user' ? 'white' : '#333',
+                  backgroundColor: message.sender === 'user' ? COLORS.primary : COLORS.white,
+                  color: message.sender === 'user' ? COLORS.white : COLORS.darktext,
                   padding: '10px 15px',
                   borderRadius: message.sender === 'user' 
                     ? '18px 18px 4px 18px' 
@@ -163,7 +173,7 @@ const AIChatbotWidget = ({
                 </div>
                 <div style={{
                   fontSize: '10px',
-                  color: '#666',
+                  color: COLORS.softtext,
                   marginTop: '4px',
                   textAlign: message.sender === 'user' ? 'right' : 'left',
                   padding: '0 5px'
@@ -179,7 +189,7 @@ const AIChatbotWidget = ({
           <div style={{
             padding: '15px',
             borderTop: '1px solid #e0e0e0',
-            backgroundColor: 'white'
+            backgroundColor: COLORS.white
           }}>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <input
@@ -204,8 +214,8 @@ const AIChatbotWidget = ({
                 onClick={handleSendMessage}
                 disabled={!userMessage.trim()}
                 style={{
-                  backgroundColor: userMessage.trim() ? '#7C2A62' : '#ccc',
-                  color: 'white',
+                  backgroundColor: userMessage.trim() ? COLORS.primary : '#ccc',
+                  color: COLORS.white,
                   border: 'none',
                   borderRadius: '50%',
                   width: '40px',
@@ -223,7 +233,7 @@ const AIChatbotWidget = ({
             </div>
             <div style={{
               fontSize: '11px',
-              color: '#666',
+              color: COLORS.softtext,
               textAlign: 'center',
               marginTop: '8px'
             }}>
@@ -239,13 +249,13 @@ const AIChatbotWidget = ({
         style={{
           width: '60px',
           height: '60px',
-          backgroundColor: '#7C2A62',
+          backgroundColor: COLORS.primary,
           border: 'none',
           borderRadius: '50%',
-          color: 'white',
+          color: COLORS.white,
           fontSize: '24px',
           cursor: 'pointer',
-          boxShadow: '0 4px 20px rgba(124, 42, 98, 0.3)',
+          boxShadow: `0 4px 20px rgba(0, 150, 136, 0.3)`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -254,11 +264,11 @@ const AIChatbotWidget = ({
         }}
         onMouseEnter={(e) => {
           e.target.style.transform = showChatbot ? 'rotate(360deg) scale(1.1)' : 'scale(1.1)';
-          e.target.style.boxShadow = '0 6px 25px rgba(124, 42, 98, 0.4)';
+          e.target.style.boxShadow = `0 6px 25px rgba(0, 150, 136, 0.4)`;
         }}
         onMouseLeave={(e) => {
           e.target.style.transform = showChatbot ? 'rotate(360deg)' : 'rotate(0deg)';
-          e.target.style.boxShadow = '0 4px 20px rgba(124, 42, 98, 0.3)';
+          e.target.style.boxShadow = `0 4px 20px rgba(0, 150, 136, 0.3)`;
         }}
       >
         {showChatbot ? '✕' : '💬'}
@@ -273,7 +283,7 @@ const AIChatbotWidget = ({
           width: '20px',
           height: '20px',
           backgroundColor: '#ff4444',
-          color: 'white',
+          color: COLORS.white,
           borderRadius: '50%',
           fontSize: '10px',
           display: 'flex',

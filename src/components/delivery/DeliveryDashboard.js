@@ -1,4 +1,6 @@
+// src/components/delivery/DeliveryDashboard.js
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Toast from './Toast';
 import LogoutConfirmation from './LogoutConfirmation';
 import AIChatBoard from './AIChatBoard';
@@ -11,29 +13,33 @@ import DeliveryHistory from './DeliveryHistory';
 import Earnings from './Earnings';
 import Performance from './Performance';
 import Profile from './Profile';
+import './DeliveryDashboard.css';
 
 // Notification sound
 const playNotificationSound = () => {
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-  
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-  
-  oscillator.frequency.value = 800;
-  oscillator.type = 'sine';
-  
-  gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-  gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.1);
-  gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3);
-  
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + 0.3);
+  if (typeof window !== 'undefined' && window.AudioContext) {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.1);
+    gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+  }
 };
 
 const DeliveryDashboard = ({ user, onLogout }) => {
-  const [activePage, setActivePage] = useState('dashboard');
+  const navigate = useNavigate();
+  const location = useLocation();
   const [selectedTask, setSelectedTask] = useState(null);
   const [isOnline, setIsOnline] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -41,9 +47,24 @@ const DeliveryDashboard = ({ user, onLogout }) => {
   const [showProfileImageUpload, setShowProfileImageUpload] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [toast, setToast] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Refs for click outside detection
   const notificationsRef = useRef(null);
+  const mobileMenuRef = useRef(null);
+
+  // Determine active page from route
+  const getActivePageFromRoute = () => {
+    const path = location.pathname;
+    if (path === '/delivery-dashboard' || path === '/delivery-dashboard/dashboard') return 'dashboard';
+    if (path === '/delivery-dashboard/delivery-history') return 'tasks';
+    if (path === '/delivery-dashboard/earnings') return 'earnings';
+    if (path === '/delivery-dashboard/performance') return 'performance';
+    if (path === '/delivery-dashboard/profile') return 'profile';
+    return 'dashboard';
+  };
+
+  const activePage = getActivePageFromRoute();
 
   // Show toast function
   const showToast = (message, type = 'info') => {
@@ -181,6 +202,25 @@ const DeliveryDashboard = ({ user, onLogout }) => {
 
   const [notifications, setNotifications] = useState(deliveryData.notifications);
 
+  // Screen size detection
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+      
+      // Close mobile menu on tablet/desktop
+      if (window.innerWidth >= 768 && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMobileMenuOpen]);
+
   // Simulate new orders coming in
   useEffect(() => {
     if (!isOnline) return;
@@ -270,11 +310,19 @@ const DeliveryDashboard = ({ user, onLogout }) => {
     }));
   }, [deliveryData.assignedTasks, deliveryData.pendingTasks, deliveryData.completedTasks, deliveryData.cancelledTasks]);
 
-  // Click outside handler for notifications
+  // Click outside handler for notifications and mobile menu
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Handle notifications
       if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
         setShowNotifications(false);
+      }
+      
+      // Handle mobile menu
+      if (mobileMenuRef.current && 
+          !mobileMenuRef.current.contains(event.target) &&
+          !event.target.closest('.mobile-menu-toggle')) {
+        setIsMobileMenuOpen(false);
       }
     };
 
@@ -283,6 +331,26 @@ const DeliveryDashboard = ({ user, onLogout }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Navigate to different pages
+  const navigateTo = (page) => {
+    const routes = {
+      'dashboard': '/delivery-dashboard',
+      'tasks': '/delivery-dashboard/delivery-history',
+      'earnings': '/delivery-dashboard/earnings',
+      'performance': '/delivery-dashboard/performance',
+      'profile': '/delivery-dashboard/profile'
+    };
+    
+    if (routes[page]) {
+      navigate(routes[page]);
+    }
+    
+    // Close mobile menu on mobile
+    if (isMobile) {
+      setIsMobileMenuOpen(false);
+    }
+  };
 
   // Task Management Functions
   const acceptDelivery = (taskId) => {
@@ -452,7 +520,7 @@ const DeliveryDashboard = ({ user, onLogout }) => {
 
   const handleViewAllNotifications = () => {
     setShowNotifications(false);
-    alert('View All Notifications - This would open a full notifications page in a real application');
+    showToast('View All Notifications feature coming soon!', 'info');
   };
 
   // AI Chat functions
@@ -478,6 +546,11 @@ const DeliveryDashboard = ({ user, onLogout }) => {
     );
   };
 
+  // Mobile menu toggle
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   // Logout handlers
   const handleLogout = () => {
     setShowLogoutConfirm(true);
@@ -494,22 +567,32 @@ const DeliveryDashboard = ({ user, onLogout }) => {
     setShowLogoutConfirm(false);
   };
 
+  // Common props for all components
+  const commonProps = {
+    profileData,
+    deliveryData,
+    isOnline,
+    toggleOnlineStatus,
+    showToast,
+    setSelectedTask,
+    toggleNotifications,
+    getUnreadCount,
+    toggleAIChat,
+    setShowProfileImageUpload,
+    handleProfileImageChange,
+    navigateTo,
+    acceptDelivery,
+    startDelivery,
+    markDelivered,
+    cancelDelivery,
+    getDirections,
+    contactCustomer,
+    isMobile,
+    isTablet
+  };
+
   // Render main content based on active page
   const renderMainContent = () => {
-    const commonProps = {
-      profileData,
-      deliveryData,
-      isOnline,
-      toggleOnlineStatus,
-      showToast,
-      setSelectedTask,
-      toggleNotifications,
-      getUnreadCount,
-      toggleAIChat,
-      setShowProfileImageUpload,
-      handleProfileImageChange
-    };
-
     switch (activePage) {
       case 'dashboard':
         return <Dashboard {...commonProps} />;
@@ -531,24 +614,53 @@ const DeliveryDashboard = ({ user, onLogout }) => {
       display: 'flex',
       minHeight: '100vh',
       backgroundColor: '#f8fafc',
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+      position: 'relative'
     },
     content: {
       flex: 1,
-      marginLeft: '280px',
-      padding: '0'
+      marginLeft: isMobile ? '0' : isTablet ? '240px' : '280px',
+      padding: isMobile ? '0' : '0',
+      transition: 'margin-left 0.3s ease'
     },
-    modalOverlay: {
+    mobileHeader: {
+      display: isMobile ? 'flex' : 'none',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '1rem',
+      backgroundColor: 'white',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      position: 'sticky',
+      top: 0,
+      zIndex: 100
+    },
+    mobileMenuToggle: {
+      background: 'none',
+      border: 'none',
+      fontSize: '1.5rem',
+      cursor: 'pointer',
+      color: '#333'
+    },
+    mobileSidebar: {
+      position: 'fixed',
+      top: 0,
+      left: isMobileMenuOpen ? '0' : '-280px',
+      width: '280px',
+      height: '100vh',
+      backgroundColor: 'white',
+      boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
+      zIndex: 1000,
+      transition: 'left 0.3s ease'
+    },
+    overlay: {
       position: 'fixed',
       top: 0,
       left: 0,
       right: 0,
       bottom: 0,
       backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000
+      zIndex: 999,
+      display: isMobileMenuOpen ? 'block' : 'none'
     }
   };
 
@@ -576,11 +688,23 @@ const DeliveryDashboard = ({ user, onLogout }) => {
         isOpen={showAIChat}
         onClose={() => setShowAIChat(false)}
         user={user}
+        isMobile={isMobile}
       />
 
       {/* Profile Image Upload Modal */}
       {showProfileImageUpload && (
-        <div style={styles.modalOverlay}>
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
           <ProfileImageUpload
             currentImage={profileData.profileImage}
             onImageChange={handleProfileImageChange}
@@ -589,15 +713,82 @@ const DeliveryDashboard = ({ user, onLogout }) => {
         </div>
       )}
 
+      {/* Mobile Header */}
+      {isMobile && (
+        <div style={styles.mobileHeader}>
+          <button 
+            className="mobile-menu-toggle"
+            style={styles.mobileMenuToggle}
+            onClick={toggleMobileMenu}
+          >
+            ☰
+          </button>
+          <h3 style={{ margin: 0, color: '#333', fontSize: '1.1rem' }}>Delivery Dashboard</h3>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <button 
+              onClick={toggleNotifications}
+              style={{ 
+                background: 'none', 
+                border: 'none', 
+                position: 'relative', 
+                cursor: 'pointer',
+                fontSize: '1.2rem'
+              }}
+            >
+              🔔
+              {getUnreadCount() > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-5px',
+                  right: '-5px',
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  borderRadius: '50%',
+                  width: '18px',
+                  height: '18px',
+                  fontSize: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {getUnreadCount()}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Sidebar Overlay */}
+      {isMobile && (
+        <div style={styles.overlay} onClick={() => setIsMobileMenuOpen(false)} />
+      )}
+
       {/* Sidebar Navigation */}
-      <Sidebar
-        activePage={activePage}
-        setActivePage={setActivePage}
-        profileData={profileData}
-        isOnline={isOnline}
-        onLogout={handleLogout}
-        onToggleAIChat={toggleAIChat}
-      />
+      {isMobile ? (
+        <div ref={mobileMenuRef} style={styles.mobileSidebar}>
+          <Sidebar
+            activePage={activePage}
+            setActivePage={navigateTo}
+            profileData={profileData}
+            isOnline={isOnline}
+            onLogout={handleLogout}
+            onToggleAIChat={toggleAIChat}
+            isMobile={isMobile}
+          />
+        </div>
+      ) : (
+        <Sidebar
+          activePage={activePage}
+          setActivePage={navigateTo}
+          profileData={profileData}
+          isOnline={isOnline}
+          onLogout={handleLogout}
+          onToggleAIChat={toggleAIChat}
+          isMobile={isMobile}
+          isTablet={isTablet}
+        />
+      )}
 
       <div style={styles.content}>
         {renderMainContent()}
@@ -610,6 +801,7 @@ const DeliveryDashboard = ({ user, onLogout }) => {
           notifications={notifications}
           onClose={toggleNotifications}
           onViewAll={handleViewAllNotifications}
+          isMobile={isMobile}
         />
       </div>
 
@@ -624,7 +816,61 @@ const DeliveryDashboard = ({ user, onLogout }) => {
           onMarkDelivered={markDelivered}
           onCancelDelivery={cancelDelivery}
           onAcceptDelivery={acceptDelivery}
+          isMobile={isMobile}
         />
+      )}
+
+      {/* Floating Action Button for Mobile */}
+      {isMobile && (
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+          zIndex: 100
+        }}>
+          <button
+            onClick={toggleAIChat}
+            style={{
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+              fontSize: '24px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            🤖
+          </button>
+          
+          <button
+            onClick={toggleOnlineStatus}
+            style={{
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              backgroundColor: isOnline ? '#10b981' : '#ef4444',
+              color: 'white',
+              border: 'none',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+              fontSize: '24px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            {isOnline ? '✓' : '✕'}
+          </button>
+        </div>
       )}
     </div>
   );

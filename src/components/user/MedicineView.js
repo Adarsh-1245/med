@@ -39,8 +39,8 @@ const MedicineView = ({
       style={{
         padding: '0.5rem 1rem',
         backgroundColor: 'transparent',
-        color: '#7C2A62',
-        border: '1px solid #7C2A62',
+        color: '#009688',
+        border: '1px solid #009688',
         borderRadius: '6px',
         cursor: 'pointer',
         fontSize: '0.9rem',
@@ -56,7 +56,7 @@ const MedicineView = ({
     <div style={{
       padding: '2rem',
       maxWidth: '1200px',
-      margin: '140px auto 0',
+      margin: '130px auto 0',
       minHeight: 'calc(100vh - 140px)',
     }}>
       {/* Header with Back Button */}
@@ -68,7 +68,7 @@ const MedicineView = ({
       }}>
         <BackButton onClick={handleBackToDashboard} text="" />
         <h2 style={{
-          color: '#7C2A62',
+          color: '#009688',
           fontSize: '1.5rem',
           margin: 0,
         }}>Medicine Delivery</h2>
@@ -79,7 +79,7 @@ const MedicineView = ({
       }}>
         {/* Search and Prescription Section */}
         <section style={{
-          backgroundColor: 'white',
+          backgroundColor: '#FFFFFF',
           padding: '1.5rem',
           borderRadius: '15px',
           boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
@@ -108,7 +108,7 @@ const MedicineView = ({
                 style={{
                   width: '700px',
                   padding: '0.5rem 0.75rem',
-                  border: '2px solid #F7D9EB',
+                  border: '2px solid #E0F2F1',
                   borderRadius: '8px',
                   fontSize: '0.9rem',
                   transition: 'border-color 0.3s ease',
@@ -126,7 +126,7 @@ const MedicineView = ({
             }}>
               <label style={{
                 padding: '0.5rem 1.25rem',
-                backgroundColor: '#4CAF50',
+                backgroundColor: '#4DB6AC',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
@@ -152,7 +152,7 @@ const MedicineView = ({
               </label>
               {/* Supported formats text positioned under the button */}
               <p style={{
-                color: '#666',
+                color: '#4F6F6B',
                 fontSize: '0.75rem',
                 margin: 0,
                 fontStyle: 'italic',
@@ -165,7 +165,7 @@ const MedicineView = ({
 
         {/* Medicines Section */}
         <section style={{
-          backgroundColor: 'white',
+          backgroundColor: '#FFFFFF',
           padding: '2rem',
           borderRadius: '15px',
           boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
@@ -178,12 +178,12 @@ const MedicineView = ({
             marginBottom: '1.5rem',
           }}>
             <h3 style={{
-              color: '#7C2A62',
+              color: '#009688',
               fontSize: '1.5rem',
               margin: 0,
             }}>Available Medicines</h3>
             <p style={{
-              color: '#666',
+              color: '#4F6F6B',
               fontSize: '0.9rem',
             }}>{filteredMedicines.length} products found</p>
           </div>
@@ -208,11 +208,11 @@ const MedicineView = ({
             <div style={{
               textAlign: 'center',
               padding: '3rem 1rem',
-              color: '#666',
+              color: '#4F6F6B',
             }}>
               <p>No medicines found matching your search.</p>
               <p style={{
-                color: '#999',
+                color: '#4F6F6B',
                 fontSize: '0.9rem',
                 marginTop: '0.5rem',
               }}>Try different keywords or check the pharmacies section.</p>
@@ -222,7 +222,7 @@ const MedicineView = ({
 
         {/* Pharmacies Section */}
         <section style={{
-          backgroundColor: 'white',
+          backgroundColor: '#FFFFFF',
           padding: '2rem',
           borderRadius: '15px',
           boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
@@ -234,12 +234,12 @@ const MedicineView = ({
             marginBottom: '1.5rem',
           }}>
             <h3 style={{
-              color: '#7C2A62',
+              color: '#009688',
               fontSize: '1.5rem',
               margin: 0,
             }}>Nearby Medical Shops</h3>
             <p style={{
-              color: '#666',
+              color: '#4F6F6B',
               fontSize: '0.9rem',
               margin: 0,
             }}>Fast delivery from trusted pharmacies</p>
@@ -266,7 +266,7 @@ const MedicineView = ({
             <div style={{
               textAlign: 'center',
               padding: '3rem 1rem',
-              color: '#666',
+              color: '#4F6F6B',
             }}>
               <p>No pharmacies found nearby.</p>
             </div>

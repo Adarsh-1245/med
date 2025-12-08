@@ -36,7 +36,7 @@ const DoctorCard = ({ doctor, handleBookAppointment, startDoctorChat }) => {
 
   return (
     <div style={{
-      border: '2px solid #F7D9EB',
+      border: '2px solid #E0F2F1',
       borderRadius: '12px',
       padding: '1.5rem',
       transition: 'all 0.3s ease',
@@ -55,24 +55,24 @@ const DoctorCard = ({ doctor, handleBookAppointment, startDoctorChat }) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#F7D9EB',
+          backgroundColor: '#E0F2F1',
           borderRadius: '50%',
-          color: '#7C2A62'
+          color: '#009688'
         }}>
-          {doctor.image || '👨‍⚕️'}
+          {doctor.image || ''}
         </div>
         <div style={{
           flex: 1
         }}>
           <h4 style={{
             margin: '0 0 0.5rem 0',
-            color: '#7C2A62',
+            color: '#009688',
             fontSize: '1.2rem',
             fontWeight: '600'
           }}>{doctor.name}</h4>
           <p style={{
             margin: '0 0 0.5rem 0',
-            color: '#666',
+            color: '#4F6F6B',
             fontSize: '0.9rem'
           }}>{doctor.specialty}</p>
           <div style={{
@@ -88,7 +88,7 @@ const DoctorCard = ({ doctor, handleBookAppointment, startDoctorChat }) => {
               {'☆'.repeat(5 - Math.floor(doctor.rating))}
             </span>
             <span style={{
-              color: '#666',
+              color: '#4F6F6B',
               fontSize: '0.9rem'
             }}>({doctor.rating})</span>
           </div>
@@ -103,15 +103,15 @@ const DoctorCard = ({ doctor, handleBookAppointment, startDoctorChat }) => {
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '0.5rem 0',
-          borderBottom: '1px solid #f0f0f0'
+          borderBottom: '1px solid #E0F2F1'
         }}>
           <span style={{
-            color: '#666',
+            color: '#4F6F6B',
             fontSize: '0.9rem',
             fontWeight: '500'
           }}>Experience:</span>
           <span style={{
-            color: '#333',
+            color: '#124441',
             fontSize: '0.9rem',
             fontWeight: '600'
           }}>{doctor.experience}</span>
@@ -121,15 +121,15 @@ const DoctorCard = ({ doctor, handleBookAppointment, startDoctorChat }) => {
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '0.5rem 0',
-          borderBottom: '1px solid #f0f0f0'
+          borderBottom: '1px solid #E0F2F1'
         }}>
           <span style={{
-            color: '#666',
+            color: '#4F6F6B',
             fontSize: '0.9rem',
             fontWeight: '500'
           }}>Languages:</span>
           <span style={{
-            color: '#333',
+            color: '#124441',
             fontSize: '0.9rem',
             fontWeight: '600'
           }}>{doctor.languages?.join(', ') || 'English'}</span>
@@ -139,15 +139,15 @@ const DoctorCard = ({ doctor, handleBookAppointment, startDoctorChat }) => {
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '0.5rem 0',
-          borderBottom: '1px solid #f0f0f0'
+          borderBottom: '1px solid #E0F2F1'
         }}>
           <span style={{
-            color: '#666',
+            color: '#4F6F6B',
             fontSize: '0.9rem',
             fontWeight: '500'
           }}>Consultation Fee:</span>
           <span style={{
-            color: '#7C2A62',
+            color: '#009688',
             fontWeight: 'bold',
             fontSize: '1rem'
           }}>₹{doctor.consultationFee}</span>
@@ -160,12 +160,12 @@ const DoctorCard = ({ doctor, handleBookAppointment, startDoctorChat }) => {
             padding: '0.5rem 0'
           }}>
             <span style={{
-              color: '#666',
+              color: '#4F6F6B',
               fontSize: '0.9rem',
               fontWeight: '500'
             }}>Available Slots:</span>
             <span style={{
-              color: '#333',
+              color: '#124441',
               fontSize: '0.9rem',
               fontWeight: '600'
             }}>{doctor.availableSlots?.length || 0} slots</span>
@@ -181,7 +181,7 @@ const DoctorCard = ({ doctor, handleBookAppointment, startDoctorChat }) => {
           style={{
             flex: 2,
             padding: '0.75rem 1.5rem',
-            backgroundColor: '#7C2A62',
+            backgroundColor: '#009688',
             color: 'white',
             border: 'none',
             borderRadius: '8px',
@@ -200,8 +200,8 @@ const DoctorCard = ({ doctor, handleBookAppointment, startDoctorChat }) => {
             flex: 1,
             padding: '0.75rem 1rem',
             backgroundColor: 'transparent',
-            color: '#7C2A62',
-            border: '2px solid #7C2A62',
+            color: '#009688',
+            border: '2px solid #009688',
             borderRadius: '8px',
             cursor: 'pointer',
             fontWeight: '600',

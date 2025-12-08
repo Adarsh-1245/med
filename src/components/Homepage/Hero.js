@@ -1,112 +1,88 @@
+import React, { useState, useEffect } from "react";
+// import { useNavigate } from "react-router-dom";
 
-import React, { useState, useEffect } from 'react';
-
-const Hero = ({ onSectionChange, onNavigateToAuth }) => {
+export default function Home() {
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showServiceDetails, setShowServiceDetails] = useState(null);
   const [showChatbot, setShowChatbot] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
-  const [userInput, setUserInput] = useState('');
+  const [userInput, setUserInput] = useState("");
+  const [showInfoPage, setShowInfoPage] = useState(null); // 'medicine' or 'doctor'
+  // const navigate = useNavigate();
 
+  // ---------- SETUP ----------
   useEffect(() => {
     setIsVisible(true);
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    // Initialize with welcome message
+    window.addEventListener("resize", checkMobile);
+
+    // Initial welcome message
     setChatMessages([
       {
         id: 1,
         text: "Hello! I'm QuickMed Assistant. How can I help you today? 😊",
         isBot: true,
-        timestamp: new Date()
-      }
+        timestamp: new Date(),
+      },
     ]);
-    
-    return () => window.removeEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Enhanced authentication navigation
-  const handleAuthNavigation = () => {
-    if (onNavigateToAuth && typeof onNavigateToAuth === 'function') {
-      console.log('Navigating to login page...');
-      onNavigateToAuth();
-    } else {
-      console.log('No navigation function provided');
-      // Fallback navigation
-      alert('Please navigate to the login page to continue.');
-    }
+  const colors = {
+    primary: "#009688",
+    mint: "#4DB6AC",
+    softbg: "#E0F2F1",
+    white: "#FFFFFF",
+    darktext: "#124441",
+    softtext: "#4F6F6B",
   };
 
+  // ---------- AUTH NAV ----------
   const handleOrderMedicines = () => {
-    const confirmLogin = window.confirm(
-      'To order medicines, you need to login first.\n\nClick OK to proceed to login page.'
-    );
-    
-    if (confirmLogin) {
-      handleAuthNavigation();
-    }
+    setShowInfoPage("medicine");
   };
 
   const handleConsultDoctor = () => {
-    const confirmLogin = window.confirm(
-      'To consult with a doctor, you need to login first.\n\nClick OK to proceed to login page.'
-    );
-    
-    if (confirmLogin) {
-      handleAuthNavigation();
-    }
+    setShowInfoPage("doctor");
   };
 
-  // Service Details Handlers
-  const handleMedicineDeliveryClick = () => {
-    setShowServiceDetails('medicineDelivery');
+  const handleCloseInfoPage = () => {
+    setShowInfoPage(null);
   };
 
-  const handleDoctorConsultationClick = () => {
-    setShowServiceDetails('doctorConsultation');
-  };
+  // ---------- SERVICE DETAIL HANDLERS ----------
+  const handleMedicineDeliveryClick = () => setShowServiceDetails("medicineDelivery");
+  const handleDoctorConsultationClick = () => setShowServiceDetails("doctorConsultation");
+  const handleLiveTrackingClick = () => setShowServiceDetails("liveTracking");
+  const handleHealthPackagesClick = () => setShowServiceDetails("healthPackages");
+  const handlePregnancyCareClick = () => setShowServiceDetails("pregnancyCare");
+  const handleMedicalRecordsClick = () => setShowServiceDetails("medicalRecords");
+  const closeServiceDetails = () => setShowServiceDetails(null);
 
-  const handleLiveTrackingClick = () => {
-    setShowServiceDetails('liveTracking');
-  };
-
-  const handleHealthPackagesClick = () => {
-    setShowServiceDetails('healthPackages');
-  };
-
-  const handleLabTestsClick = () => {
-    setShowServiceDetails('labTests');
-  };
-
-  const handleMedicalRecordsClick = () => {
-    setShowServiceDetails('medicalRecords');
-  };
-
-  const closeServiceDetails = () => {
-    setShowServiceDetails(null);
-  };
-
-  // Emergency contact functionality
-  const handleEmergencyContact = () => {
-    setShowEmergencyModal(true);
-  };
+  // ---------- EMERGENCY ----------
+  const handleEmergencyContact = () => setShowEmergencyModal(true);
 
   const handleEmergencyCall = () => {
-    window.open('tel:9392416962');
+    window.open("tel:9392416962");
     setShowEmergencyModal(false);
-    
     setTimeout(() => {
-      alert('Emergency call initiated. If the call doesn\'t connect automatically, please dial 9392416962 manually.');
+      alert(
+        "Emergency call initiated. If the call doesn't connect automatically, please dial 9392416962 manually."
+      );
     }, 500);
   };
 
   const handleEmergencyMessage = () => {
-    const message = 'EMERGENCY: I need immediate medical assistance! Please help.';
-    window.open(`https://wa.me/9392416962?text=${encodeURIComponent(message)}`, '_blank');
+    const message =
+      "EMERGENCY: I need immediate medical assistance! Please help.";
+    window.open(
+      `https://wa.me/9392416962?text=${encodeURIComponent(message)}`,
+      "_blank"
+    );
     setShowEmergencyModal(false);
   };
 
@@ -117,940 +93,1253 @@ const Hero = ({ onSectionChange, onNavigateToAuth }) => {
           const { latitude, longitude } = position.coords;
           const locationUrl = `https://maps.google.com/?q=${latitude},${longitude}`;
           const message = `EMERGENCY: I need medical help! My location: ${locationUrl}`;
-          window.open(`sms:9392416962?body=${encodeURIComponent(message)}`);
+          window.open(
+            `sms:9392416962?body=${encodeURIComponent(message)}`
+          );
         },
-        (error) => {
-          const message = 'EMERGENCY: I need immediate medical assistance! Please help.';
-          window.open(`sms:9392416962?body=${encodeURIComponent(message)}`);
+        () => {
+          const message =
+            "EMERGENCY: I need immediate medical assistance! Please help.";
+          window.open(
+            `sms:9392416962?body=${encodeURIComponent(message)}`
+          );
         }
       );
     } else {
-      const message = 'EMERGENCY: I need immediate medical assistance! Please help.';
-      window.open(`sms:9392416962?body=${encodeURIComponent(message)}`);
+      const message =
+        "EMERGENCY: I need immediate medical assistance! Please help.";
+      window.open(
+        `sms:9392416962?body=${encodeURIComponent(message)}`
+      );
     }
     setShowEmergencyModal(false);
   };
 
-  const handleVideoConsultation = () => {
-    alert('Connecting you with the nearest available emergency doctor...\n\nPlease ensure you have a stable internet connection for the video call.');
-    
-    setTimeout(() => {
-      const confirmCall = window.confirm('Emergency video consultation is ready. Click OK to start the call.');
-      if (confirmCall) {
-        window.open('#', '_blank');
-      }
-    }, 2000);
-    
-    setShowEmergencyModal(false);
-  };
+  const closeModal = () => setShowEmergencyModal(false);
 
-  const closeModal = () => {
-    setShowEmergencyModal(false);
-  };
+  // ---------- CHATBOT ----------
+  const toggleChatbot = () => setShowChatbot((prev) => !prev);
 
-  // Chatbot functionality
-  const toggleChatbot = () => {
-    setShowChatbot(!showChatbot);
+  const generateBotResponse = (userInput) => {
+    const input = userInput.toLowerCase();
+
+    if (input.includes("hello") || input.includes("hi") || input.includes("hey")) {
+      return "Hello! I'm QuickMed Assistant. I can help you with medicine orders, doctor consultations, emergency services, and more! How can I assist you today? 🏥";
+    } else if (input.includes("medicine") || input.includes("delivery")) {
+      return " We offer fast medicine delivery in 30-40 minutes! You can order prescription or OTC medicines. Click on 'Order Medicines Now' to learn more about our service.";
+    } else if (input.includes("doctor") || input.includes("consult")) {
+      return " We have 100+ expert doctors available for online video consultations. You can consult with specialists from various fields. Click on 'Consult Doctor Online' to explore our services.";
+    } else if (input.includes("emergency") || input.includes("urgent")) {
+      return " For emergency medical assistance, please use our emergency contact feature above or call 9392416962 immediately. Our team is available 24/7 to help!";
+    } else if (input.includes("price") || input.includes("cost")) {
+      return " We offer competitive pricing with regular discounts! Medicine prices are market-competitive, and doctor consultations start from ₹199. Lab tests and health packages are also very affordable.";
+    } else if (input.includes("time") || input.includes("delivery time")) {
+      return "⏱ We guarantee medicine delivery within 30-40 minutes! Doctor consultations can be scheduled immediately or at your preferred time. Lab test results are delivered within 6-24 hours.";
+    } else if (input.includes("login") || input.includes("sign up")) {
+      return " You can access our services directly. For medicine delivery or doctor consultation, simply use the respective buttons to get started!";
+    } else if (
+      input.includes("pregnancy") ||
+      input.includes("women") ||
+      input.includes("maternity")
+    ) {
+      return " We offer specialized pregnancy care with expert gynecologists! Get free first consultation, personalized care plans, and 24/7 support throughout your pregnancy journey.";
+    } else if (input.includes("thank") || input.includes("thanks")) {
+      return "You're welcome!  Is there anything else I can help you with regarding our healthcare services?";
+    } else {
+      return (
+        "I understand you're looking for: '" +
+        userInput +
+        "'. I can help you with:\n• Medicine delivery \n• Doctor consultations \n• Pregnancy care \n• Health packages \n• Emergency services \n• Pricing information \n\nHow can I assist you specifically?"
+      );
+    }
   };
 
   const handleSendMessage = () => {
     if (!userInput.trim()) return;
 
-    // Add user message
     const newUserMessage = {
       id: chatMessages.length + 1,
       text: userInput,
       isBot: false,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setChatMessages(prev => [...prev, newUserMessage]);
-    setUserInput('');
+    setChatMessages((prev) => [...prev, newUserMessage]);
+    const input = userInput;
+    setUserInput("");
 
-    // Simulate bot response
     setTimeout(() => {
-      const botResponse = generateBotResponse(userInput);
+      const botResponse = generateBotResponse(input);
       const newBotMessage = {
         id: chatMessages.length + 2,
         text: botResponse,
         isBot: true,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      setChatMessages(prev => [...prev, newBotMessage]);
-    }, 1000);
+      setChatMessages((prev) => [...prev, newBotMessage]);
+    }, 800);
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleSendMessage();
-    }
-  };
-
-  const generateBotResponse = (userInput) => {
-    const input = userInput.toLowerCase();
-    
-    if (input.includes('hello') || input.includes('hi') || input.includes('hey')) {
-      return "Hello! I'm QuickMed Assistant. I can help you with medicine orders, doctor consultations, emergency services, and more! How can I assist you today? 🏥";
-    } else if (input.includes('medicine') || input.includes('delivery')) {
-      return "🚀 We offer fast medicine delivery in 30-40 minutes! You can order prescription or OTC medicines. Would you like me to help you place an order or explain how it works?";
-    } else if (input.includes('doctor') || input.includes('consult')) {
-      return "👨‍⚕️ We have 100+ expert doctors available for online video consultations. You can consult with specialists from various fields. Would you like to book an appointment?";
-    } else if (input.includes('emergency') || input.includes('urgent')) {
-      return "🚨 For emergency medical assistance, please use our emergency contact feature above or call 9392416962 immediately. Our team is available 24/7 to help!";
-    } else if (input.includes('price') || input.includes('cost')) {
-      return "💰 We offer competitive pricing with regular discounts! Medicine prices are market-competitive, and doctor consultations start from ₹199. Lab tests and health packages are also very affordable.";
-    } else if (input.includes('time') || input.includes('delivery time')) {
-      return "⏱️ We guarantee medicine delivery within 30-40 minutes! Doctor consultations can be scheduled immediately or at your preferred time. Lab test results are delivered within 6-24 hours.";
-    } else if (input.includes('login') || input.includes('sign up')) {
-      return "🔐 To access all features, please login or create an account. You can use the 'Order Medicines Now' or 'Consult Doctor Online' buttons to get started!";
-    } else if (input.includes('thank') || input.includes('thanks')) {
-      return "You're welcome! 😊 Is there anything else I can help you with regarding our healthcare services?";
-    } else {
-      return "I understand you're looking for: '" + userInput + "'. I can help you with:\n• Medicine delivery 🚀\n• Doctor consultations 👨‍⚕️\n• Lab tests 🩺\n• Health packages 💊\n• Emergency services 🚨\n• Pricing information 💰\n\nHow can I assist you specifically?";
-    }
+    if (e.key === "Enter") handleSendMessage();
   };
 
   const quickReplies = [
     "How to order medicines?",
     "Book doctor appointment",
+    "Pregnancy care services",
     "Emergency help",
     "Price information",
-    "Delivery time"
   ];
 
   const handleQuickReply = (reply) => {
     setUserInput(reply);
-    setTimeout(() => {
-      handleSendMessage();
-    }, 100);
+    setTimeout(() => handleSendMessage(), 100);
   };
 
-  // Service Details Data
+  // ---------- DATA ----------
   const serviceDetails = {
     medicineDelivery: {
-      title: ' Medicine Delivery Service',
-      description: 'Get your prescribed and over-the-counter medicines delivered to your doorstep within 30-40 minutes. Our network of 500+ partner pharmacies ensures you get genuine medicines with complete safety and privacy.',
+      title: " Medicine Delivery Service",
+      description:
+        "Get your prescribed and over-the-counter medicines delivered to your doorstep within 30–40 minutes. Our network of 500+ partner pharmacies ensures genuine medicines with safety and privacy.",
       features: [
-        '📦 30-40 Minutes Guaranteed Delivery',
-        '💊 Prescription & OTC Medicines',
-        '🏪 500+ Partner Pharmacies',
-        '🔒 Genuine & Safe Medicines',
-        '📱 Real-time Order Tracking',
-        '🏠 Free Home Delivery'
+        " 30–40 Minutes Guaranteed Delivery",
+        " Prescription & OTC Medicines",
+        " 500+ Partner Pharmacies",
+        " Genuine & Safe Medicines",
+        " Real-time Order Tracking",
+        " Free Home Delivery",
       ],
       process: [
-        '1. Upload your prescription or select OTC medicines',
-        '2. Choose delivery address and time slot',
-        '3. Make secure payment online',
-        '4. Track your order in real-time',
-        '5. Receive medicines at your doorstep'
-      ]
+        "1. Upload your prescription or select OTC medicines",
+        "2. Choose delivery address and time slot",
+        "3. Make secure payment online",
+        "4. Track your order in real-time",
+        "5. Receive medicines at your doorstep",
+      ],
     },
     doctorConsultation: {
-      title: '🎥 Online Doctor Consultation',
-      description: 'Connect with experienced doctors via video call for comprehensive medical consultations. Get expert advice, prescriptions, and follow-up care from the comfort of your home.',
+      title: " Online Doctor Consultation",
+      description:
+        "Connect with experienced doctors via video call for comprehensive medical consultations. Get expert advice, prescriptions, and follow-up care from the comfort of your home.",
       features: [
-        '👨‍⚕️ 100+ Expert Doctors',
-        '🎥 HD Video Consultations',
-        '⏰ 24/7 Availability',
-        '💊 Digital Prescriptions',
-        '📄 Medical Record Storage',
-        '🔒 Complete Privacy'
+        "100+ Expert Doctors",
+        " HD Video Consultations",
+        " 24/7 Availability",
+        " Digital Prescriptions",
+        " Medical Record Storage",
+        " Complete Privacy",
       ],
       process: [
-        '1. Choose your preferred doctor & specialty',
-        '2. Book convenient time slot',
-        '3. Connect via secure video call',
-        '4. Get diagnosis & prescription',
-        '5. Follow-up consultations available'
-      ]
+        "1. Choose your preferred doctor & specialty",
+        "2. Book a convenient time slot",
+        "3. Connect via secure video call",
+        "4. Get diagnosis & prescription",
+        "5. Follow-up consultations available",
+      ],
     },
     liveTracking: {
-      title: ' Live Order Tracking',
-      description: 'Track your medical orders in real-time from dispatch to delivery. Get live updates, delivery executive details, and estimated arrival time for complete peace of mind.',
+      title: " Live Order Tracking",
+      description:
+        "Track your medical orders in real-time from dispatch to delivery. Get live updates, delivery executive details, and ETA for complete peace of mind.",
       features: [
-        '📍 Real-time GPS Tracking',
-        '👨‍💼 Delivery Executive Details',
-        '⏱️ Live ETA Updates',
-        '📲 Push Notifications',
-        '🗺️ Route Optimization',
-        '📞 Direct Communication'
+        " Real-time GPS Tracking",
+        " Delivery Executive Details",
+        " Live ETA Updates",
+        " Push Notifications",
+        " Route Optimization",
+        " Direct Communication",
       ],
       process: [
-        '1. Order confirmed & dispatched',
-        '2. Track live location on map',
-        '3. Get real-time ETA updates',
-        '4. Receive delivery notifications',
-        '5. Safe & contactless delivery'
-      ]
+        "1. Order confirmed & dispatched",
+        "2. Track live location on map",
+        "3. Get real-time ETA updates",
+        "4. Receive delivery notifications",
+        "5. Safe & contactless delivery",
+      ],
     },
     healthPackages: {
-      title: 'Comprehensive Health Packages',
-      description: 'Choose from our curated health checkup packages designed for different age groups and health conditions. Early detection and preventive care for a healthier life.',
+      title: " Comprehensive Health Packages",
+      description:
+        "Choose from curated health checkup packages for different age groups and health needs. Early detection & preventive care for a healthier life.",
       features: [
-        '🩺 Basic Health Checkup',
-        '❤️ Cardiac Care Package',
-        '🩸 Diabetes Screening',
-        '👶 Pediatric Health Package',
-        '👵 Senior Citizen Package',
-        '🏃‍♂️ Executive Health Check'
+        " Basic Health Checkup",
+        " Cardiac Care Package",
+        " Diabetes Screening",
+        " Pediatric Health Package",
+        " Senior Citizen Package",
+        " Executive Health Check",
       ],
       process: [
-        '1. Select suitable health package',
-        '2. Book appointment at nearest lab',
-        '3. Complete tests with expert care',
-        '4. Receive detailed reports online',
-        '5. Free doctor consultation included'
-      ]
+        "1. Select a suitable health package",
+        "2. Book appointment at nearest lab",
+        "3. Complete tests with expert care",
+        "4. Receive detailed reports online",
+        "5. Free doctor consultation included",
+      ],
     },
-    labTests: {
-      title: ' At-Home Lab Tests',
-      description: 'Get diagnostic tests done at your home by certified professionals. Accurate results, convenient scheduling, and expert interpretation.',
+    pregnancyCare: {
+      title: " Pregnancy Care for Women",
+      description:
+        "Comprehensive maternity care with expert gynecologists. From conception to delivery, we provide complete support, monitoring, and guidance.",
       features: [
-        '🏠 Home Sample Collection',
-        '🔬 1000+ Tests Available',
-        '👨‍🔬 Certified Technicians',
-        '📊 Digital Reports',
-        '👨‍⚕️ Free Doctor Consultation',
-        '💰 Affordable Pricing'
+        " Expert Gynecologists",
+        " Free First Consultation",
+        " Personalized Care Plans",
+        " 24/7 Support & Monitoring",
+        " Regular Health Checkups",
+        " Prenatal Vitamin Guidance",
       ],
       process: [
-        '1. Book test & select time slot',
-        '2. Technician visits your home',
-        '3. Sample collection with safety protocols',
-        '4. Get reports within 6-24 hours',
-        '5. Free doctor consultation on report'
-      ]
+        "1. Book FREE first consultation",
+        "2. Get personalized pregnancy plan",
+        "3. Regular monitoring & checkups",
+        "4. Nutrition & lifestyle guidance",
+        "5. 24/7 emergency support",
+      ],
     },
     medicalRecords: {
-      title: ' Digital Medical Records',
-      description: 'Store and access all your medical records securely in one place. Share with doctors easily and maintain your complete health history.',
+      title: "📁 Digital Medical Records",
+      description:
+        "Store and access all your medical records securely in one place. Share with doctors easily and maintain a complete health history.",
       features: [
-        '🔐 Secure Cloud Storage',
-        '📄 Prescription Management',
-        '🩺 Lab Report Archives',
-        '💊 Medicine History',
-        '👨‍⚕️ Doctor Access Sharing',
-        '📱 Anytime Access'
+        " Secure Cloud Storage",
+        " Prescription Management",
+        " Lab Report Archives",
+        " Medicine History",
+        " Doctor Access Sharing",
+        " Anytime Access",
       ],
       process: [
-        '1. Upload medical documents',
-        '2. Organize by date & category',
-        '3. Share with doctors securely',
-        '4. Access from any device',
-        '5. Set reminders for follow-ups'
+        "1. Upload medical documents",
+        "2. Organize by date & category",
+        "3. Share with doctors securely",
+        "4. Access from any device",
+        "5. Set reminders for follow-ups",
+      ],
+    },
+  };
+
+  // Information pages data
+  const infoPages = {
+    medicine: {
+      title: " Medicine Delivery Service",
+      subtitle: "Get medicines delivered to your doorstep in 30-40 minutes!",
+      features: [
+        {
+          icon: "",
+          title: "Fast Delivery",
+          description: "Guaranteed delivery within 30-40 minutes in your city"
+        },
+        {
+          icon: "",
+          title: "Wide Range",
+          description: "Prescription medicines, OTC drugs, and health products"
+        },
+        {
+          icon: "",
+          title: "100% Genuine",
+          description: "All medicines sourced from licensed pharmacies"
+        },
+        {
+          icon: "",
+          title: "Best Prices",
+          description: "Competitive pricing with regular discounts"
+        }
+      ],
+      howItWorks: [
+        "1. Search for your required medicines",
+        "2. Upload prescription (if required)",
+        "3. Select delivery address and time",
+        "4. Make secure payment",
+        "5. Track delivery in real-time",
+        "6. Receive at your doorstep"
+      ],
+      benefits: [
+        "✅ No need to visit pharmacy physically",
+        "✅ Save time and avoid queues",
+        "✅ Contactless delivery option",
+        "✅ Emergency delivery available",
+        "✅ Prescription management",
+        "✅ Medicine reminders"
+      ]
+    },
+    doctor: {
+      title: " Online Doctor Consultation",
+      subtitle: "Connect with expert doctors via video call anytime, anywhere",
+      features: [
+        {
+          icon: "",
+          title: "Video Consultations",
+          description: "HD quality video calls with doctors"
+        },
+        {
+          icon: "",
+          title: "24/7 Availability",
+          description: "Doctors available round the clock"
+        },
+        {
+          icon: "",
+          title: "Multiple Specialties",
+          description: "General physicians and specialists"
+        },
+        {
+          icon: "",
+          title: "Digital Records",
+          description: "Secure storage of prescriptions and reports"
+        }
+      ],
+      howItWorks: [
+        "1. Choose your preferred doctor",
+        "2. Select convenient time slot",
+        "3. Connect via secure video call",
+        "4. Discuss your health concerns",
+        "5. Receive digital prescription",
+        "6. Get follow-up recommendations"
+      ],
+      specialties: [
+        " Neurology",
+        "Cardiology",
+        " Pediatrics",
+        " Gynecology",
+        " Orthopedics",
+        " Pulmonology",
+        " Dermatology",
+        " Nutrition"
+      ],
+      benefits: [
+        "✅ No travel required",
+        "✅ Avoid clinic waiting times",
+        "✅ Consult from home comfort",
+        "✅ Privacy maintained",
+        "✅ Second opinions available",
+        "✅ Family consultations"
       ]
     }
   };
 
   const stats = [
-    { number: '50,000+', label: 'Happy Customers' },
-    { number: '30-40 min', label: 'Avg Delivery Time' },
-    { number: '500+', label: 'Partner Pharmacies' },
-    { number: '100+', label: 'Expert Doctors' },
-    { number: '50+', label: 'Cities Covered' },
-    { number: '24/7', label: 'Customer Support' }
+    { number: "50,000+", label: "Happy Customers" },
+    { number: "30–40 min", label: "Avg Delivery Time" },
+    { number: "500+", label: "Partner Pharmacies" },
+    { number: "100+", label: "Expert Doctors" },
+    { number: "50+", label: "Cities Covered" },
+    { number: "24/7", label: "Customer Support" },
   ];
 
   const services = [
     {
-      name: 'Medicine Delivery',
-      description: 'Prescription and OTC medicines delivered to your doorstep within 30-40 minutes',
-      onClick: handleMedicineDeliveryClick
+      name: "Medicine Delivery",
+      icon: "",
+      description:
+        "Prescription and OTC medicines delivered to your doorstep within 30–40 minutes.",
+      onClick: handleMedicineDeliveryClick,
     },
     {
-      name: 'Doctor Consultation',
-      description: 'Video consultations with specialist doctors for comprehensive medical advice',
-      onClick: handleDoctorConsultationClick
+      name: "Doctor Consultation",
+      icon: "",
+      description:
+        "Video consultations with specialist doctors for comprehensive medical advice.",
+      onClick: handleDoctorConsultationClick,
     },
     {
-      name: 'Live Tracking',
-      description: 'Track your medical orders in real-time from dispatch to delivery',
-      onClick: handleLiveTrackingClick
+      name: "Live Tracking",
+      icon: "",
+      description:
+        "Track your medical orders in real-time from dispatch to delivery.",
+      onClick: handleLiveTrackingClick,
     },
     {
-      name: 'Health Packages',
-      description: 'Comprehensive health checkup packages for preventive care',
-      onClick: handleHealthPackagesClick
+      name: "Health Packages",
+      icon: "🩺",
+      description:
+        "Comprehensive health checkup packages for preventive care.",
+      onClick: handleHealthPackagesClick,
     },
     {
-      name: 'Lab Tests at Home',
-      description: 'Get diagnostic tests done at home by certified professionals',
-      onClick: handleLabTestsClick
+      name: "Pregnancy Care",
+      icon: "",
+      description:
+        "Specialized maternity care with expert gynecologists & 24/7 support.",
+      onClick: handlePregnancyCareClick,
     },
     {
-      name: 'Medical Records',
-      description: 'Digital storage and management of all your medical documents',
-      onClick: handleMedicalRecordsClick
-    }
+      name: "Medical Records",
+      icon: "📁",
+      description:
+        "Digital storage and management of all your medical documents.",
+      onClick: handleMedicalRecordsClick,
+    },
   ];
 
   const features = [
     {
-      title: 'Lightning Fast Delivery',
-      description: 'Get medicines delivered in 30-40 minutes with our optimized delivery network'
+      title: "Lightning Fast Delivery",
+      icon: "",
+      description:
+        "Get medicines delivered in 30–40 minutes with our optimized delivery network.",
     },
     {
-      title: '100% Safe & Genuine',
-      description: 'All medicines are sourced directly from licensed pharmacies with proper verification'
+      title: "100% Safe & Genuine",
+      icon: "",
+      description:
+        "All medicines are sourced directly from licensed pharmacies with proper verification.",
     },
     {
-      title: 'Best Prices',
-      description: 'Competitive pricing with regular discounts and offers on medicines and consultations'
+      title: "Best Prices",
+      icon: "",
+      description:
+        "Competitive pricing with regular discounts and offers on medicines and consultations.",
     },
     {
-      title: 'Expert Doctors',
-      description: 'Consult with experienced doctors from top hospitals across various specialties'
-    }
+      title: "Expert Doctors",
+      icon: "",
+      description:
+        "Consult experienced doctors from top hospitals across multiple specialties.",
+    },
   ];
 
   const testimonials = [
     {
-      name: 'Rahul Sharma',
-      location: 'Mumbai',
-      text: 'QuickMed saved me during an emergency. Medicines were delivered in just 25 minutes! The service is truly life-saving.',
-      rating: '⭐️⭐️⭐️⭐️⭐️'
+      name: "Rahul Sharma",
+      location: "Mumbai",
+      text: "QuickMed saved me during an emergency. Medicines were delivered in just 25 minutes! The service is truly life-saving.",
+      rating: "⭐️⭐️⭐️⭐️⭐️",
     },
     {
-      name: 'Priya Patel',
-      location: 'Delhi',
-      text: 'The doctor consultation feature is amazing. I could connect with a specialist from home and get proper treatment.',
-      rating: '⭐️⭐️⭐️⭐️⭐️'
+      name: "Priya Patel",
+      location: "Delhi",
+      text: "The doctor consultation feature is amazing. I could connect with a specialist from home and get proper treatment.",
+      rating: "⭐️⭐️⭐️⭐️⭐️",
     },
     {
-      name: 'Arun Kumar',
-      location: 'Bangalore',
-      text: 'Best healthcare app I have used. The live tracking feature kept me informed about my medicine delivery every step.',
-      rating: '⭐️⭐️⭐️⭐️⭐️'
-    }
+      name: "Arun Kumar",
+      location: "Bangalore",
+      text: "Best healthcare app I have used. The live tracking feature kept me informed about my medicine delivery every step.",
+      rating: "⭐️⭐️⭐️⭐️⭐️",
+    },
   ];
 
   const emergencyOptions = [
     {
-      title: '📞 Emergency Call',
-      description: 'Direct voice call with emergency medical response team',
-      action: handleEmergencyCall
+      title: " Emergency Call",
+      description: "Direct voice call with emergency medical response team.",
+      action: handleEmergencyCall,
     },
     {
-      title: '💬 WhatsApp Message',
-      description: 'Send immediate message with your location and details',
-      action: handleEmergencyMessage
+      title: " WhatsApp Message",
+      description: "Send immediate message with your details.",
+      action: handleEmergencyMessage,
+    },
+    {
+      title: " Share Location via SMS",
+      description: "Send your current location through SMS for quick help.",
+      action: handleEmergencyLocation,
     },
   ];
 
-  // Responsive Styles
+  // ---------- STYLES ----------
   const styles = {
-    // Hero Section
     hero: {
-      minHeight: isMobile ? 'auto' : '100vh',
-      background: 'linear-gradient(135deg, #F7D9EB 0%, #ffffff 50%, #F7D9EB 100%)',
-      position: 'relative',
-      overflow: 'hidden',
-      padding: isMobile ? '2rem 1rem' : '2rem 1rem',
+      minHeight: isMobile ? "auto" : "100vh",
+      background: `linear-gradient(135deg, ${colors.softbg} 0%, ${colors.white} 40%, ${colors.softbg} 100%)`,
+      position: "relative",
+      overflow: "hidden",
+      padding: isMobile ? "2rem 1rem 2.5rem" : "3rem 1rem 3.5rem",
+      boxSizing: "border-box",
     },
     heroContent: {
-      maxWidth: '1200px',
-      margin: '0 auto',
-      position: 'relative',
+      maxWidth: "1200px",
+      margin: "0 auto",
+      position: "relative",
       zIndex: 2,
     },
     floatingElements: {
-      position: 'absolute',
+      position: "absolute",
       top: 0,
       left: 0,
-      width: '100%',
-      height: '100%',
-      pointerEvents: 'none',
+      width: "100%",
+      height: "100%",
+      pointerEvents: "none",
       zIndex: 1,
     },
     floatingElement: {
-      position: 'absolute',
-      background: 'rgba(124, 42, 98, 0.1)',
-      borderRadius: '50%',
-      animation: 'float 6s ease-in-out infinite',
+      position: "absolute",
+      background: "rgba(0, 150, 136, 0.12)",
+      borderRadius: "50%",
+      animation: "float 6s ease-in-out infinite",
     },
     mainHero: {
-      textAlign: 'center',
-      padding: isMobile ? '2rem 1rem 1rem' : '4rem 1rem 2rem',
+      textAlign: "center",
+      padding: isMobile ? "1.5rem 0 1rem" : "2.5rem 0 2rem",
       opacity: isVisible ? 1 : 0,
-      transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-      transition: 'all 0.8s ease-out',
+      transform: isVisible ? "translateY(0)" : "translateY(30px)",
+      transition: "all 0.8s ease-out",
     },
     heroTitle: {
-      fontSize: isMobile ? '2.5rem' : 'clamp(2.5rem, 5vw, 4.5rem)',
-      marginBottom: isMobile ? '0.8rem' : '1.5rem',
-      background: 'linear-gradient(45deg, #7C2A62, #9C3A7A, #D32F2F)',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-      fontWeight: '800',
-      lineHeight: '1.1',
-      letterSpacing: '-0.02em',
+      fontSize: isMobile ? "2.4rem" : "clamp(2.6rem, 4.6vw, 3.8rem)",
+      marginBottom: "0.8rem",
+      color: colors.darktext,
+      fontWeight: 800,
+      lineHeight: 1.1,
+      letterSpacing: "-0.02em",
     },
     heroSubtitle: {
-      fontSize: isMobile ? '1.4rem' : 'clamp(1.5rem, 3vw, 2.2rem)',
-      marginBottom: isMobile ? '1rem' : '2rem',
-      color: '#333',
-      fontWeight: '400',
-      opacity: 0.9,
+      fontSize: isMobile ? "1.2rem" : "clamp(1.3rem, 2.4vw, 1.8rem)",
+      marginBottom: "1rem",
+      color: colors.primary,
+      fontWeight: 600,
     },
     heroText: {
-      fontSize: isMobile ? '1.1rem' : 'clamp(1.1rem, 2vw, 1.3rem)',
-      lineHeight: '1.6',
-      marginBottom: isMobile ? '2rem' : '3rem',
-      color: '#666',
-      maxWidth: '800px',
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      fontWeight: '300',
+      fontSize: isMobile ? "0.98rem" : "1.05rem",
+      lineHeight: 1.7,
+      marginBottom: isMobile ? "1.8rem" : "2.2rem",
+      color: colors.softtext,
+      maxWidth: "780px",
+      marginLeft: "auto",
+      marginRight: "auto",
+      fontWeight: 400,
     },
     ctaButtons: {
-      display: 'flex',
-      gap: isMobile ? '1rem' : '1.5rem',
-      justifyContent: 'center',
-      flexWrap: 'wrap',
-      marginBottom: isMobile ? '3rem' : '4rem',
-      flexDirection: isMobile ? 'column' : 'row',
-      alignItems: 'center',
+      display: "flex",
+      gap: "1rem",
+      justifyContent: "center",
+      flexWrap: "wrap",
+      marginBottom: isMobile ? "2.4rem" : "3rem",
+      flexDirection: isMobile ? "column" : "row",
+      alignItems: "center",
     },
     primaryButton: {
-      padding: isMobile ? '1rem 2rem' : '1.2rem 2.5rem',
-      backgroundColor: '#7C2A62',
-      color: 'white',
-      border: 'none',
-      borderRadius: '50px',
-      cursor: 'pointer',
-      fontSize: isMobile ? '1.1rem' : '1.1rem',
-      fontWeight: 'bold',
-      transition: 'all 0.3s ease',
-      boxShadow: '0 8px 25px rgba(124, 42, 98, 0.4)',
-      position: 'relative',
-      overflow: 'hidden',
-      width: isMobile ? '100%' : 'auto',
-      maxWidth: isMobile ? '300px' : 'none',
+      padding: isMobile ? "0.9rem 1.8rem" : "1rem 2.2rem",
+      backgroundColor: colors.primary,
+      color: colors.white,
+      border: "none",
+      borderRadius: "999px",
+      cursor: "pointer",
+      fontSize: "0.98rem",
+      fontWeight: "700",
+      transition: "all 0.3s ease",
+      boxShadow: "0 10px 25px rgba(0, 150, 136, 0.45)",
+      width: isMobile ? "100%" : "auto",
+      maxWidth: isMobile ? "320px" : "none",
     },
     secondaryButton: {
-      padding: isMobile ? '1rem 2rem' : '1.2rem 2.5rem',
-      backgroundColor: 'transparent',
-      color: '#7C2A62',
-      border: '3px solid #7C2A62',
-      borderRadius: '50px',
-      cursor: 'pointer',
-      fontSize: isMobile ? '1.1rem' : '1.1rem',
-      fontWeight: 'bold',
-      transition: 'all 0.3s ease',
-      boxShadow: '0 5px 15px rgba(124, 42, 98, 0.2)',
-      position: 'relative',
-      overflow: 'hidden',
-      width: isMobile ? '100%' : 'auto',
-      maxWidth: isMobile ? '300px' : 'none',
+      padding: isMobile ? "0.9rem 1.8rem" : "1rem 2.2rem",
+      backgroundColor: "transparent",
+      color: colors.primary,
+      border: `2px solid ${colors.primary}`,
+      borderRadius: "999px",
+      cursor: "pointer",
+      fontSize: "0.98rem",
+      fontWeight: "700",
+      transition: "all 0.3s ease",
+      boxShadow: "0 5px 16px rgba(0, 150, 136, 0.18)",
+      width: isMobile ? "100%" : "auto",
+      maxWidth: isMobile ? "320px" : "none",
     },
     statsSection: {
-      display: 'grid',
-      gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
-      gap: isMobile ? '1rem' : '2rem',
-      marginBottom: isMobile ? '3rem' : '5rem',
+      display: "grid",
+      gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(3, 1fr)",
+      gap: isMobile ? "1rem" : "1.5rem",
+      marginBottom: isMobile ? "2.4rem" : "3.2rem",
       opacity: isVisible ? 1 : 0,
-      transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-      transition: 'all 0.8s ease-out 0.2s',
+      transform: isVisible ? "translateY(0)" : "translateY(30px)",
+      transition: "all 0.8s ease-out 0.15s",
     },
     statItem: {
-      textAlign: 'center',
-      padding: isMobile ? '1rem' : '2rem 1.5rem',
-      background: 'rgba(255, 255, 255, 0.7)',
-      borderRadius: '20px',
-      backdropFilter: 'blur(10px)',
-      boxShadow: '0 8px 32px rgba(124, 42, 98, 0.1)',
-      border: '1px solid rgba(255, 255, 255, 0.3)',
-      transition: 'all 0.3s ease',
+      textAlign: "center",
+      padding: isMobile ? "1rem" : "1.4rem 1.2rem",
+      background: "rgba(255, 255, 255, 0.9)",
+      borderRadius: "18px",
+      backdropFilter: "blur(12px)",
+      boxShadow: "0 8px 20px rgba(0, 0, 0, 0.04)",
+      border: `1px solid rgba(0, 150, 136, 0.1)`,
+      transition: "all 0.25s ease",
     },
     statNumber: {
-      fontSize: isMobile ? '1.8rem' : '2.5rem',
-      fontWeight: 'bold',
-      background: 'linear-gradient(45deg, #7C2A62, #D32F2F)',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-      marginBottom: '0.5rem',
+      fontSize: isMobile ? "1.5rem" : "1.9rem",
+      fontWeight: 800,
+      color: colors.primary,
+      marginBottom: "0.35rem",
     },
     statLabel: {
-      color: '#666',
-      fontSize: isMobile ? '0.9rem' : '1rem',
-      fontWeight: '500',
-    },
-    servicesSection: {
-      marginBottom: isMobile ? '3rem' : '4rem',
-      opacity: isVisible ? 1 : 0,
-      transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-      transition: 'all 0.8s ease-out 0.4s',
+      color: colors.softtext,
+      fontSize: "0.8rem",
+      fontWeight: 600,
+      textTransform: "uppercase",
     },
     sectionTitle: {
-      fontSize: isMobile ? '1.8rem' : 'clamp(2rem, 4vw, 3rem)',
-      textAlign: 'center',
-      marginBottom: isMobile ? '2rem' : '3rem',
-      color: '#7C2A62',
-      fontWeight: '700',
+      fontSize: isMobile ? "1.7rem" : "2rem",
+      textAlign: "center",
+      marginBottom: isMobile ? "1.5rem" : "2rem",
+      color: colors.darktext,
+      fontWeight: 700,
+    },
+    servicesSection: {
+      marginBottom: isMobile ? "2.5rem" : "3rem",
+      opacity: isVisible ? 1 : 0,
+      transform: isVisible ? "translateY(0)" : "translateY(30px)",
+      transition: "all 0.8s ease-out 0.3s",
     },
     servicesGrid: {
-      display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))',
-      gap: isMobile ? '1.5rem' : '2rem',
-      marginBottom: isMobile ? '2rem' : '3rem',
+      display: "grid",
+      gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(260px,1fr))",
+      gap: isMobile ? "1.2rem" : "1.6rem",
     },
     serviceCard: {
-      padding: isMobile ? '1.5rem 1rem' : '2.5rem 2rem',
-      background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(247,217,235,0.3) 100%)',
-      borderRadius: '25px',
-      boxShadow: '0 10px 40px rgba(124, 42, 98, 0.1)',
-      transition: 'all 0.4s ease',
-      border: '1px solid rgba(255, 255, 255, 0.5)',
-      textAlign: 'center',
-      backdropFilter: 'blur(10px)',
-      position: 'relative',
-      overflow: 'hidden',
-      cursor: 'pointer',
+      padding: isMobile ? "1.3rem" : "1.5rem",
+      background: colors.white,
+      borderRadius: "18px",
+      boxShadow: "0 8px 22px rgba(0,0,0,0.05)",
+      border: `1px solid rgba(0, 150, 136, 0.12)`,
+      transition: "all 0.25s ease",
+      textAlign: "left",
+      cursor: "pointer",
     },
     serviceIcon: {
-      fontSize: isMobile ? '3rem' : '3.5rem',
-      marginBottom: isMobile ? '1rem' : '1.5rem',
-      background: 'linear-gradient(45deg, #7C2A62, #D32F2F)',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
+      fontSize: "2rem",
+      marginBottom: "0.5rem",
     },
     serviceName: {
-      fontSize: isMobile ? '1.2rem' : '1.4rem',
-      marginBottom: isMobile ? '0.8rem' : '1rem',
-      color: '#333',
-      fontWeight: '600',
+      fontSize: "1.05rem",
+      fontWeight: 700,
+      color: colors.darktext,
+      marginBottom: "0.4rem",
     },
     serviceDescription: {
-      color: '#666',
-      lineHeight: '1.6',
-      fontSize: isMobile ? '0.9rem' : '1rem',
+      fontSize: "0.9rem",
+      color: colors.softtext,
+      lineHeight: 1.55,
     },
     featuresSection: {
-      marginBottom: isMobile ? '3rem' : '4rem',
+      marginBottom: isMobile ? "2.5rem" : "3rem",
       opacity: isVisible ? 1 : 0,
-      transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-      transition: 'all 0.8s ease-out 0.6s',
+      transform: isVisible ? "translateY(0)" : "translateY(30px)",
+      transition: "all 0.8s ease-out 0.45s",
     },
-    featuresGrid: {
-      display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))',
-      gap: isMobile ? '1.5rem' : '2rem',
+    featuresGridMain: {
+      display: "grid",
+      gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(230px,1fr))",
+      gap: isMobile ? "1.2rem" : "1.6rem",
     },
     featureCard: {
-      padding: isMobile ? '1.5rem' : '2rem',
-      background: 'white',
-      borderRadius: '20px',
-      boxShadow: '0 8px 32px rgba(124, 42, 98, 0.1)',
-      textAlign: 'center',
-      transition: 'all 0.3s ease',
-      border: '1px solid rgba(124, 42, 98, 0.1)',
+      padding: isMobile ? "1.2rem" : "1.5rem",
+      background: colors.white,
+      borderRadius: "18px",
+      boxShadow: "0 8px 22px rgba(0,0,0,0.05)",
+      border: `1px solid rgba(0, 150, 136, 0.1)`,
+      textAlign: "left",
+      transition: "all 0.25s ease",
     },
     featureIcon: {
-      fontSize: isMobile ? '2.5rem' : '3rem',
-      marginBottom: '1rem',
-      background: 'linear-gradient(45deg, #7C2A62, #D32F2F)',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
+      fontSize: "1.8rem",
+      marginBottom: "0.6rem",
     },
     featureTitle: {
-      fontSize: isMobile ? '1.2rem' : '1.3rem',
-      marginBottom: '0.8rem',
-      color: '#333',
-      fontWeight: '600',
+      fontSize: "1rem",
+      fontWeight: 700,
+      color: colors.darktext,
+      marginBottom: "0.4rem",
     },
     featureDescription: {
-      color: '#666',
-      lineHeight: '1.6',
-      fontSize: isMobile ? '0.9rem' : '1rem',
+      fontSize: "0.9rem",
+      color: colors.softtext,
+      lineHeight: 1.6,
     },
     testimonialsSection: {
-      marginBottom: isMobile ? '3rem' : '4rem',
+      marginBottom: isMobile ? "2.5rem" : "3rem",
       opacity: isVisible ? 1 : 0,
-      transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-      transition: 'all 0.8s ease-out 0.8s',
+      transform: isVisible ? "translateY(0)" : "translateY(30px)",
+      transition: "all 0.8s ease-out 0.6s",
     },
     testimonialsGrid: {
-      display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))',
-      gap: isMobile ? '1.5rem' : '2rem',
+      display: "grid",
+      gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(260px,1fr))",
+      gap: isMobile ? "1.2rem" : "1.6rem",
     },
     testimonialCard: {
-      padding: isMobile ? '1.5rem' : '2rem',
-      background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(247,217,235,0.2) 100%)',
-      borderRadius: '20px',
-      boxShadow: '0 8px 32px rgba(124, 42, 98, 0.1)',
-      border: '1px solid rgba(255, 255, 255, 0.5)',
+      padding: isMobile ? "1.2rem" : "1.5rem",
+      background: colors.white,
+      borderRadius: "18px",
+      boxShadow: "0 8px 22px rgba(0,0,0,0.05)",
+      border: `1px solid rgba(77, 182, 172, 0.2)`,
+      transition: "all 0.25s ease",
     },
     testimonialText: {
-      fontSize: isMobile ? '1rem' : '1.1rem',
-      lineHeight: '1.6',
-      color: '#666',
-      marginBottom: '1rem',
-      fontStyle: 'italic',
+      fontSize: "0.95rem",
+      color: colors.softtext,
+      lineHeight: 1.6,
+      marginBottom: "0.8rem",
+      fontStyle: "italic",
     },
     testimonialAuthor: {
-      fontWeight: 'bold',
-      color: '#7C2A62',
-      fontSize: isMobile ? '0.9rem' : '1rem',
+      fontSize: "0.9rem",
+      fontWeight: 700,
+      color: colors.darktext,
     },
     testimonialLocation: {
-      color: '#999',
-      fontSize: isMobile ? '0.8rem' : '0.9rem',
+      fontSize: "0.8rem",
+      color: "#8a9a96",
     },
     testimonialRating: {
-      marginTop: '0.5rem',
-      fontSize: isMobile ? '0.8rem' : '0.9rem',
+      fontSize: "0.85rem",
+      marginBottom: "0.3rem",
     },
     emergencySection: {
-      marginTop: isMobile ? '2rem' : '3rem',
-      padding: isMobile ? '1.5rem' : '3rem 2rem',
-      background: 'linear-gradient(135deg, rgba(255,107,107,0.1) 0%, rgba(255,255,255,0.8) 100%)',
-      borderRadius: '25px',
-      border: '2px solid rgba(255,107,107,0.3)',
-      textAlign: 'center',
-      backdropFilter: 'blur(10px)',
+      marginTop: isMobile ? "1.5rem" : "2rem",
+      padding: isMobile ? "1.3rem" : "1.7rem",
+      background: "linear-gradient(135deg,#FFE5E5,#FFFFFF)",
+      borderRadius: "20px",
+      border: "1px solid rgba(211,47,47,0.25)",
+      textAlign: "center",
       opacity: isVisible ? 1 : 0,
-      transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-      transition: 'all 0.8s ease-out 1s',
+      transform: isVisible ? "translateY(0)" : "translateY(30px)",
+      transition: "all 0.8s ease-out 0.75s",
     },
     emergencyTitle: {
-      fontSize: isMobile ? '1.5rem' : '1.8rem',
-      marginBottom: '1rem',
-      color: '#D32F2F',
-      fontWeight: '600',
+      fontSize: isMobile ? "1.4rem" : "1.6rem",
+      fontWeight: 700,
+      color: "#D32F2F",
+      marginBottom: "0.6rem",
     },
     emergencyText: {
-      color: '#666',
-      marginBottom: isMobile ? '1.5rem' : '2rem',
-      fontSize: isMobile ? '1rem' : '1.1rem',
-      maxWidth: '600px',
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      lineHeight: '1.6',
+      fontSize: "0.95rem",
+      color: colors.softtext,
+      maxWidth: "640px",
+      margin: "0 auto 1.2rem",
+      lineHeight: 1.6,
     },
     emergencyButton: {
-      padding: isMobile ? '1rem 2rem' : '1.2rem 2.5rem',
-      backgroundColor: '#FF6B6B',
-      color: 'white',
-      border: 'none',
-      borderRadius: '50px',
-      cursor: 'pointer',
-      fontSize: isMobile ? '1rem' : '1.1rem',
-      fontWeight: 'bold',
-      transition: 'all 0.3s ease',
-      boxShadow: '0 8px 25px rgba(255, 107, 107, 0.4)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '0.8rem',
-      margin: '0 auto',
-      position: 'relative',
-      overflow: 'hidden',
-      width: isMobile ? '100%' : 'auto',
-      maxWidth: isMobile ? '300px' : 'none',
+      padding: isMobile ? "0.9rem 1.8rem" : "1rem 2.1rem",
+      backgroundColor: "#FF6B6B",
+      color: colors.white,
+      border: "none",
+      borderRadius: "999px",
+      cursor: "pointer",
+      fontSize: "0.98rem",
+      fontWeight: 700,
+      transition: "all 0.3s ease",
+      boxShadow: "0 10px 26px rgba(255,107,107,0.55)",
     },
 
-    // Chatbot Styles
+    // Chatbot
     chatbotContainer: {
-      position: 'fixed',
-      bottom: isMobile ? '1rem' : '2rem',
-      right: isMobile ? '1rem' : '2rem',
+      position: "fixed",
+      bottom: isMobile ? "1rem" : "1.8rem",
+      right: isMobile ? "1rem" : "2rem",
       zIndex: 1000,
     },
     chatbotButton: {
-      width: isMobile ? '60px' : '70px',
-      height: isMobile ? '60px' : '70px',
-      borderRadius: '50%',
-      backgroundColor: '#7C2A62',
-      border: 'none',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      boxShadow: '0 8px 25px rgba(124, 42, 98, 0.4)',
-      transition: 'all 0.3s ease',
-      fontSize: isMobile ? '1.5rem' : '1.8rem',
+      width: isMobile ? "56px" : "64px",
+      height: isMobile ? "56px" : "64px",
+      borderRadius: "50%",
+      backgroundColor: colors.primary,
+      border: "none",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      boxShadow: "0 12px 28px rgba(0,0,0,0.25)",
+      transition: "all 0.3s ease",
+      fontSize: isMobile ? "1.5rem" : "1.7rem",
+      color: colors.white,
     },
     chatbotWindow: {
-      position: 'absolute',
-      bottom: isMobile ? '70px' : '80px',
+      position: "absolute",
+      bottom: isMobile ? "64px" : "74px",
       right: 0,
-      width: isMobile ? 'calc(100vw - 2rem)' : '350px',
-      height: isMobile ? '500px' : '500px',
-      backgroundColor: 'white',
-      borderRadius: '20px',
-      boxShadow: '0 15px 50px rgba(0, 0, 0, 0.2)',
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      border: '2px solid #F7D9EB',
+      width: isMobile ? "calc(100vw - 2rem)" : "360px",
+      height: isMobile ? "440px" : "460px",
+      backgroundColor: colors.white,
+      borderRadius: "18px",
+      boxShadow: "0 18px 40px rgba(0,0,0,0.25)",
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden",
+      border: `1px solid ${colors.softbg}`,
     },
     chatbotHeader: {
-      backgroundColor: '#7C2A62',
-      color: 'white',
-      padding: isMobile ? '1rem' : '1.2rem',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      backgroundColor: colors.primary,
+      color: colors.white,
+      padding: "0.9rem 1rem",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
     },
     chatbotTitle: {
-      fontSize: isMobile ? '1rem' : '1.1rem',
-      fontWeight: 'bold',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.5rem',
+      fontSize: "0.95rem",
+      fontWeight: 700,
+      display: "flex",
+      alignItems: "center",
+      gap: "0.35rem",
     },
     closeButton: {
-      background: 'none',
-      border: 'none',
-      color: 'white',
-      fontSize: '1.2rem',
-      cursor: 'pointer',
-      padding: '0.2rem',
+      background: "none",
+      border: "none",
+      color: colors.white,
+      fontSize: "1.1rem",
+      cursor: "pointer",
     },
     chatMessages: {
       flex: 1,
-      padding: isMobile ? '1rem' : '1.2rem',
-      overflowY: 'auto',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '1rem',
-      backgroundColor: '#f8f9fa',
+      padding: "0.9rem",
+      overflowY: "auto",
+      display: "flex",
+      flexDirection: "column",
+      gap: "0.7rem",
+      backgroundColor: "#F5F7F7",
     },
     message: {
-      maxWidth: '80%',
-      padding: isMobile ? '0.8rem' : '1rem',
-      borderRadius: '18px',
-      fontSize: isMobile ? '0.9rem' : '0.95rem',
-      lineHeight: '1.4',
-      wordWrap: 'break-word',
+      maxWidth: "78%",
+      padding: "0.7rem 0.9rem",
+      borderRadius: "14px",
+      fontSize: "0.85rem",
+      lineHeight: 1.4,
+      wordWrap: "break-word",
     },
     botMessage: {
-      alignSelf: 'flex-start',
-      backgroundColor: 'white',
-      border: '1px solid #E9ECEF',
-      color: '#333',
-      borderBottomLeftRadius: '5px',
+      alignSelf: "flex-start",
+      backgroundColor: colors.white,
+      border: "1px solid #E0E4E4",
     },
     userMessage: {
-      alignSelf: 'flex-end',
-      backgroundColor: '#7C2A62',
-      color: 'white',
-      borderBottomRightRadius: '5px',
+      alignSelf: "flex-end",
+      backgroundColor: colors.primary,
+      color: colors.white,
     },
     quickReplies: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '0.5rem',
-      padding: isMobile ? '0.5rem' : '1rem',
-      backgroundColor: 'white',
-      borderTop: '1px solid #E9ECEF',
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "0.4rem",
+      padding: "0.5rem 0.8rem",
+      backgroundColor: colors.white,
+      borderTop: "1px solid #E0E4E4",
     },
     quickReply: {
-      padding: isMobile ? '0.4rem 0.8rem' : '0.5rem 1rem',
-      backgroundColor: '#F7D9EB',
-      border: 'none',
-      borderRadius: '15px',
-      fontSize: isMobile ? '0.7rem' : '0.8rem',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-      color: '#7C2A62',
-      fontWeight: '500',
+      padding: "0.35rem 0.7rem",
+      borderRadius: "999px",
+      border: "none",
+      fontSize: "0.75rem",
+      backgroundColor: colors.softbg,
+      color: colors.darktext,
+      cursor: "pointer",
     },
     chatInputContainer: {
-      display: 'flex',
-      padding: isMobile ? '0.8rem' : '1rem',
-      backgroundColor: 'white',
-      borderTop: '1px solid #E9ECEF',
-      gap: '0.5rem',
+      display: "flex",
+      padding: "0.6rem 0.7rem",
+      backgroundColor: colors.white,
+      borderTop: "1px solid #E0E4E4",
+      gap: "0.5rem",
     },
     chatInput: {
       flex: 1,
-      padding: isMobile ? '0.8rem' : '1rem',
-      border: '1px solid #E9ECEF',
-      borderRadius: '25px',
-      fontSize: isMobile ? '0.9rem' : '1rem',
-      outline: 'none',
+      padding: "0.6rem 0.8rem",
+      borderRadius: "999px",
+      border: "1px solid #D2D7D7",
+      fontSize: "0.85rem",
+      outline: "none",
     },
     sendButton: {
-      padding: isMobile ? '0.8rem' : '1rem',
-      backgroundColor: '#7C2A62',
-      color: 'white',
-      border: 'none',
-      borderRadius: '50%',
-      cursor: 'pointer',
-      width: isMobile ? '45px' : '50px',
-      height: isMobile ? '45px' : '50px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: isMobile ? '1rem' : '1.2rem',
+      width: "38px",
+      height: "38px",
+      borderRadius: "50%",
+      backgroundColor: colors.primary,
+      color: colors.white,
+      border: "none",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: "1rem",
     },
 
-    // Service Details Modal Styles
+    // Service Details Modal
     serviceDetailsModal: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      position: "fixed",
+      inset: 0,
+      backgroundColor: "rgba(0,0,0,0.7)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
       zIndex: 1000,
-      padding: isMobile ? '0.5rem' : '1rem',
-      backdropFilter: 'blur(5px)',
+      padding: isMobile ? "0.5rem" : "1rem",
+      backdropFilter: "blur(4px)",
     },
     serviceDetailsContent: {
-      backgroundColor: 'white',
-      padding: isMobile ? '1.5rem' : '2.5rem',
-      borderRadius: '20px',
-      maxWidth: isMobile ? '95%' : '800px',
-      width: '100%',
-      maxHeight: isMobile ? '90vh' : '80vh',
-      overflowY: 'auto',
-      boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)',
+      backgroundColor: colors.white,
+      padding: isMobile ? "1.3rem" : "1.8rem",
+      borderRadius: "18px",
+      maxWidth: isMobile ? "95%" : "780px",
+      width: "100%",
+      maxHeight: isMobile ? "90vh" : "80vh",
+      overflowY: "auto",
+      boxShadow: "0 20px 40px rgba(0,0,0,0.35)",
     },
     serviceDetailsTitle: {
-      fontSize: isMobile ? '1.5rem' : '2rem',
-      color: '#7C2A62',
-      marginBottom: '1rem',
-      fontWeight: 'bold',
-      textAlign: 'center',
+      fontSize: isMobile ? "1.4rem" : "1.7rem",
+      color: colors.primary,
+      fontWeight: 800,
+      marginBottom: "0.5rem",
+      textAlign: "center",
     },
     serviceDetailsDescription: {
-      fontSize: isMobile ? '1rem' : '1.1rem',
-      color: '#666',
-      lineHeight: '1.6',
-      marginBottom: '2rem',
-      textAlign: 'center',
+      fontSize: "0.95rem",
+      color: colors.softtext,
+      lineHeight: 1.6,
+      textAlign: "center",
+      marginBottom: "1.2rem",
     },
-    featuresGrid: {
-      display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))',
-      gap: '1rem',
-      marginBottom: '2rem',
+    featuresGridModal: {
+      display: "grid",
+      gridTemplateColumns: isMobile ? "1fr" : "repeat(2,1fr)",
+      gap: "0.8rem",
+      marginBottom: "1.5rem",
     },
     featureItem: {
-      padding: '1rem',
-      backgroundColor: '#F7D9EB',
-      borderRadius: '10px',
-      textAlign: 'center',
-      fontSize: isMobile ? '0.9rem' : '1rem',
-      fontWeight: '500',
+      padding: "0.7rem 0.9rem",
+      borderRadius: "12px",
+      backgroundColor: colors.softbg,
+      fontSize: "0.9rem",
+      color: colors.darktext,
     },
     processList: {
-      backgroundColor: '#f8f9fa',
-      padding: '1.5rem',
-      borderRadius: '10px',
-      marginBottom: '2rem',
+      backgroundColor: "#F5F7F7",
+      padding: "1rem",
+      borderRadius: "12px",
+      marginBottom: "1.4rem",
     },
     processItem: {
-      marginBottom: '0.5rem',
-      fontSize: isMobile ? '0.9rem' : '1rem',
-      color: '#666',
-      lineHeight: '1.5',
+      fontSize: "0.9rem",
+      color: colors.softtext,
+      marginBottom: "0.4rem",
+    },
+    modalButtons: {
+      display: "flex",
+      justifyContent: "center",
+    },
+    cancelButton: {
+      padding: "0.8rem 1.8rem",
+      borderRadius: "999px",
+      border: "none",
+      backgroundColor: colors.softtext,
+      color: colors.white,
+      cursor: "pointer",
+      fontSize: "0.9rem",
+      fontWeight: 600,
     },
 
     // Emergency Modal
     modalOverlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      position: "fixed",
+      inset: 0,
+      backgroundColor: "rgba(0,0,0,0.7)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
       zIndex: 1000,
-      padding: isMobile ? '0.5rem' : '1rem',
-      backdropFilter: 'blur(5px)',
+      padding: isMobile ? "0.5rem" : "1rem",
+      backdropFilter: "blur(4px)",
     },
     modalContent: {
-      backgroundColor: 'white',
-      padding: isMobile ? '1.5rem' : '2.5rem',
-      borderRadius: '20px',
-      maxWidth: isMobile ? '95%' : '500px',
-      width: '100%',
-      boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)',
+      backgroundColor: colors.white,
+      padding: isMobile ? "1.4rem" : "1.8rem",
+      borderRadius: "18px",
+      maxWidth: "520px",
+      width: "100%",
+      boxShadow: "0 22px 45px rgba(0,0,0,0.35)",
     },
     modalTitle: {
-      fontSize: isMobile ? '1.5rem' : '2rem',
-      color: '#D32F2F',
-      marginBottom: '1rem',
-      fontWeight: 'bold',
-      textAlign: 'center',
+      fontSize: isMobile ? "1.4rem" : "1.7rem",
+      color: "#D32F2F",
+      fontWeight: 800,
+      marginBottom: "0.6rem",
+      textAlign: "center",
     },
     modalSubtitle: {
-      fontSize: isMobile ? '1rem' : '1.1rem',
-      color: '#666',
-      marginBottom: isMobile ? '2rem' : '2.5rem',
-      lineHeight: '1.5',
-      textAlign: 'center',
+      fontSize: "0.95rem",
+      color: colors.softtext,
+      marginBottom: "1.3rem",
+      textAlign: "center",
+      lineHeight: 1.5,
     },
-    emergencyOptions: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: isMobile ? '0.8rem' : '1.2rem',
-      marginBottom: isMobile ? '2rem' : '2.5rem',
+    emergencyOptionsBox: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "0.7rem",
+      marginBottom: "1.3rem",
     },
     emergencyOption: {
-      padding: isMobile ? '1rem' : '1.5rem',
-      background: 'linear-gradient(135deg, #FFF5F5 0%, #FFE5E5 100%)',
-      border: '2px solid #FF6B6B',
-      borderRadius: '15px',
-      cursor: 'pointer',
-      transition: 'all 0.3s ease',
-      textAlign: 'left',
-      position: 'relative',
-      overflow: 'hidden',
+      padding: "0.9rem 1rem",
+      borderRadius: "14px",
+      border: "1px solid rgba(211,47,47,0.35)",
+      background: "#FFF7F7",
+      cursor: "pointer",
+      transition: "all 0.25s ease",
     },
     emergencyOptionTitle: {
-      fontSize: isMobile ? '1rem' : '1.2rem',
-      fontWeight: 'bold',
-      color: '#D32F2F',
-      marginBottom: '0.5rem',
+      fontSize: "0.98rem",
+      fontWeight: 700,
+      color: "#D32F2F",
+      marginBottom: "0.25rem",
     },
     emergencyOptionDesc: {
-      fontSize: isMobile ? '0.8rem' : '0.95rem',
-      color: '#666',
-      lineHeight: '1.4',
+      fontSize: "0.85rem",
+      color: colors.softtext,
+      lineHeight: 1.4,
     },
-    modalButtons: {
-      display: 'flex',
-      gap: '1rem',
-      justifyContent: 'center',
-      flexDirection: isMobile ? 'column' : 'row',
+
+    // Info Page Modal
+    infoPageModal: {
+      position: "fixed",
+      inset: 0,
+      backgroundColor: "rgba(0,0,0,0.85)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1000,
+      padding: isMobile ? "0.5rem" : "1rem",
+      backdropFilter: "blur(6px)",
     },
-    cancelButton: {
-      padding: isMobile ? '0.8rem 2rem' : '1rem 2.5rem',
-      backgroundColor: '#666',
-      color: 'white',
-      border: 'none',
-      borderRadius: '25px',
-      cursor: 'pointer',
-      fontSize: isMobile ? '0.9rem' : '1rem',
-      fontWeight: 'bold',
-      transition: 'all 0.3s ease',
-      width: isMobile ? '100%' : 'auto',
+    infoPageContent: {
+      backgroundColor: colors.white,
+      padding: isMobile ? "1.3rem" : "2rem",
+      borderRadius: "20px",
+      maxWidth: isMobile ? "95%" : "900px",
+      width: "100%",
+      maxHeight: isMobile ? "90vh" : "85vh",
+      overflowY: "auto",
+      boxShadow: "0 25px 50px rgba(0,0,0,0.5)",
+    },
+    infoPageHeader: {
+      textAlign: "center",
+      marginBottom: "2rem",
+      paddingBottom: "1rem",
+      borderBottom: `2px solid ${colors.softbg}`,
+    },
+    infoPageTitle: {
+      fontSize: isMobile ? "1.8rem" : "2.5rem",
+      color: colors.primary,
+      fontWeight: 800,
+      marginBottom: "0.5rem",
+    },
+    infoPageSubtitle: {
+      fontSize: isMobile ? "1rem" : "1.2rem",
+      color: colors.softtext,
+      fontWeight: 500,
+    },
+    featuresGridInfo: {
+      display: "grid",
+      gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
+      gap: "1rem",
+      marginBottom: "2rem",
+    },
+    featureCardInfo: {
+      padding: "1.2rem",
+      backgroundColor: colors.softbg,
+      borderRadius: "15px",
+      textAlign: "center",
+      transition: "all 0.3s ease",
+    },
+    featureIconInfo: {
+      fontSize: "2rem",
+      marginBottom: "0.8rem",
+    },
+    featureTitleInfo: {
+      fontSize: "1.1rem",
+      fontWeight: 700,
+      color: colors.darktext,
+      marginBottom: "0.5rem",
+    },
+    featureDescInfo: {
+      fontSize: "0.9rem",
+      color: colors.softtext,
+      lineHeight: 1.5,
+    },
+    howItWorksSection: {
+      backgroundColor: "#F8FAFA",
+      padding: "1.5rem",
+      borderRadius: "15px",
+      marginBottom: "2rem",
+    },
+    sectionHeading: {
+      fontSize: "1.3rem",
+      fontWeight: 700,
+      color: colors.darktext,
+      marginBottom: "1rem",
+      display: "flex",
+      alignItems: "center",
+      gap: "0.5rem",
+    },
+    howItWorksList: {
+      paddingLeft: "1.5rem",
+    },
+    howItWorksItem: {
+      fontSize: "0.95rem",
+      color: colors.softtext,
+      marginBottom: "0.7rem",
+      lineHeight: 1.6,
+    },
+    benefitsSection: {
+      marginBottom: "2rem",
+    },
+    benefitsGrid: {
+      display: "grid",
+      gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
+      gap: "0.8rem",
+    },
+    benefitItem: {
+      padding: "0.8rem",
+      backgroundColor: "#E8F5E9",
+      borderRadius: "10px",
+      fontSize: "0.9rem",
+      color: colors.darktext,
+      display: "flex",
+      alignItems: "center",
+      gap: "0.5rem",
+    },
+    specialtiesGrid: {
+      display: "grid",
+      gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)",
+      gap: "0.8rem",
+      marginTop: "1rem",
+    },
+    specialtyItem: {
+      padding: "0.8rem",
+      backgroundColor: colors.softbg,
+      borderRadius: "10px",
+      textAlign: "center",
+      fontSize: "0.9rem",
+      fontWeight: 600,
+      color: colors.darktext,
+    },
+    closeInfoButton: {
+      padding: "0.9rem 2rem",
+      backgroundColor: colors.primary,
+      color: colors.white,
+      border: "none",
+      borderRadius: "999px",
+      cursor: "pointer",
+      fontSize: "1rem",
+      fontWeight: 700,
+      transition: "all 0.3s ease",
+      boxShadow: "0 8px 20px rgba(0,150,136,0.4)",
+      margin: "0 auto",
+      display: "block",
     },
   };
 
-  // Generate floating elements
-  const floatingElements = Array.from({ length: isMobile ? 8 : 15 }, (_, i) => ({
-    id: i,
-    size: Math.random() * (isMobile ? 50 : 100) + (isMobile ? 30 : 50),
-    left: Math.random() * 100,
-    top: Math.random() * 100,
-    animationDelay: Math.random() * 5,
-  }));
+  // Floating bubbles
+  const floatingElements = Array.from(
+    { length: isMobile ? 6 : 10 },
+    (_, i) => ({
+      id: i,
+      size: Math.random() * (isMobile ? 40 : 80) + (isMobile ? 30 : 40),
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      animationDelay: Math.random() * 5,
+    })
+  );
+
+  // Render info page modal if active
+  if (showInfoPage) {
+    const pageData = infoPages[showInfoPage];
+    return (
+      <div style={styles.infoPageModal} onClick={handleCloseInfoPage}>
+        <div
+          style={styles.infoPageContent}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={styles.infoPageHeader}>
+            <h2 style={styles.infoPageTitle}>{pageData.title}</h2>
+            <p style={styles.infoPageSubtitle}>{pageData.subtitle}</p>
+          </div>
+
+          {/* Features */}
+          <h3 style={styles.sectionHeading}>✨ Key Features</h3>
+          <div style={styles.featuresGridInfo}>
+            {pageData.features.map((feature, index) => (
+              <div
+                key={index}
+                style={styles.featureCardInfo}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-5px)";
+                  e.currentTarget.style.boxShadow = "0 10px 20px rgba(0,0,0,0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                <div style={styles.featureIconInfo}>{feature.icon}</div>
+                <h4 style={styles.featureTitleInfo}>{feature.title}</h4>
+                <p style={styles.featureDescInfo}>{feature.description}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* How It Works */}
+          <div style={styles.howItWorksSection}>
+            <h3 style={styles.sectionHeading}>📋 How It Works</h3>
+            <div style={styles.howItWorksList}>
+              {pageData.howItWorks.map((step, index) => (
+                <div key={index} style={styles.howItWorksItem}>
+                  {step}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Benefits */}
+          <div style={styles.benefitsSection}>
+            <h3 style={styles.sectionHeading}>✅ Benefits</h3>
+            <div style={styles.benefitsGrid}>
+              {pageData.benefits.map((benefit, index) => (
+                <div key={index} style={styles.benefitItem}>
+                  <span>✓</span> {benefit}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Specialties (for doctor page only) */}
+          {showInfoPage === "doctor" && (
+            <div style={styles.benefitsSection}>
+              <h3 style={styles.sectionHeading}>🎯 Available Specialties</h3>
+              <div style={styles.specialtiesGrid}>
+                {pageData.specialties.map((specialty, index) => (
+                  <div key={index} style={styles.specialtyItem}>
+                    {specialty}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Action Button */}
+          <button
+            style={styles.closeInfoButton}
+            onClick={handleCloseInfoPage}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 12px 25px rgba(0,150,136,0.6)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,150,136,0.4)";
+            }}
+          >
+            Got it! Take me back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <section style={styles.hero}>
+    <section className="home">
+      {/* Interactive Hero Section */}
+      <div style={styles.hero}>
         {/* Floating Background Elements */}
         <div style={styles.floatingElements}>
           {floatingElements.map((element) => (
@@ -1069,70 +1358,70 @@ const Hero = ({ onSectionChange, onNavigateToAuth }) => {
         </div>
 
         <div style={styles.heroContent}>
-          {/* Main Hero Section */}
+          {/* Main Hero */}
           <div style={styles.mainHero}>
-            <h1 style={styles.heroTitle}>
-              Your Health is Our Priority
-            </h1>
+            <h1 style={styles.heroTitle}>Your Health, Our Priority.</h1>
             <h2 style={styles.heroSubtitle}>
-              Medicine Delivery in 30-40 Minutes Guaranteed
+              Medicine Delivery in 30–40 Minutes. Consult Doctors Anytime.
             </h2>
             <p style={styles.heroText}>
-              QuickMed revolutionizes healthcare delivery by bringing pharmacy to your doorstep. 
-              Experience lightning-fast medicine delivery, expert doctor consultations, and comprehensive 
-              healthcare services - all accessible through our user-friendly platform.
+              QuickMed brings quality healthcare to your doorstep with fast
+              medicine delivery, trusted doctors, and digital medical records.
+              Reliable care for you and your family — anytime, anywhere.
             </p>
-            
-            {/* Call to Action Buttons */}
+
             <div style={styles.ctaButtons}>
-              <button 
+              <button
                 style={styles.primaryButton}
                 onClick={handleOrderMedicines}
                 onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#5a1a4a';
-                  e.target.style.transform = 'translateY(-5px) scale(1.05)';
-                  e.target.style.boxShadow = '0 15px 35px rgba(124, 42, 98, 0.5)';
+                  e.currentTarget.style.transform = "translateY(-3px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 14px 30px rgba(0,150,136,0.6)";
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = '#7C2A62';
-                  e.target.style.transform = 'translateY(0) scale(1)';
-                  e.target.style.boxShadow = '0 8px 25px rgba(124, 42, 98, 0.4)';
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    "0 10px 25px rgba(0,150,136,0.45)";
                 }}
               >
-                🚀 Order Medicines Now
+                 Order Medicines Now
               </button>
-              <button 
+
+              <button
                 style={styles.secondaryButton}
                 onClick={handleConsultDoctor}
                 onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#7C2A62';
-                  e.target.style.color = 'white';
-                  e.target.style.transform = 'translateY(-5px) scale(1.05)';
+                  e.currentTarget.style.backgroundColor = colors.primary;
+                  e.currentTarget.style.color = colors.white;
+                  e.currentTarget.style.transform = "translateY(-3px)";
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = '#7C2A62';
-                  e.target.style.transform = 'translateY(0) scale(1)';
+                  e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.color = colors.primary;
+                  e.currentTarget.style.transform = "translateY(0)";
                 }}
               >
-                👨‍⚕️ Consult Doctor Online
+                 Consult Doctor Online
               </button>
             </div>
           </div>
 
-          {/* Statistics */}
+          {/* Stats */}
           <div style={styles.statsSection}>
-            {stats.map((stat, index) => (
-              <div 
-                key={index} 
+            {stats.map((stat, i) => (
+              <div
+                key={i}
                 style={styles.statItem}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-10px)';
-                  e.currentTarget.style.boxShadow = '0 15px 40px rgba(124, 42, 98, 0.2)';
+                  e.currentTarget.style.transform = "translateY(-6px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 14px 30px rgba(0,0,0,0.12)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 8px 32px rgba(124, 42, 98, 0.1)';
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 20px rgba(0,0,0,0.04)";
                 }}
               >
                 <div style={styles.statNumber}>{stat.number}</div>
@@ -1141,78 +1430,88 @@ const Hero = ({ onSectionChange, onNavigateToAuth }) => {
             ))}
           </div>
 
-          {/* Services Section */}
+          {/* Services */}
           <div style={styles.servicesSection}>
             <h2 style={styles.sectionTitle}>Our Healthcare Services</h2>
             <div style={styles.servicesGrid}>
-              {services.map((service, index) => (
+              {services.map((service, i) => (
                 <div
-                  key={index}
+                  key={i}
                   style={styles.serviceCard}
                   onClick={service.onClick}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-10px) scale(1.02)';
-                    e.currentTarget.style.boxShadow = '0 20px 50px rgba(124, 42, 98, 0.2)';
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                    e.currentTarget.style.boxShadow =
+                      "0 14px 30px rgba(0,0,0,0.12)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                    e.currentTarget.style.boxShadow = '0 10px 40px rgba(124, 42, 98, 0.1)';
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow =
+                      "0 8px 22px rgba(0,0,0,0.05)";
                   }}
                 >
                   <div style={styles.serviceIcon}>{service.icon}</div>
                   <h3 style={styles.serviceName}>{service.name}</h3>
-                  <p style={styles.serviceDescription}>{service.description}</p>
+                  <p style={styles.serviceDescription}>
+                    {service.description}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Features Section */}
+          {/* Features */}
           <div style={styles.featuresSection}>
             <h2 style={styles.sectionTitle}>Why Choose QuickMed?</h2>
-            <div style={styles.featuresGrid}>
-              {features.map((feature, index) => (
+            <div style={styles.featuresGridMain}>
+              {features.map((feature, i) => (
                 <div
-                  key={index}
+                  key={i}
                   style={styles.featureCard}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-5px)';
-                    e.currentTarget.style.boxShadow = '0 15px 40px rgba(124, 42, 98, 0.15)';
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                    e.currentTarget.style.boxShadow =
+                      "0 14px 30px rgba(0,0,0,0.12)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 8px 32px rgba(124, 42, 98, 0.1)';
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow =
+                      "0 8px 22px rgba(0,0,0,0.05)";
                   }}
                 >
                   <div style={styles.featureIcon}>{feature.icon}</div>
                   <h3 style={styles.featureTitle}>{feature.title}</h3>
-                  <p style={styles.featureDescription}>{feature.description}</p>
+                  <p style={styles.featureDescription}>
+                    {feature.description}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Testimonials Section */}
+          {/* Testimonials */}
           <div style={styles.testimonialsSection}>
             <h2 style={styles.sectionTitle}>What Our Customers Say</h2>
             <div style={styles.testimonialsGrid}>
-              {testimonials.map((testimonial, index) => (
+              {testimonials.map((t, i) => (
                 <div
-                  key={index}
+                  key={i}
                   style={styles.testimonialCard}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-5px)';
-                    e.currentTarget.style.boxShadow = '0 15px 40px rgba(124, 42, 98, 0.15)';
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                    e.currentTarget.style.boxShadow =
+                      "0 14px 30px rgba(0,0,0,0.12)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 8px 32px rgba(124, 42, 98, 0.1)';
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow =
+                      "0 8px 22px rgba(0,0,0,0.05)";
                   }}
                 >
-                  <p style={styles.testimonialText}>"{testimonial.text}"</p>
-                  <div style={styles.testimonialRating}>{testimonial.rating}</div>
-                  <div style={styles.testimonialAuthor}>{testimonial.name}</div>
-                  <div style={styles.testimonialLocation}>{testimonial.location}</div>
+                  <p style={styles.testimonialText}>"{t.text}"</p>
+                  <div style={styles.testimonialRating}>{t.rating}</div>
+                  <div style={styles.testimonialAuthor}>{t.name}</div>
+                  <div style={styles.testimonialLocation}>{t.location}</div>
                 </div>
               ))}
             </div>
@@ -1220,75 +1519,63 @@ const Hero = ({ onSectionChange, onNavigateToAuth }) => {
 
           {/* Emergency Section */}
           <div style={styles.emergencySection}>
-            <h3 style={styles.emergencyTitle}>🚨 Emergency Medical Assistance</h3>
+            <h3 style={styles.emergencyTitle}> Emergency Medical Assistance</h3>
             <p style={styles.emergencyText}>
-              Need immediate medical help? Our emergency response team is available 24/7 to provide 
-              urgent care and connect you with nearby medical facilities.
+              Need urgent help? Our emergency response support is available
+              around the clock to guide you and connect you to nearby medical
+              care quickly.
             </p>
-            <button 
+            <button
               style={styles.emergencyButton}
               onClick={handleEmergencyContact}
               onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#D32F2F';
-                e.target.style.transform = 'scale(1.05)';
-                e.target.style.boxShadow = '0 12px 30px rgba(211, 47, 47, 0.5)';
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow =
+                  "0 14px 30px rgba(255,107,107,0.6)";
               }}
               onMouseLeave={(e) => {
-                e.target.style.backgroundColor = '#FF6B6B';
-                e.target.style.transform = 'scale(1)';
-                e.target.style.boxShadow = '0 8px 25px rgba(255, 107, 107, 0.4)';
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow =
+                  "0 10px 26px rgba(255,107,107,0.55)";
               }}
             >
-              🚑 Emergency Contact: 9392416962
+               Emergency Contact: 9392416962
             </button>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Chatbot */}
       <div style={styles.chatbotContainer}>
         {showChatbot && (
           <div style={styles.chatbotWindow}>
             <div style={styles.chatbotHeader}>
-              <div style={styles.chatbotTitle}>
-                💬 QuickMed Assistant
-              </div>
-              <button 
-                style={styles.closeButton}
-                onClick={toggleChatbot}
-              >
+              <div style={styles.chatbotTitle}>💬 QuickMed Assistant</div>
+              <button style={styles.closeButton} onClick={toggleChatbot}>
                 ✕
               </button>
             </div>
-            
+
             <div style={styles.chatMessages}>
-              {chatMessages.map((message) => (
+              {chatMessages.map((m) => (
                 <div
-                  key={message.id}
+                  key={m.id}
                   style={{
                     ...styles.message,
-                    ...(message.isBot ? styles.botMessage : styles.userMessage),
+                    ...(m.isBot ? styles.botMessage : styles.userMessage),
                   }}
                 >
-                  {message.text}
+                  {m.text}
                 </div>
               ))}
             </div>
 
             <div style={styles.quickReplies}>
-              {quickReplies.map((reply, index) => (
+              {quickReplies.map((reply, i) => (
                 <button
-                  key={index}
+                  key={i}
                   style={styles.quickReply}
                   onClick={() => handleQuickReply(reply)}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = '#7C2A62';
-                    e.target.style.color = 'white';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = '#F7D9EB';
-                    e.target.style.color = '#7C2A62';
-                  }}
                 >
                   {reply}
                 </button>
@@ -1298,42 +1585,43 @@ const Hero = ({ onSectionChange, onNavigateToAuth }) => {
             <div style={styles.chatInputContainer}>
               <input
                 type="text"
-                style={styles.chatInput}
                 placeholder="Type your message..."
+                style={styles.chatInput}
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 onKeyPress={handleKeyPress}
               />
-              <button 
-                style={styles.sendButton}
-                onClick={handleSendMessage}
-              >
+              <button style={styles.sendButton} onClick={handleSendMessage}>
                 ➤
               </button>
             </div>
           </div>
         )}
-        
-        <button 
+
+        <button
           style={styles.chatbotButton}
           onClick={toggleChatbot}
           onMouseEnter={(e) => {
-            e.target.style.backgroundColor = '#5a1a4a';
-            e.target.style.transform = 'scale(1.1)';
+            e.currentTarget.style.transform = "scale(1.08)";
           }}
           onMouseLeave={(e) => {
-            e.target.style.backgroundColor = '#7C2A62';
-            e.target.style.transform = 'scale(1)';
+            e.currentTarget.style.transform = "scale(1)";
           }}
         >
-          {showChatbot ? '✕' : '💬'}
+          {showChatbot ? "✕" : "💬"}
         </button>
       </div>
 
       {/* Service Details Modal */}
       {showServiceDetails && (
-        <div style={styles.serviceDetailsModal} onClick={closeServiceDetails}>
-          <div style={styles.serviceDetailsContent} onClick={(e) => e.stopPropagation()}>
+        <div
+          style={styles.serviceDetailsModal}
+          onClick={closeServiceDetails}
+        >
+          <div
+            style={styles.serviceDetailsContent}
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 style={styles.serviceDetailsTitle}>
               {serviceDetails[showServiceDetails].title}
             </h2>
@@ -1341,29 +1629,46 @@ const Hero = ({ onSectionChange, onNavigateToAuth }) => {
               {serviceDetails[showServiceDetails].description}
             </p>
 
-            <h3 style={{color: '#7C2A62', marginBottom: '1rem', fontSize: '1.2rem'}}>Key Features:</h3>
-            <div style={styles.featuresGrid}>
-              {serviceDetails[showServiceDetails].features.map((feature, index) => (
-                <div key={index} style={styles.featureItem}>
-                  {feature}
-                </div>
-              ))}
+            <h3
+              style={{
+                fontSize: "1rem",
+                fontWeight: 700,
+                color: colors.darktext,
+                marginBottom: "0.7rem",
+              }}
+            >
+              Key Features
+            </h3>
+            <div style={styles.featuresGridModal}>
+              {serviceDetails[showServiceDetails].features.map(
+                (feature, i) => (
+                  <div key={i} style={styles.featureItem}>
+                    {feature}
+                  </div>
+                )
+              )}
             </div>
 
-            <h3 style={{color: '#7C2A62', marginBottom: '1rem', fontSize: '1.2rem'}}>How It Works:</h3>
+            <h3
+              style={{
+                fontSize: "1rem",
+                fontWeight: 700,
+                color: colors.darktext,
+                marginBottom: "0.7rem",
+              }}
+            >
+              How It Works
+            </h3>
             <div style={styles.processList}>
-              {serviceDetails[showServiceDetails].process.map((step, index) => (
-                <div key={index} style={styles.processItem}>
+              {serviceDetails[showServiceDetails].process.map((step, i) => (
+                <div key={i} style={styles.processItem}>
                   {step}
                 </div>
               ))}
             </div>
 
             <div style={styles.modalButtons}>
-              <button 
-                style={styles.cancelButton}
-                onClick={closeServiceDetails}
-              >
+              <button style={styles.cancelButton} onClick={closeServiceDetails}>
                 Close
               </button>
             </div>
@@ -1371,49 +1676,41 @@ const Hero = ({ onSectionChange, onNavigateToAuth }) => {
         </div>
       )}
 
-      {/* Emergency Contact Modal */}
+      {/* Emergency Modal */}
       {showEmergencyModal && (
         <div style={styles.modalOverlay} onClick={closeModal}>
-          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <h2 style={styles.modalTitle}>🚨 Emergency Assistance</h2>
+          <div
+            style={styles.modalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={styles.modalTitle}> Emergency Assistance</h2>
             <p style={styles.modalSubtitle}>
-              Choose how you'd like to contact our emergency medical response team:
+              Choose how you want to reach our emergency support team:
             </p>
-            
-            <div style={styles.emergencyOptions}>
-              {emergencyOptions.map((option, index) => (
+
+            <div style={styles.emergencyOptionsBox}>
+              {emergencyOptions.map((option, i) => (
                 <div
-                  key={index}
+                  key={i}
                   style={styles.emergencyOption}
                   onClick={option.action}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#FFD5D5';
-                    e.currentTarget.style.transform = 'translateX(8px) scale(1.02)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#FFF5F5';
-                    e.currentTarget.style.transform = 'translateX(0) scale(1)';
-                  }}
                 >
                   <div style={styles.emergencyOptionTitle}>{option.title}</div>
-                  <div style={styles.emergencyOptionDesc}>{option.description}</div>
+                  <div style={styles.emergencyOptionDesc}>
+                    {option.description}
+                  </div>
                 </div>
               ))}
             </div>
 
-            <div style={styles.modalButtons}>
-              <button 
-                style={styles.cancelButton}
-                onClick={closeModal}
-              >
+            <div style={{ textAlign: "center" }}>
+              <button style={styles.cancelButton} onClick={closeModal}>
                 Cancel
               </button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </section>
   );
-};
-
-export default Hero;
+}

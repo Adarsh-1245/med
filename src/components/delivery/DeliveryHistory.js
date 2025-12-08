@@ -311,7 +311,7 @@ const DeliveryHistory = ({ deliveryData, completedOrders = [] }) => {
               onChange={(e) => setSearchTerm(e.target.value)}
               style={styles.searchInput}
             />
-            <span style={styles.searchIcon}>🔍</span>
+            <span style={styles.searchIcon}></span>
           </div>
           <div style={styles.taskFilters}>
             <button

@@ -16,13 +16,19 @@ const NotificationPanel = ({
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [deletedIds, setDeletedIds] = useState(new Set());
+  const [deletedAll, setDeletedAll] = useState(false);
   const notificationsRef = useRef(null);
 
   useEffect(() => {
     if (notifications && Array.isArray(notifications)) {
-      setLocalNotifications(notifications);
+      // Filter out notifications that have been deleted
+      const filteredNotifications = notifications.filter(
+        notif => !deletedIds.has(notif.id) && !deletedAll
+      );
+      setLocalNotifications(filteredNotifications);
     }
-  }, [notifications]);
+  }, [notifications, deletedIds, deletedAll]);
 
   useEffect(() => {
     if (!showNotifications || isFullPage) return;
@@ -53,7 +59,11 @@ const NotificationPanel = ({
         const newNotifications = await loadMoreNotifications(nextPage);
         
         if (newNotifications && newNotifications.length > 0) {
-          setLocalNotifications(prev => [...prev, ...newNotifications]);
+          // Filter out any notifications that were previously deleted
+          const filteredNewNotifications = newNotifications.filter(
+            notif => !deletedIds.has(notif.id)
+          );
+          setLocalNotifications(prev => [...prev, ...filteredNewNotifications]);
           setCurrentPage(nextPage);
         } else {
           setHasMore(false);
@@ -67,13 +77,15 @@ const NotificationPanel = ({
   };
 
   const handleMarkAsRead = (notificationId) => {
-    if (markAsRead) {
-      markAsRead(notificationId);
+    // Add to deleted set immediately for instant UI feedback
+    setDeletedIds(prev => new Set(prev).add(notificationId));
+    
+    if (deleteNotification) {
+      deleteNotification(notificationId);
     } else {
+      // If no callback provided, just remove from local state
       setLocalNotifications(prev =>
-        prev.map(notif =>
-          notif.id === notificationId ? { ...notif, read: true } : notif
-        )
+        prev.filter(notif => notif.id !== notificationId)
       );
     }
   };
@@ -82,6 +94,7 @@ const NotificationPanel = ({
     if (markAllAsRead) {
       markAllAsRead();
     } else {
+      // Mark all as read in local state
       setLocalNotifications(prev =>
         prev.map(notif => ({ ...notif, read: true }))
       );
@@ -89,9 +102,13 @@ const NotificationPanel = ({
   };
 
   const handleDeleteNotification = (notificationId) => {
+    // Add to deleted set for persistent tracking
+    setDeletedIds(prev => new Set(prev).add(notificationId));
+    
     if (deleteNotification) {
       deleteNotification(notificationId);
     } else {
+      // Immediate removal from UI
       setLocalNotifications(prev =>
         prev.filter(notif => notif.id !== notificationId)
       );
@@ -99,10 +116,31 @@ const NotificationPanel = ({
   };
 
   const handleDeleteAll = () => {
-    if (deleteAllNotifications) {
-      deleteAllNotifications();
-    } else {
-      setLocalNotifications([]);
+    // Show confirmation dialog before deleting all
+    if (window.confirm('Are you sure you want to delete all notifications? This action cannot be undone.')) {
+      setDeletedAll(true);
+      
+      if (deleteAllNotifications) {
+        deleteAllNotifications();
+      } else {
+        // Clear all notifications from local state
+        setLocalNotifications([]);
+      }
+    }
+  };
+
+  const handleUndoDelete = (notificationId) => {
+    // Remove from deleted set
+    setDeletedIds(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(notificationId);
+      return newSet;
+    });
+    
+    // Restore the notification
+    const originalNotification = notifications.find(n => n.id === notificationId);
+    if (originalNotification) {
+      setLocalNotifications(prev => [originalNotification, ...prev]);
     }
   };
 
@@ -214,7 +252,8 @@ const NotificationPanel = ({
       fontSize: '20px',
       cursor: 'pointer',
       color: '#6b7280',
-      padding: isFullPage ? '8px' : '4px'
+      padding: isFullPage ? '8px' : '4px',
+      transition: 'color 0.2s ease'
     },
     backButton: {
       backgroundColor: 'transparent',
@@ -222,7 +261,8 @@ const NotificationPanel = ({
       fontSize: '20px',
       cursor: 'pointer',
       color: '#6b7280',
-      padding: '8px'
+      padding: '8px',
+      transition: 'color 0.2s ease'
     },
     actionButton: {
       backgroundColor: 'transparent',
@@ -232,7 +272,8 @@ const NotificationPanel = ({
       fontSize: isFullPage ? '14px' : '12px',
       fontWeight: '500',
       padding: isFullPage ? '8px 16px' : '4px 8px',
-      borderRadius: isFullPage ? '6px' : '4px'
+      borderRadius: isFullPage ? '6px' : '4px',
+      transition: 'all 0.2s ease'
     },
     deleteAllButton: {
       backgroundColor: 'transparent',
@@ -243,6 +284,7 @@ const NotificationPanel = ({
       fontWeight: '500',
       padding: '8px 16px',
       borderRadius: '6px',
+      transition: 'all 0.2s ease'
     },
     notificationsList: {
       flex: 1,
@@ -256,7 +298,8 @@ const NotificationPanel = ({
       borderBottom: '1px solid #f3f4f6',
       backgroundColor: 'transparent',
       cursor: 'pointer',
-      transition: 'background-color 0.3s ease'
+      transition: 'all 0.3s ease',
+      position: 'relative'
     },
     unreadNotification: {
       backgroundColor: '#f0f9ff'
@@ -294,12 +337,29 @@ const NotificationPanel = ({
     deleteButton: {
       backgroundColor: 'transparent',
       border: 'none',
-      color: '#ef4444',
+      color: '#6b7280',
       cursor: 'pointer',
       fontSize: isFullPage ? '14px' : '12px',
       padding: isFullPage ? '4px 8px' : '2px 6px',
       borderRadius: isFullPage ? '4px' : '3px',
-      marginLeft: '8px'
+      marginLeft: '8px',
+      transition: 'all 0.2s ease'
+    },
+    deleteButtonHover: {
+      color: '#ef4444',
+      backgroundColor: '#fef2f2'
+    },
+    undoButton: {
+      backgroundColor: '#7C2A62',
+      color: 'white',
+      border: 'none',
+      cursor: 'pointer',
+      fontSize: '12px',
+      fontWeight: '500',
+      padding: '4px 12px',
+      borderRadius: '4px',
+      marginLeft: '8px',
+      transition: 'all 0.2s ease'
     },
     emptyState: {
       padding: isFullPage ? '60px 20px' : '40px 20px',
@@ -321,7 +381,8 @@ const NotificationPanel = ({
       borderRadius: '6px',
       cursor: 'pointer',
       fontWeight: '500',
-      fontSize: '14px'
+      fontSize: '14px',
+      transition: 'background-color 0.2s ease'
     },
     loadMoreButton: {
       width: '100%',
@@ -335,13 +396,29 @@ const NotificationPanel = ({
       fontSize: '16px',
       margin: '20px',
       maxWidth: '200px',
-      alignSelf: 'center'
+      alignSelf: 'center',
+      transition: 'all 0.2s ease'
     },
     loadMoreButtonDisabled: {
       opacity: 0.6,
       cursor: 'not-allowed'
+    },
+    notificationActions: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px'
+    },
+    readStatus: {
+      width: '8px',
+      height: '8px',
+      borderRadius: '50%',
+      backgroundColor: '#3b82f6',
+      marginRight: '8px'
     }
   };
+
+  // Button hover states
+  const [hoverStates, setHoverStates] = useState({});
 
   if (!showNotifications && !isFullPage) {
     return null;
@@ -360,11 +437,13 @@ const NotificationPanel = ({
               <button
                 style={styles.backButton}
                 onClick={onClose}
+                onMouseEnter={(e) => e.target.style.color = '#374151'}
+                onMouseLeave={(e) => e.target.style.color = '#6b7280'}
                 aria-label="Go back"
               >
                 ←
               </button>
-              <h2 style={{ margin: 0 }}>All Notifications</h2>
+              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>All Notifications</h2>
               {unreadCount > 0 && (
                 <span style={styles.unreadBadge}>
                   {unreadCount} unread
@@ -373,10 +452,18 @@ const NotificationPanel = ({
             </div>
             
             <div style={styles.headerActions}>
-              {unreadCount > 0 && (
+              {unreadCount > 0 && localNotifications.length > 0 && (
                 <button
                   style={styles.actionButton}
                   onClick={handleMarkAllAsRead}
+                  onMouseEnter={(e) => {
+                    e.target.style.color = '#9333ea';
+                    e.target.style.backgroundColor = '#f3e8ff';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.color = '#7C2A62';
+                    e.target.style.backgroundColor = 'transparent';
+                  }}
                 >
                   Mark all as read
                 </button>
@@ -385,6 +472,14 @@ const NotificationPanel = ({
                 <button
                   style={styles.deleteAllButton}
                   onClick={handleDeleteAll}
+                  onMouseEnter={(e) => {
+                    e.target.style.color = '#dc2626';
+                    e.target.style.backgroundColor = '#fef2f2';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.color = '#ef4444';
+                    e.target.style.backgroundColor = 'transparent';
+                  }}
                 >
                   Delete all
                 </button>
@@ -402,24 +497,57 @@ const NotificationPanel = ({
                       ...styles.notificationItem,
                       ...(!notification.read ? styles.unreadNotification : {})
                     }}
-                    onClick={() => handleMarkAsRead(notification.id)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = !notification.read ? '#e0f2fe' : '#f9fafb';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = !notification.read ? '#f0f9ff' : 'transparent';
+                    }}
                   >
                     <div style={styles.notificationIcon}>
                       {getNotificationIcon(notification.type)}
                     </div>
                     <div style={styles.notificationContent}>
                       <div style={styles.notificationTitle}>
-                        <span>{notification.title || 'Notification'}</span>
-                        <button
-                          style={styles.deleteButton}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteNotification(notification.id);
-                          }}
-                          aria-label="Delete notification"
-                        >
-                          Delete
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          {!notification.read && <div style={styles.readStatus} />}
+                          <span>{notification.title || 'Notification'}</span>
+                        </div>
+                        <div style={styles.notificationActions}>
+                          <button
+                            onClick={() => handleMarkAsRead(notification.id)}
+                            style={{
+                              ...styles.actionButton,
+                              fontSize: '12px',
+                              padding: '4px 12px'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.color = '#9333ea';
+                              e.target.style.backgroundColor = '#f3e8ff';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.color = '#7C2A62';
+                              e.target.style.backgroundColor = 'transparent';
+                            }}
+                          >
+                            Mark Read
+                          </button>
+                          <button
+                            style={{
+                              ...styles.deleteButton,
+                              ...(hoverStates[notification.id] ? styles.deleteButtonHover : {})
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteNotification(notification.id);
+                            }}
+                            onMouseEnter={() => setHoverStates(prev => ({ ...prev, [notification.id]: true }))}
+                            onMouseLeave={() => setHoverStates(prev => ({ ...prev, [notification.id]: false }))}
+                            aria-label="Delete notification"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                       <p style={styles.notificationMessage}>
                         {notification.message || 'No message'}
@@ -439,6 +567,8 @@ const NotificationPanel = ({
                     }}
                     onClick={handleLoadMore}
                     disabled={isLoading}
+                    onMouseEnter={(e) => !isLoading && (e.target.style.backgroundColor = '#7C2A62', e.target.style.color = 'white')}
+                    onMouseLeave={(e) => !isLoading && (e.target.style.backgroundColor = 'transparent', e.target.style.color = '#7C2A62')}
                   >
                     {isLoading ? 'Loading...' : 'Load More Notifications'}
                   </button>
@@ -446,7 +576,35 @@ const NotificationPanel = ({
               </>
             ) : (
               <div style={styles.emptyState}>
-                No notifications available
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>📭</div>
+                <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '600' }}>
+                  No notifications
+                </h3>
+                <p style={{ margin: 0, color: '#6b7280' }}>
+                  {deletedAll ? 'All notifications have been deleted.' : 'You\'re all caught up!'}
+                </p>
+                {deletedAll && (
+                  <button
+                    onClick={() => {
+                      setDeletedAll(false);
+                      setDeletedIds(new Set());
+                    }}
+                    style={{
+                      marginTop: '16px',
+                      padding: '8px 16px',
+                      backgroundColor: '#7C2A62',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#9333ea'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#7C2A62'}
+                  >
+                    Restore All Notifications
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -462,7 +620,7 @@ const NotificationPanel = ({
       <div ref={notificationsRef} style={styles.popupContainer}>
         <div style={styles.header}>
           <div>
-            <h3 style={{ margin: 0 }}>Notifications</h3>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>Notifications</h3>
             {unreadCount > 0 && (
               <span style={styles.unreadBadge}>
                 {unreadCount} unread
@@ -470,10 +628,18 @@ const NotificationPanel = ({
             )}
           </div>
           <div style={styles.headerActions}>
-            {unreadCount > 0 && (
+            {unreadCount > 0 && localNotifications.length > 0 && (
               <button
                 style={styles.actionButton}
                 onClick={handleMarkAllAsRead}
+                onMouseEnter={(e) => {
+                  e.target.style.color = '#9333ea';
+                  e.target.style.backgroundColor = '#f3e8ff';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.color = '#7C2A62';
+                  e.target.style.backgroundColor = 'transparent';
+                }}
               >
                 Mark all read
               </button>
@@ -481,6 +647,8 @@ const NotificationPanel = ({
             <button
               style={styles.closeButton}
               onClick={onClose}
+              onMouseEnter={(e) => e.target.style.color = '#374151'}
+              onMouseLeave={(e) => e.target.style.color = '#6b7280'}
               aria-label="Close notifications"
             >
               ✕
@@ -499,19 +667,33 @@ const NotificationPanel = ({
                     ...(!notification.read ? styles.unreadNotification : {})
                   }}
                   onClick={() => handleMarkAsRead(notification.id)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = !notification.read ? '#e0f2fe' : '#f9fafb';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = !notification.read ? '#f0f9ff' : 'transparent';
+                  }}
                 >
                   <div style={styles.notificationIcon}>
                     {getNotificationIcon(notification.type)}
                   </div>
                   <div style={styles.notificationContent}>
                     <div style={styles.notificationTitle}>
-                      <span>{notification.title || 'Notification'}</span>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        {!notification.read && <div style={styles.readStatus} />}
+                        <span>{notification.title || 'Notification'}</span>
+                      </div>
                       <button
-                        style={styles.deleteButton}
+                        style={{
+                          ...styles.deleteButton,
+                          ...(hoverStates[notification.id] ? styles.deleteButtonHover : {})
+                        }}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteNotification(notification.id);
                         }}
+                        onMouseEnter={() => setHoverStates(prev => ({ ...prev, [notification.id]: true }))}
+                        onMouseLeave={() => setHoverStates(prev => ({ ...prev, [notification.id]: false }))}
                         aria-label="Delete notification"
                       >
                         ×
@@ -529,7 +711,10 @@ const NotificationPanel = ({
             </>
           ) : (
             <div style={styles.emptyState}>
-              No notifications available
+              <div style={{ fontSize: '36px', marginBottom: '12px' }}>🔔</div>
+              <p style={{ margin: 0 }}>
+                {deletedAll ? 'All notifications deleted' : 'No notifications available'}
+              </p>
             </div>
           )}
         </div>
@@ -538,6 +723,8 @@ const NotificationPanel = ({
           <button
             style={styles.viewAllButton}
             onClick={onViewAll}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#9333ea'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#7C2A62'}
           >
             View All Notifications
           </button>

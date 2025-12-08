@@ -1,197 +1,760 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 
-const OrdersView = ({
-  orders,
-  orderFilter,
-  setOrderFilter,
-  setActiveView,
-  startLiveTracking
-}) => {
+// Configuration constants
+const STATUS_CONFIG = {
+  'Order Placed': { color: '#FF9800', icon: '🛒', description: 'Order placed successfully' },
+  'Pending': { color: '#FF9800', icon: '🛒', description: 'Waiting for pharmacy confirmation' },
+  'Confirmed': { color: '#2196F3', icon: '✅', description: 'Pharmacy confirmed your order' },
+  'Packed': { color: '#9C27B0', icon: '📦', description: 'Medicines packed and ready' },
+  'Picked Up': { color: '#FF5722', icon: '🚚', description: 'Picked by delivery partner' },
+  'Picked': { color: '#FF5722', icon: '🚚', description: 'Picked by delivery partner' },
+  'Out for Pickup': { color: '#3F51B5', icon: '🏃‍♂️', description: 'On way to pharmacy' },
+  'Out for Delivery': { color: '#3F51B5', icon: '🚛', description: 'Out for delivery' },
+  'In Transit': { color: '#3F51B5', icon: '🚛', description: 'In transit to location' },
+  'Delivered': { color: '#4CAF50', icon: '🏠', description: 'Delivered successfully' },
+  'Cancelled': { color: '#F44336', icon: '❌', description: 'Order cancelled' },
+  'Returned': { color: '#FF9800', icon: '↩️', description: 'Order returned' },
+  'Failed Delivery': { color: '#9E9E9E', icon: '⚠️', description: 'Delivery attempt failed' }
+};
+
+const VENDORS = {
+  'MEDSTORE_001': { name: 'MedPlus Mart', address: '123 Healthcare St, Mumbai', rating: '4.5', deliveryTime: '20-30 mins', contact: '+91-9876543210' },
+  'APOLLO_002': { name: 'Apollo Pharmacy', address: '456 Wellness Rd, Delhi', rating: '4.7', deliveryTime: '20-30 mins', contact: '+91-9876543211' },
+  'PHARMACY_003': { name: 'Wellness Forever', address: '789 Cure Lane, Bangalore', rating: '4.3', deliveryTime: '25-35 mins', contact: '+91-9876543212' },
+  'QUICKMED_004': { name: 'QuickMed Express', address: '321 Fast Track, Hyderabad', rating: '4.8', deliveryTime: '15-25 mins', contact: '+91-9876543213' }
+};
+
+const DELIVERY_PARTNERS = {
+  'DP_001': { name: 'Rahul Sharma', phone: '+91-9876543201', vehicle: 'Bike', vehicleNo: 'MH-01-AB-1234', rating: 4.8, totalDeliveries: 1245, photo: '👨‍🦱' },
+  'DP_002': { name: 'Priya Patel', phone: '+91-9876543202', vehicle: 'Scooter', vehicleNo: 'DL-02-CD-5678', rating: 4.9, totalDeliveries: 892, photo: '👩‍🦰' },
+  'DP_003': { name: 'Amit Kumar', phone: '+91-9876543203', vehicle: 'Bike', vehicleNo: 'KA-03-EF-9012', rating: 4.7, totalDeliveries: 1567, photo: '👨' },
+  'DP_004': { name: 'Sneha Reddy', phone: '+91-9876543204', vehicle: 'Bike', vehicleNo: 'TS-04-GH-3456', rating: 4.6, totalDeliveries: 743, photo: '👩' }
+};
+
+const STATUS_FILTERS = [
+  { key: 'all', label: 'All Status' },
+  { key: 'confirmed', label: 'Confirmed' },
+  { key: 'delivered', label: 'Delivered' },
+  { key: 'cancelled', label: 'Cancelled' },
+  { key: 'returned', label: 'Returned' }
+];
+
+const DATE_FILTERS = [
+  { key: 'recent', label: 'Recent (7 days)' },
+  { key: 'last30days', label: 'Last 30 days' },
+  { key: 'last6months', label: 'Last 6 months' },
+  { key: 'last1year', label: 'Last 1 year' }
+];
+
+// Helper functions
+const formatTime = (date) => {
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+const formatDate = (date) => {
+  return date.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+};
+
+// Calculate estimated delivery based on 20-30 minute window from order time
+const calculateEstimatedDelivery = (orderDate) => {
+  const orderTime = new Date(orderDate);
+  // Add 20-30 minutes (use average of 25 minutes)
+  const estimatedTime = new Date(orderTime.getTime() + (25 * 60 * 1000));
+  return estimatedTime;
+};
+
+// Generate status timeline based on order date and current status
+const generateStatusTimeline = (orderDate, currentStatus) => {
+  const timeline = [];
+  const orderTime = new Date(orderDate);
+  
+  // Always start with Order Placed
+  timeline.push({
+    status: 'Order Placed',
+    timestamp: orderTime.toISOString(),
+    icon: STATUS_CONFIG['Order Placed'].icon
+  });
+  
+  // Add Pending status 1 minute after order
+  const pendingTime = new Date(orderTime.getTime() + 60000);
+  timeline.push({
+    status: 'Pending',
+    timestamp: pendingTime.toISOString(),
+    icon: STATUS_CONFIG['Pending'].icon
+  });
+  
+  // Add Confirmed status 2 minutes after order
+  const confirmedTime = new Date(orderTime.getTime() + 120000);
+  timeline.push({
+    status: 'Confirmed',
+    timestamp: confirmedTime.toISOString(),
+    icon: STATUS_CONFIG['Confirmed'].icon
+  });
+  
+  // Based on current status, add appropriate timeline entries
+  const statusSequence = ['Order Placed', 'Pending', 'Confirmed', 'Packed', 'Picked', 'Out for Delivery', 'In Transit', 'Delivered'];
+  const currentStatusIndex = statusSequence.indexOf(currentStatus);
+  
+  if (currentStatusIndex > 2) {
+    // Add Packed status 3 minutes after order
+    const packedTime = new Date(orderTime.getTime() + 180000);
+    timeline.push({
+      status: 'Packed',
+      timestamp: packedTime.toISOString(),
+      icon: STATUS_CONFIG['Packed'].icon
+    });
+  }
+  
+  if (currentStatusIndex > 3) {
+    // Add Picked status 4 minutes after order
+    const pickedTime = new Date(orderTime.getTime() + 240000);
+    timeline.push({
+      status: 'Picked',
+      timestamp: pickedTime.toISOString(),
+      icon: STATUS_CONFIG['Picked'].icon
+    });
+  }
+  
+  if (currentStatusIndex > 4) {
+    // Add Out for Delivery status 5 minutes after order
+    const outForDeliveryTime = new Date(orderTime.getTime() + 300000);
+    timeline.push({
+      status: 'Out for Delivery',
+      timestamp: outForDeliveryTime.toISOString(),
+      icon: STATUS_CONFIG['Out for Delivery'].icon
+    });
+  }
+  
+  if (currentStatusIndex > 5) {
+    // Add In Transit status 6 minutes after order
+    const inTransitTime = new Date(orderTime.getTime() + 360000);
+    timeline.push({
+      status: 'In Transit',
+      timestamp: inTransitTime.toISOString(),
+      icon: STATUS_CONFIG['In Transit'].icon
+    });
+  }
+  
+  if (currentStatusIndex > 6) {
+    // Add Delivered status within 20-30 minutes (25 minutes average)
+    const deliveredTime = new Date(orderTime.getTime() + (25 * 60 * 1000));
+    timeline.push({
+      status: 'Delivered',
+      timestamp: deliveredTime.toISOString(),
+      icon: STATUS_CONFIG['Delivered'].icon
+    });
+  }
+  
+  return timeline;
+};
+
+// Styles
+const styles = {
+  container: { padding: '1.5rem', maxWidth: '1400px', margin: '0 auto', minHeight: '100vh', marginTop: '130px' },
+  header: { display: 'flex', alignItems: 'center', gap: '2rem', marginBottom: '1.5rem', paddingTop: '1rem' },
+  title: { color: '#009688', fontSize: '2.2rem', margin: '0 0 0.5rem 0', fontWeight: '800', background: 'linear-gradient(135deg, #009688, #4DB6AC)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' },
+  subtitle: { color: '#4F6F6B', fontSize: '1rem', maxWidth: '600px', margin: '0 auto', lineHeight: '1.5' },
+  subtitleSmall: { fontSize: '0.9rem', marginLeft: '1rem', color: '#4F6F6B', fontWeight: 'normal' },
+  timeDisplay: { width: '100px', textAlign: 'right', fontSize: '0.9rem', color: '#009688', fontWeight: '600' },
+  mainSection: { backgroundColor: '#E0F2F1', borderRadius: '15px', padding: '1.5rem', border: '2px solid #4DB6AC', marginBottom: '2rem', boxShadow: '0 4px 15px rgba(0, 150, 136, 0.1)' },
+  sectionTitle: { color: '#009688', margin: '0 0 1.5rem 0', fontSize: '1.5rem', fontWeight: '700', textAlign: 'center' },
+  filterCard: { backgroundColor: '#FFFFFF', padding: '1.2rem', borderRadius: '10px', border: '1px solid #4DB6AC', marginBottom: '1rem' },
+  clearButton: { padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #009688', backgroundColor: 'transparent', color: '#009688', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600', transition: 'all 0.3s ease', width: '100%', marginTop: '1rem' },
+  infoBox: { marginTop: '1.5rem', padding: '0.8rem', backgroundColor: '#FFF3E0', borderRadius: '6px', border: '1px solid #FFCC80' },
+  summaryCard: { backgroundColor: '#FFFFFF', padding: '1.2rem', borderRadius: '10px', border: '1px solid #4DB6AC', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  deliveryTag: { fontSize: '0.8rem', color: '#4F6F6B', backgroundColor: '#E0F2F1', padding: '0.3rem 0.7rem', borderRadius: '6px', border: '1px solid #4DB6AC' },
+  ratingTag: { fontSize: '0.8rem', color: '#EF6C00', backgroundColor: '#FFF3E0', padding: '0.3rem 0.7rem', borderRadius: '6px', border: '1px solid #FFCC80', display: 'flex', alignItems: 'center', gap: '0.3rem' },
+  emptyState: { backgroundColor: '#FFFFFF', padding: '3rem', borderRadius: '10px', border: '1px solid #4DB6AC', textAlign: 'center' },
+  shopButton: { padding: '0.8rem 1.5rem', borderRadius: '6px', border: 'none', backgroundColor: '#009688', color: '#FFFFFF', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600' },
+  backButton: { padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #009688', backgroundColor: 'transparent', color: '#009688', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600', transition: 'all 0.3s ease' }
+};
+
+const cardStyles = {
+  container: { backgroundColor: '#FFFFFF', padding: '1.2rem', borderRadius: '10px', border: '1px solid #4DB6AC', marginBottom: '1rem', transition: 'transform 0.2s, box-shadow 0.2s' },
+  statusBadge: (color) => ({ padding: '0.3rem 0.8rem', borderRadius: '15px', color: 'white', fontSize: '0.7rem', fontWeight: '700', backgroundColor: color }),
+  ratingBadge: { padding: '0.3rem 0.6rem', borderRadius: '15px', color: 'white', fontSize: '0.7rem', fontWeight: '700', backgroundColor: '#FF9800' },
+  vendorInfo: { backgroundColor: '#E0F2F1', padding: '0.8rem', borderRadius: '6px', marginTop: '0.8rem' },
+  dpInfo: { fontSize: '0.75rem', color: '#0277BD', marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' },
+  ratingPrompt: { backgroundColor: '#FFF3E0', padding: '0.6rem', borderRadius: '6px', border: '1px solid #FFCC80', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  rateButton: { padding: '0.3rem 0.8rem', backgroundColor: '#009688', color: '#FFFFFF', border: 'none', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer', fontWeight: '600' },
+  timeInfo: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F0FFF0', padding: '0.6rem', borderRadius: '6px', marginBottom: '1rem', border: '1px solid #C8E6C9' },
+  itemPreview: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem', borderBottom: '1px solid #4DB6AC' },
+  prescriptionBadge: { fontSize: '0.65rem', color: '#009688', backgroundColor: '#E0F2F1', padding: '0.15rem 0.4rem', borderRadius: '3px', marginTop: '0.2rem', display: 'inline-block' },
+  quantityBadge: { color: '#4F6F6B', fontSize: '0.75rem', backgroundColor: '#E0F2F1', padding: '0.25rem 0.6rem', borderRadius: '5px' },
+  footer: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.8rem', borderTop: '2px solid #4DB6AC', flexWrap: 'wrap', gap: '1rem' },
+  actionButtons: { display: 'flex', gap: '0.6rem', flexWrap: 'wrap' },
+  viewButton: { padding: '0.4rem 0.8rem', backgroundColor: '#2196F3', color: '#FFFFFF', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '600' },
+  trackButton: { padding: '0.4rem 0.8rem', backgroundColor: '#009688', color: '#FFFFFF', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '600' },
+  rateActionButton: { padding: '0.4rem 0.8rem', backgroundColor: '#4CAF50', color: '#FFFFFF', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '600' }
+};
+
+const modalStyles = {
+  overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px', backdropFilter: 'blur(5px)', overflowY: 'auto' },
+  content: { backgroundColor: '#FFFFFF', borderRadius: '15px', width: '90%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 10px 30px rgba(0, 150, 136, 0.2)' },
+  header: { padding: '1.5rem', borderBottom: '2px solid #4DB6AC', backgroundColor: '#E0F2F1', position: 'sticky', top: 0, zIndex: 1 },
+  modalHeader: { padding: '1.5rem', borderBottom: '2px solid #4DB6AC', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#E0F2F1', position: 'sticky', top: 0, zIndex: 1 },
+  closeButton: { background: 'none', border: 'none', fontSize: '1.5rem', color: '#009688', cursor: 'pointer', padding: '0.5rem', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', transition: 'background-color 0.3s' },
+  deliveryInfo: { backgroundColor: '#E0F2F1', padding: '1rem', borderRadius: '10px', border: '2px solid #4DB6AC', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' },
+  dpAvatar: { fontSize: '2.5rem', backgroundColor: '#009688', color: '#FFFFFF', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  dpAvatarSmall: { fontSize: '2rem', backgroundColor: '#009688', color: '#FFFFFF', width: '50px', height: '50px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  dpDetails: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.5rem', marginTop: '0.5rem' },
+  dpDetailsCompact: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'center' },
+  label: { display: 'block', color: '#009688', marginBottom: '0.5rem', fontWeight: '600' },
+  actionButtons: { display: 'flex', justifyContent: 'space-between', gap: '1rem', marginTop: '1.5rem' },
+  skipButton: { flex: 1, padding: '0.8rem', backgroundColor: '#E0F2F1', color: '#009688', border: '2px solid #4DB6AC', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600' },
+  submitButton: { flex: 2, padding: '0.8rem', backgroundColor: '#009688', color: '#FFFFFF', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600' },
+  starContainer: { display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem' },
+  textarea: { width: '100%', padding: '0.8rem', border: '2px solid #4DB6AC', borderRadius: '6px', fontSize: '0.9rem', minHeight: '80px', resize: 'vertical', outline: 'none', fontFamily: 'inherit' },
+  deliveredInfo: { backgroundColor: '#f0f9ff', padding: '1rem', borderRadius: '10px', border: '2px solid #B3E5FC', marginBottom: '1.5rem' },
+  rateButton: { padding: '0.5rem 1rem', backgroundColor: '#009688', color: '#FFFFFF', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem' },
+  statusCard: (color) => ({ backgroundColor: color + '15', padding: '1rem', borderRadius: '10px', borderLeft: '4px solid ' + color, marginBottom: '1.5rem' }),
+  timeGrid: { marginTop: '1rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' },
+  infoCard: { backgroundColor: '#FFFFFF', padding: '1.2rem', borderRadius: '10px', border: '1px solid #4DB6AC', marginBottom: '1.5rem' },
+  infoGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' },
+  itemRow: (index) => ({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.8rem', borderBottom: '1px solid #4DB6AC', backgroundColor: index % 2 === 0 ? '#E0F2F1' : 'transparent' }),
+  summary: { marginTop: '1rem', paddingTop: '1rem', borderTop: '2px solid #4DB6AC' },
+  grandTotal: { display: 'flex', justifyContent: 'space-between', marginTop: '0.8rem', paddingTop: '0.8rem', borderTop: '1px solid #4DB6AC', color: '#009688', fontWeight: 'bold', fontSize: '1.1rem' },
+  modalFooter: { padding: '1rem 1.5rem', borderTop: '2px solid #4DB6AC', display: 'flex', justifyContent: 'flex-end', gap: '1rem' },
+  closeModalButton: { padding: '0.6rem 1.2rem', borderRadius: '6px', border: '1px solid #009688', backgroundColor: 'transparent', color: '#009688', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600', transition: 'all 0.3s ease' },
+  trackButton: { padding: '0.6rem 1.2rem', borderRadius: '6px', backgroundColor: '#009688', color: '#FFFFFF', border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600' },
+  rateButtonLarge: { padding: '0.6rem 1.2rem', borderRadius: '6px', backgroundColor: '#4CAF50', color: '#FFFFFF', border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600' },
+  timeline: { marginTop: '1.5rem', paddingTop: '1rem', borderTop: '2px solid #4DB6AC' },
+  timelineItem: { display: 'flex', alignItems: 'flex-start', marginBottom: '1rem', position: 'relative', paddingLeft: '2rem' },
+  timelineDot: (color, isActive) => ({ 
+    width: '16px', 
+    height: '16px', 
+    borderRadius: '50%', 
+    backgroundColor: isActive ? color : '#E0E0E0', 
+    position: 'absolute', 
+    left: 0,
+    top: '4px',
+    border: `2px solid ${isActive ? color : '#E0E0E0'}` 
+  }),
+  timelineContent: { flex: 1 },
+  timelineTime: { fontSize: '0.75rem', color: '#4F6F6B', marginTop: '0.2rem' }
+};
+
+// Rating Modal Only (No Tips)
+const RatingModal = React.memo(({ order, deliveryPartner, onClose, onRatingSubmit }) => {
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [review, setReview] = useState('');
+
+  const handleRatingSubmit = () => {
+    if (rating > 0) {
+      onRatingSubmit(order.id, rating, review);
+      setTimeout(onClose, 2000);
+    }
+  };
+
+  const getStarButtonStyle = (isActive) => ({
+    fontSize: '2.5rem',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    color: isActive ? '#FFD700' : '#E0E0E0',
+    transition: 'transform 0.2s',
+    padding: '0',
+    lineHeight: '1'
+  });
+
+  const getRatingSubmitButtonStyle = (hasRating) => ({
+    flex: 2,
+    padding: '0.8rem',
+    backgroundColor: hasRating ? '#009688' : '#cccccc',
+    color: hasRating ? '#FFFFFF' : '#4F6F6B',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: hasRating ? 'pointer' : 'not-allowed',
+    fontSize: '0.9rem',
+    fontWeight: '600'
+  });
+
+  return (
+    <div style={modalStyles.overlay} onClick={onClose}>
+      <div style={modalStyles.content} onClick={e => e.stopPropagation()}>
+        <div style={modalStyles.header}>
+          <h3 style={{ margin: 0, color: '#009688' }}>
+            ⭐ Rate Your Delivery
+          </h3>
+          <p style={{ margin: '0.3rem 0 0 0', color: '#4F6F6B', fontSize: '0.9rem' }}>
+            Order #{order.id} • {deliveryPartner.name}
+          </p>
+        </div>
+
+        <div style={{ padding: '1.5rem' }}>
+          <div style={modalStyles.deliveryInfo}>
+            <div style={modalStyles.dpAvatar}>{deliveryPartner.photo}</div>
+            <div style={{ flex: 1 }}>
+              <h4 style={{ margin: 0, color: '#009688' }}>{deliveryPartner.name}</h4>
+              <div style={modalStyles.dpDetails}>
+                <div>⭐ {deliveryPartner.rating}/5</div>
+                <div>🚗 {deliveryPartner.vehicle} • {deliveryPartner.vehicleNo}</div>
+                <div>📞 {deliveryPartner.phone}</div>
+                <div>📦 {deliveryPartner.totalDeliveries} deliveries</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h4 style={{ color: '#009688', marginBottom: '1rem' }}>⭐ Rate Your Delivery Experience</h4>
+            
+            <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+              <div style={modalStyles.starContainer}>
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button key={star} style={getStarButtonStyle(star <= (hoverRating || rating))}
+                    onClick={() => setRating(star)} onMouseEnter={() => setHoverRating(star)} 
+                    onMouseLeave={() => setHoverRating(0)}>
+                    ★
+                  </button>
+                ))}
+              </div>
+              <div style={{ fontSize: '1rem', color: '#009688', fontWeight: '600' }}>
+                {rating === 0 ? 'Select rating' : rating === 1 ? 'Poor' : rating === 2 ? 'Fair' : 
+                 rating === 3 ? 'Good' : rating === 4 ? 'Very Good' : 'Excellent'}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={modalStyles.label}>📝 Optional Review</label>
+              <textarea value={review} onChange={e => setReview(e.target.value)} 
+                placeholder="Share your experience (optional)" style={modalStyles.textarea} maxLength={500} />
+            </div>
+
+            <div style={modalStyles.actionButtons}>
+              <button style={modalStyles.skipButton} onClick={onClose}>
+                Skip Rating
+              </button>
+              <button style={getRatingSubmitButtonStyle(rating > 0)} onClick={handleRatingSubmit} disabled={rating === 0}>
+                Submit Rating & Review
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+// Order Details Modal
+const OrderDetailsModal = React.memo(({ order, onClose, startLiveTracking, showRatingModal }) => {
+  const vendor = VENDORS[order.vendorId] || VENDORS[Object.keys(VENDORS)[0]];
+  const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG['Pending'];
+  
+  // Generate or use existing status timeline
+  const statusTimeline = order.statusTimeline || generateStatusTimeline(order.date, order.status);
+  
+  // Calculate estimated delivery
+  const estimatedDelivery = calculateEstimatedDelivery(order.date);
+  
+  // Get delivery partner for delivered orders
+  const deliveryPartner = order.status === 'Delivered' ? 
+    Object.values(DELIVERY_PARTNERS).find(dp => dp.name === order.deliveryPartner) || 
+    Object.values(DELIVERY_PARTNERS)[0] : null;
+
+  const totalAmount = order.items?.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0) || 0;
+  const tax = totalAmount * 0.05;
+  const grandTotal = totalAmount + tax;
+
+  const getTimeCardStyle = () => ({
+    backgroundColor: '#FFFFFF',
+    padding: '0.8rem',
+    borderRadius: '8px',
+    border: '1px solid #4DB6AC'
+  });
+
+  return (
+    <div style={modalStyles.overlay} onClick={onClose}>
+      <div style={modalStyles.content} onClick={e => e.stopPropagation()}>
+        <div style={modalStyles.modalHeader}>
+          <div>
+            <h3 style={{ margin: 0, color: '#009688' }}>Order #{order.id} Details</h3>
+            <p style={{ margin: '0.3rem 0 0 0', color: '#4F6F6B', fontSize: '0.9rem' }}>
+              Placed on {formatDate(new Date(order.date))}
+            </p>
+          </div>
+          <button style={modalStyles.closeButton} onClick={onClose}>✕</button>
+        </div>
+
+        <div style={{ padding: '1.5rem' }}>
+          {order.status === 'Delivered' && deliveryPartner && (
+            <div style={modalStyles.deliveredInfo}>
+              <h4 style={{ margin: '0 0 0.8rem 0', color: '#0277BD' }}>🚚 Delivery Partner</h4>
+              <div style={modalStyles.dpDetailsCompact}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={modalStyles.dpAvatarSmall}>{deliveryPartner.photo}</div>
+                  <div>
+                    <div style={{ fontWeight: '600', color: '#124441' }}>{deliveryPartner.name}</div>
+                    <div style={{ fontSize: '0.8rem', color: '#4F6F6B' }}>⭐ {deliveryPartner.rating}/5 • {deliveryPartner.vehicle}</div>
+                  </div>
+                </div>
+                {!order.rated && (
+                  <button style={modalStyles.rateButton} onClick={() => { showRatingModal(order, deliveryPartner); onClose(); }}>
+                    Rate Now
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div style={modalStyles.statusCard(statusInfo.color)}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: '1.2rem' }}>{statusInfo.icon}</span>
+              <h4 style={{ margin: 0, color: statusInfo.color }}>{order.status}</h4>
+            </div>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: '#4F6F6B' }}>{statusInfo.description}</p>
+            
+            <div style={modalStyles.timeGrid}>
+              {!['Delivered', 'Cancelled', 'Returned'].includes(order.status) && (
+                <div style={getTimeCardStyle()}>
+                  <div style={{ fontSize: '0.8rem', color: '#4F6F6B', marginBottom: '0.3rem' }}>
+                    📅 Estimated Delivery:
+                  </div>
+                  <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4CAF50' }}>
+                    {formatTime(estimatedDelivery)}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#4F6F6B', marginTop: '0.2rem' }}>
+                    {vendor.deliveryTime} delivery
+                  </div>
+                </div>
+              )}
+              {['Delivered', 'Cancelled', 'Returned'].includes(order.status) && (
+                <div style={getTimeCardStyle()}>
+                  <div style={{ fontSize: '0.8rem', color: '#4F6F6B', marginBottom: '0.3rem' }}>⏰ Completed at:</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4CAF50' }}>
+                    {formatTime(estimatedDelivery)}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Status Timeline */}
+          <div style={modalStyles.timeline}>
+            <h4 style={{ color: '#009688', marginBottom: '1rem' }}>📊 Order Timeline</h4>
+            {statusTimeline.map((entry, index) => {
+              const isCurrent = entry.status === order.status;
+              const isCompleted = index < statusTimeline.findIndex(e => e.status === order.status) || 
+                                 (isCurrent && ['Delivered', 'Cancelled', 'Returned'].includes(order.status));
+              const entryTime = new Date(entry.timestamp);
+              const statusConfig = STATUS_CONFIG[entry.status] || { color: '#4F6F6B' };
+              
+              return (
+                <div key={index} style={modalStyles.timelineItem}>
+                  <div style={modalStyles.timelineDot(statusConfig.color, isCompleted || isCurrent)}></div>
+                  <div style={modalStyles.timelineContent}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '1rem' }}>{entry.icon}</span>
+                      <span style={{ fontWeight: isCurrent ? 'bold' : 'normal', color: isCurrent ? statusConfig.color : '#124441' }}>
+                        {entry.status}
+                      </span>
+                      {isCurrent && !['Delivered', 'Cancelled', 'Returned'].includes(entry.status) && (
+                        <span style={{ fontSize: '0.7rem', color: '#009688', backgroundColor: '#E0F2F1', padding: '0.1rem 0.4rem', borderRadius: '3px' }}>
+                          Current
+                        </span>
+                      )}
+                    </div>
+                    <div style={modalStyles.timelineTime}>
+                      {entryTime.toLocaleString('en-IN', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        day: 'numeric',
+                        month: 'short'
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={modalStyles.infoCard}>
+            <h4 style={{ margin: '0 0 1rem 0', color: '#009688' }}>🏪 Pharmacy Information</h4>
+            <div style={modalStyles.infoGrid}>
+              <div>
+                <p style={{ margin: '0.3rem 0', fontSize: '0.9rem' }}><strong>Name:</strong> {vendor.name}</p>
+                <p style={{ margin: '0.3rem 0', fontSize: '0.9rem' }}><strong>Address:</strong> {vendor.address}</p>
+              </div>
+              <div>
+                <p style={{ margin: '0.3rem 0', fontSize: '0.9rem' }}><strong>Rating:</strong> ⭐ {vendor.rating}/5</p>
+                <p style={{ margin: '0.3rem 0', fontSize: '0.9rem' }}><strong>Delivery Time:</strong> {vendor.deliveryTime}</p>
+              </div>
+            </div>
+          </div>
+
+          {order.items?.length > 0 && (
+            <div style={modalStyles.infoCard}>
+              <h4 style={{ margin: '0 0 1rem 0', color: '#009688' }}>💊 Ordered Medicines ({order.items.length})</h4>
+              {order.items.map((item, index) => (
+                <div key={index} style={modalStyles.itemRow(index)}>
+                  <div>
+                    <div style={{ fontWeight: '600', color: '#124441', marginBottom: '0.3rem' }}>💊 {item.name || 'Medicine'}</div>
+                    {item.prescriptionRequired && <span style={cardStyles.prescriptionBadge}>📄 Prescription Required</span>}
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 'bold', color: '#009688' }}>₹{(item.price || 0) * (item.quantity || 1)}</div>
+                    <div style={{ fontSize: '0.8rem', color: '#4F6F6B', marginTop: '0.2rem' }}>₹{item.price || 0} × {item.quantity || 1}</div>
+                  </div>
+                </div>
+              ))}
+              
+              <div style={modalStyles.summary}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span style={{ color: '#4F6F6B' }}>Subtotal:</span>
+                  <span style={{ fontWeight: '600' }}>₹{totalAmount.toFixed(2)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span style={{ color: '#4F6F6B' }}>Delivery Charge:</span>
+                  <span style={{ fontWeight: '600', color: '#4CAF50' }}>FREE</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span style={{ color: '#4F6F6B' }}>Tax (5%):</span>
+                  <span style={{ fontWeight: '600' }}>₹{tax.toFixed(2)}</span>
+                </div>
+                <div style={modalStyles.grandTotal}>
+                  <span>Total Amount:</span>
+                  <span>₹{grandTotal.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div style={modalStyles.infoCard}>
+            <h4 style={{ margin: '0 0 1rem 0', color: '#009688' }}>📍 Delivery Information</h4>
+            <p style={{ margin: '0.5rem 0', fontSize: '0.9rem' }}><strong>Address:</strong> {order.deliveryAddress || 'Not specified'}</p>
+            <p style={{ margin: '0.5rem 0', fontSize: '0.9rem' }}><strong>Payment:</strong> {order.paymentMethod || 'Online'}</p>
+            <p style={{ margin: '0.5rem 0', fontSize: '0.9rem' }}><strong>Delivery Speed:</strong> {vendor.deliveryTime}</p>
+          </div>
+        </div>
+
+        <div style={modalStyles.modalFooter}>
+          <button style={modalStyles.closeModalButton} onClick={onClose}>Close</button>
+          {!['Delivered', 'Cancelled', 'Returned'].includes(order.status) && (
+            <button style={modalStyles.trackButton} onClick={() => { 
+              if (startLiveTracking && typeof startLiveTracking === 'function') {
+                startLiveTracking(order); 
+                onClose(); 
+              }
+            }}>🗺️ Live Tracking</button>
+          )}
+          {order.status === 'Delivered' && !order.rated && deliveryPartner && (
+            <button style={modalStyles.rateButtonLarge} onClick={() => { showRatingModal(order, deliveryPartner); onClose(); }}>
+              ⭐ Rate Delivery
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+// Order Card Component
+const OrderCard = React.memo(({ order, onViewDetails, startLiveTracking, showRatingModal }) => {
+  const vendor = VENDORS[order.vendorId] || VENDORS[Object.keys(VENDORS)[0]];
+  const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG['Pending'];
+  
+  // Calculate estimated delivery
+  const estimatedDelivery = calculateEstimatedDelivery(order.date);
+  
+  // Get delivery partner for delivered orders
+  const deliveryPartner = order.status === 'Delivered' ? 
+    Object.values(DELIVERY_PARTNERS).find(dp => dp.name === order.deliveryPartner) || 
+    Object.values(DELIVERY_PARTNERS)[0] : null;
+
+  return (
+    <div style={cardStyles.container} 
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 150, 136, 0.15)'; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+      
+      <div style={{ marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
+          <h4 style={{ margin: 0, color: '#009688' }}>Order #{order.id}</h4>
+          <span style={cardStyles.statusBadge(statusInfo.color)}>{statusInfo.icon} {order.status}</span>
+          {order.rated && <span style={cardStyles.ratingBadge}>⭐ Rated {order.rating}/5</span>}
+        </div>
+        
+        <div style={cardStyles.vendorInfo}>
+          <h5 style={{ margin: '0 0 0.4rem 0', color: '#009688' }}>🏪 {vendor.name}</h5>
+          <div style={{ fontSize: '0.75rem', color: '#4F6F6B' }}>
+            📍 {vendor.address} • ⭐ {vendor.rating} • 🕒 {vendor.deliveryTime}
+          </div>
+          {deliveryPartner && (
+            <div style={cardStyles.dpInfo}>🚚 {deliveryPartner.name} • ⭐ {deliveryPartner.rating}</div>
+          )}
+        </div>
+      </div>
+
+      {order.status === 'Delivered' && !order.rated && deliveryPartner && (
+        <div style={cardStyles.ratingPrompt}>
+          <div>
+            <div style={{ fontSize: '0.8rem', color: '#EF6C00', fontWeight: '600', marginBottom: '0.2rem' }}>
+              ⭐ Rate your delivery experience
+            </div>
+            <div style={{ fontSize: '0.7rem', color: '#4F6F6B' }}>Share feedback about {deliveryPartner.name}'s service</div>
+          </div>
+          <button style={cardStyles.rateButton} onClick={() => showRatingModal(order, deliveryPartner)}>Rate Now</button>
+        </div>
+      )}
+
+      {!['Delivered', 'Cancelled', 'Returned'].includes(order.status) && (
+        <div style={cardStyles.timeInfo}>
+          <div>
+            <div style={{ fontSize: '0.8rem', color: '#4F6F6B', marginBottom: '0.2rem' }}>📅 Estimated Delivery:</div>
+            <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#4CAF50' }}>
+              {formatTime(estimatedDelivery)}
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '0.8rem', color: '#4F6F6B', marginBottom: '0.2rem' }}>🚚 Delivery Time:</div>
+            <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#009688' }}>
+              {vendor.deliveryTime}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {order.items?.slice(0, 2).map((item, index) => (
+        <div key={index} style={cardStyles.itemPreview}>
+          <div>
+            <div style={{ color: '#124441', fontSize: '0.8rem', fontWeight: '600' }}>💊 {item.name || 'Medicine'}</div>
+            {item.prescriptionRequired && <span style={cardStyles.prescriptionBadge}>📄 Prescription Required</span>}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <span style={cardStyles.quantityBadge}>Qty: {item.quantity || 1}</span>
+            <span style={{ color: '#009688', fontWeight: '700', fontSize: '0.8rem' }}>₹{(item.price || 0) * (item.quantity || 1)}</span>
+          </div>
+        </div>
+      ))}
+
+      <div style={cardStyles.footer}>
+        <div style={{ flex: 1, minWidth: '200px' }}>
+          <div style={{ color: '#4F6F6B', fontSize: '0.75rem', marginBottom: '0.3rem' }}>
+            <strong>📍 Delivery:</strong> {order.deliveryAddress || 'Address not specified'}
+          </div>
+          <div style={{ color: '#4F6F6B', fontSize: '0.75rem' }}>
+            <strong>📅 Ordered:</strong> {new Date(order.date).toLocaleDateString()} at {new Date(order.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </div>
+        </div>
+        <div style={cardStyles.actionButtons}>
+          <button style={cardStyles.viewButton} onClick={() => onViewDetails(order)}>📋 View Details</button>
+          {!['Delivered', 'Cancelled', 'Returned'].includes(order.status) && (
+            <button style={cardStyles.trackButton} onClick={() => startLiveTracking(order)}>
+              🗺️ Live Track
+            </button>
+          )}
+          {order.status === 'Delivered' && !order.rated && deliveryPartner && (
+            <button style={cardStyles.rateActionButton} onClick={() => showRatingModal(order, deliveryPartner)}>⭐ Rate</button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+// Main Component
+const OrdersView = ({ orders: initialOrders, setActiveView, startLiveTracking }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [dateFilter, setDateFilter] = useState('recent');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showRating, setShowRating] = useState(false);
+  const [ratingOrder, setRatingOrder] = useState(null);
+  const [ratingDeliveryPartner, setRatingDeliveryPartner] = useState(null);
+  const [orders, setOrders] = useState(initialOrders || []);
 
-  // Update current time every second
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
+  useEffect(() => { 
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000); 
+    return () => clearInterval(timer); 
+  }, []);
+  
+  useEffect(() => { 
+    setOrders(initialOrders || []); 
+  }, [initialOrders]);
+  
+  useEffect(() => { 
+    document.body.style.overflow = selectedOrder || showRating ? 'hidden' : 'auto'; 
+    return () => { document.body.style.overflow = 'auto'; }; 
+  }, [selectedOrder, showRating]);
+
+  // Default live tracking function if not provided
+  const defaultStartLiveTracking = useCallback((order) => {
+    const estimatedTime = calculateEstimatedDelivery(order.date);
+    const vendor = VENDORS[order.vendorId] || VENDORS[Object.keys(VENDORS)[0]];
+    
+    alert(`🚚 Live Tracking Started for Order #${order.id}\n\n📊 Order Details:\n• Status: ${order.status}\n• Pharmacy: ${vendor.name}\n• Estimated Delivery: ${formatTime(estimatedTime)}\n• Delivery Time: ${vendor.deliveryTime}\n\n📍 Tracking Features:\n• Real-time GPS location of delivery partner\n• Live route visualization on map\n• Estimated arrival time updates\n• Delivery progress tracking\n• Traffic and route optimization\n\nThis would normally show an interactive map with live tracking.`);
   }, []);
 
-  const handleBackToDashboard = () => {
-    setActiveView('dashboard');
-  };
+  // Safe function that checks if startLiveTracking exists and is callable
+  const handleStartLiveTracking = useCallback((order) => {
+    try {
+      if (startLiveTracking && typeof startLiveTracking === 'function') {
+        startLiveTracking(order);
+      } else {
+        defaultStartLiveTracking(order);
+      }
+    } catch (error) {
+      console.error('Error starting live tracking:', error);
+      defaultStartLiveTracking(order);
+    }
+  }, [startLiveTracking, defaultStartLiveTracking]);
 
-  const handleShopMedicines = () => {
-    setActiveView('medicine');
-  };
-
-  // Filter orders based on selected filters
   const filteredOrders = useMemo(() => {
-    if (!orders || orders.length === 0) return [];
-    
+    if (!orders?.length) return [];
     let filtered = orders;
+    const now = new Date();
 
     // Status filter
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(order => {
-        switch (statusFilter) {
-          case 'delivered':
-            return order.status === 'Delivered';
-          case 'cancelled':
-            return order.status === 'Cancelled';
-          case 'returned':
-            return order.status === 'Returned';
-          default:
-            return true;
-        }
-      });
+      const statusMap = { 
+        delivered: ['Delivered'], 
+        cancelled: ['Cancelled'], 
+        returned: ['Returned'], 
+        confirmed: ['Confirmed'], 
+        pending: ['Pending'] 
+      };
+      if (statusMap[statusFilter]) filtered = filtered.filter(order => statusMap[statusFilter].includes(order.status));
     }
 
     // Date filter
-    const now = new Date();
-    filtered = filtered.filter(order => {
-      const orderDate = new Date(order.date);
-      const timeDiff = now.getTime() - orderDate.getTime();
-      
-      switch (dateFilter) {
-        case 'recent':
-          return timeDiff <= 7 * 24 * 60 * 60 * 1000; // Last 7 days
-        case '30days':
-          return timeDiff <= 30 * 24 * 60 * 60 * 1000; // Last 30 days
-        case '6months':
-          return timeDiff <= 6 * 30 * 24 * 60 * 60 * 1000; // Last 6 months
-        default:
-          return true;
-      }
-    });
+    const dateRanges = {
+      recent: () => { const d = new Date(); d.setDate(d.getDate() - 7); return d; },
+      last30days: () => { const d = new Date(); d.setDate(d.getDate() - 30); return d; },
+      last6months: () => { const d = new Date(); d.setMonth(d.getMonth() - 6); return d; },
+      last1year: () => { const d = new Date(); d.setFullYear(d.getFullYear() - 1); return d; }
+    };
+    if (dateRanges[dateFilter]) {
+      const startDate = dateRanges[dateFilter]();
+      filtered = filtered.filter(order => new Date(order.date) >= startDate && new Date(order.date) <= now);
+    }
 
-    // Sort by date (newest first)
     return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [orders, statusFilter, dateFilter]);
 
-  // Get filter display text
-  const getFilterDisplayText = () => {
-    const statusText = statusFilter === 'all' ? 'All Status' : 
-                      statusFilter === 'delivered' ? 'Delivered' :
-                      statusFilter === 'cancelled' ? 'Cancelled' : 'Returned';
-    
-    const dateText = dateFilter === 'recent' ? 'Recent (7 days)' :
-                    dateFilter === '30days' ? 'Last 30 days' : 'Last 6 months';
-    
-    return `${statusText} • ${dateText}`;
-  };
+  const openOrderDetails = useCallback((order) => setSelectedOrder(order), []);
+  const closeModal = useCallback(() => setSelectedOrder(null), []);
+  
+  const showRatingModal = useCallback((order, deliveryPartner) => { 
+    setRatingOrder(order); 
+    setRatingDeliveryPartner(deliveryPartner); 
+    setShowRating(true); 
+  }, []);
+  
+  const closeRatingModal = useCallback(() => { 
+    setShowRating(false); 
+    setRatingOrder(null); 
+    setRatingDeliveryPartner(null); 
+  }, []);
 
-  // Get status color
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Delivered': return '#4CAF50';
-      case 'Cancelled': return '#F44336';
-      case 'Returned': return '#FF9800';
-      case 'Confirmed': return '#9C27B0';
-      default: return '#9E9E9E';
-    }
-  };
+  const handleRatingSubmit = useCallback((orderId, rating, review) => {
+    setOrders(prev => prev.map(order => order.id === orderId ? { ...order, rated: true, rating, review: review || '' } : order));
+    console.log(`Rating ${rating}/5 submitted for order ${orderId}`, review ? `with review: ${review}` : '');
+  }, []);
 
-  // Get status icon
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'Delivered': return '✅';
-      case 'Cancelled': return '❌';
-      case 'Returned': return '🔄';
-      case 'Confirmed': return '📦';
-      default: return '📋';
-    }
-  };
-
-  // Get vendor information
-  const getVendorInfo = (vendorId) => {
-    const vendors = {
-      'MEDSTORE_001': {
-        name: 'MedPlus Mart',
-        address: '123 Healthcare Street, Medical Complex',
-        rating: '4.5',
-        deliveryTime: '30-45 mins',
-        contact: '+91-9876543210',
-        license: 'DL-12345-MUM'
-      },
-      'APOLLO_002': {
-        name: 'Apollo Pharmacy',
-        address: '456 Wellness Road, Health District',
-        rating: '4.7',
-        deliveryTime: '25-40 mins',
-        contact: '+91-9876543211',
-        license: 'DL-12346-MUM'
-      },
-      'PHARMACY_003': {
-        name: 'Wellness Forever',
-        address: '789 Cure Lane, Treatment Area',
-        rating: '4.3',
-        deliveryTime: '35-50 mins',
-        contact: '+91-9876543212',
-        license: 'DL-12347-MUM'
-      },
-      'QUICKMED_004': {
-        name: 'QuickMed Express',
-        address: '321 Fast Track, Delivery Zone',
-        rating: '4.8',
-        deliveryTime: '15-30 mins',
-        contact: '+91-9876543213',
-        license: 'DL-12348-MUM'
-      }
-    };
-    return vendors[vendorId] || {
-      name: 'Local Pharmacy',
-      address: 'Nearby location',
-      rating: '4.0',
-      deliveryTime: '40-60 mins',
-    };
-  };
-
-  // Get order timeline
-  const getOrderTimeline = (order) => {
-    const timeline = [
-      {
-        status: 'Order Placed',
-        timestamp: new Date(order.date),
-        icon: '🛒',
-        completed: true
-      },
-      {
-        status: 'Vendor Confirmed',
-        timestamp: new Date(new Date(order.date).getTime() + 5 * 60000),
-        icon: '',
-        completed: order.status !== ''
-      },
-      {
-        status: 'Medicine Packed',
-        timestamp: new Date(new Date(order.date).getTime() + 10 * 60000),
-        icon: '',
-        completed: order.status === '' ||  order.status === 'Delivered'
-      },
-      {
-        status: 'Out for Delivery',
-        timestamp: new Date(new Date(order.date).getTime() + 15 * 60000),
-        icon: '',
-        completed:  order.status === 'Delivered'
-      },
-      {
-        status: 'Delivered',
-        timestamp: order.status === 'Delivered' ? new Date(new Date(order.date).getTime() + 45 * 60000) : null,
-        icon: '✅',
-        completed: order.status === 'Delivered'
-      }
-    ];
-    return timeline;
-  };
-
-  // Filter option styles
-  const getFilterOptionStyle = (isSelected) => ({
+  const getFilterButtonStyle = (isActive) => ({
     padding: '0.6rem 0.8rem',
-    backgroundColor: isSelected ? '#7C2A62' : 'white',
-    color: isSelected ? 'white' : '#7C2A62',
-    border: `2px solid ${isSelected ? '#7C2A62' : '#F7D9EB'}`,
+    backgroundColor: isActive ? '#009688' : '#FFFFFF',
+    color: isActive ? '#FFFFFF' : '#009688',
+    border: '2px solid ' + (isActive ? '#009688' : '#4DB6AC'),
     borderRadius: '6px',
     cursor: 'pointer',
     fontSize: '0.8rem',
@@ -199,751 +762,112 @@ const OrdersView = ({
     transition: 'all 0.3s ease',
     width: '100%',
     textAlign: 'left',
-    marginBottom: '0.4rem',
+    marginBottom: '0.4rem'
   });
 
-  const BackButton = ({ onClick, text = 'Back' }) => (
-    <button 
-      style={{
-        padding: '0.5rem 1rem',
-        backgroundColor: 'transparent',
-        color: '#7C2A62',
-        border: '1px solid #7C2A62',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        fontSize: '0.9rem',
-        fontWeight: '600',
-        transition: 'all 0.3s ease',
-        marginBottom: '1rem',
-      }}
-      onClick={onClick}
-      type="button"
-      onMouseEnter={(e) => {
-        e.target.style.backgroundColor = '#7C2A62';
-        e.target.style.color = 'white';
-      }}
-      onMouseLeave={(e) => {
-        e.target.style.backgroundColor = 'transparent';
-        e.target.style.color = '#7C2A62';
-      }}
-    >
-      ← {text}
-    </button>
-  );
-
-  // Common section container style
-  const sectionContainerStyle = {
-    backgroundColor: '#f8f5ff',
-    borderRadius: '15px',
-    padding: '1.5rem',
-    border: '2px solid #F7D9EB',
-    marginBottom: '2rem',
-    boxShadow: '0 4px 15px rgba(124, 42, 98, 0.1)',
-  };
-
-  // Common section header style
-  const sectionHeaderStyle = {
-    color: '#7C2A62',
-    margin: '0 0 1rem 0',
-    fontSize: '1.3rem',
-    fontWeight: '800',
-    textAlign: 'center',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '0.5rem',
-  };
-
-  // Common content box style
-  const contentBoxStyle = {
-    backgroundColor: 'white',
-    padding: '1.2rem',
-    borderRadius: '10px',
-    border: '1px solid #F7D9EB',
-  };
-
-  // Common subheader style
-  const subheaderStyle = {
-    color: '#7C2A62',
-    margin: '0 0 0.8rem 0',
-    fontSize: '1rem',
-    fontWeight: '700',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  };
-
-  // Get empty state message based on filters
-  const getEmptyStateMessage = () => {
-    if (statusFilter !== 'all') {
-      return `No ${statusFilter} orders found in the selected time period`;
-    }
-    
-    switch (dateFilter) {
-      case 'recent':
-        return 'No recent orders found in the last 7 days';
-      case '30days':
-        return 'No orders found in the last 30 days';
-      case '6months':
-        return 'No orders found in the last 6 months';
-      default:
-        return 'No orders found';
-    }
-  };
-
   return (
-    <div style={{
-      marginTop: '120px',
-      padding: '1.5rem',
-      maxWidth: '1400px',
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      minHeight: '80vh',
-    }}>
-      {/* Header Section with Back Button on Left */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '2rem',
-        marginBottom: '1.5rem', // Reduced margin bottom for proper spacing
-      }}>
-        {/* Back Button - Left Side with proper spacing */}
-        <div style={{
-          flexShrink: 0,
-          marginTop: '1.5rem',
-        }}>
-          <BackButton onClick={handleBackToDashboard} text="Dashboard" />
-        </div>
-
-        {/* Main Header Content */}
-        <div style={{
-          flex: 1,
-          textAlign: 'center',
-          marginTop: '1rem',
-        }}>
-          <h2 style={{
-            color: '#7C2A62',
-            fontSize: '2.2rem',
-            margin: '0 0 0.5rem 0',
-            fontWeight: '800',
-            background: 'linear-gradient(135deg, #7C2A62, #E91E63)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}>Order History</h2>
-          <p style={{
-            color: '#666',
-            fontSize: '1rem',
-            textAlign: 'center',
-            maxWidth: '600px',
-            margin: '0 auto',
-            lineHeight: '1.5',
-          }}>
-            Track your medicine orders from vendors and view your complete purchase history
-          </p>
-        </div>
-
-        {/* Empty div for balance */}
-        <div style={{ width: '100px' }}></div>
-      </div>
-
-      {/* Gap between Header and Welcome Back Section */}
-      <div style={{ marginBottom: '2rem' }}></div>
-      {/* Gap between Safety Precautions and Main Orders Section */}
-      <div style={{ marginBottom: '2.5rem' }}></div>
-
-      {/* Main Content Section */}
-      <div style={sectionContainerStyle}>
-        <h3 style={sectionHeaderStyle}>
-          📋 Your Orders
-        </h3>
-        
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '280px 1fr',
-          gap: '2rem',
-        }}>
-          
-          {/* Filters Sidebar - Compact Version */}
-          <div style={{
-            ...contentBoxStyle,
-            padding: '1rem',
-            height: 'fit-content',
-          }}>
-            <h4 style={{
-              ...subheaderStyle,
-              fontSize: '0.95rem',
-              marginBottom: '1rem',
-            }}>
-               Filters
-            </h4>
-
-            {/* Order Status Filter */}
-            <div style={{ marginBottom: '1.5rem' }}>
-              <h5 style={{
-                color: '#7C2A62',
-                margin: '0 0 0.8rem 0',
-                fontSize: '0.9rem',
-                fontWeight: '700',
-              }}>
-                Order Status
-              </h5>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                {[
-                  { key: 'all', label: 'All Status', count: orders?.length || 0 },
-                  { key: 'delivered', label: 'Delivered', count: orders?.filter(o => o.status === 'Delivered').length || 0 },
-                  { key: 'cancelled', label: 'Cancelled', count: orders?.filter(o => o.status === 'Cancelled').length || 0 },
-                  { key: 'returned', label: 'Returned', count: orders?.filter(o => o.status === 'Returned').length || 0 }
-                ].map((filter) => (
-                  <button
-                    key={filter.key}
-                    style={getFilterOptionStyle(statusFilter === filter.key)}
-                    onClick={() => setStatusFilter(filter.key)}
-                    type="button"
-                  >
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      width: '100%',
-                    }}>
-                      <span style={{ fontSize: '0.8rem' }}>{filter.label}</span>
-                      <span style={{
-                        backgroundColor: statusFilter === filter.key ? 'rgba(255,255,255,0.3)' : '#F7D9EB',
-                        color: statusFilter === filter.key ? 'white' : '#7C2A62',
-                        padding: '0.15rem 0.5rem',
-                        borderRadius: '10px',
-                        fontSize: '0.7rem',
-                        fontWeight: '600',
-                        minWidth: '25px',
-                        textAlign: 'center',
-                      }}>
-                        {filter.count}
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Order Date Filter */}
-            <div>
-              <h5 style={{
-                color: '#7C2A62',
-                margin: '0 0 0.8rem 0',
-                fontSize: '0.9rem',
-                fontWeight: '700',
-              }}>
-                Order Date
-              </h5>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                {[
-                  { key: 'recent', label: 'Recent (7 days)' },
-                  { key: '30days', label: 'Last 30 days' },
-                  { key: '6months', label: 'Last 6 months' }
-                ].map((filter) => (
-                  <button
-                    key={filter.key}
-                    style={getFilterOptionStyle(dateFilter === filter.key)}
-                    onClick={() => setDateFilter(filter.key)}
-                    type="button"
-                  >
-                    <span style={{ fontSize: '0.8rem' }}>{filter.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Clear Filters Button */}
-            {(statusFilter !== 'all' || dateFilter !== 'recent') && (
-              <button
-                style={{
-                  padding: '0.6rem 0.8rem',
-                  backgroundColor: 'transparent',
-                  color: '#7C2A62',
-                  border: '2px solid #7C2A62',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '0.8rem',
-                  fontWeight: '600',
-                  transition: 'all 0.3s ease',
-                  width: '100%',
-                  marginTop: '1rem',
-                }}
-                onClick={() => {
-                  setStatusFilter('all');
-                  setDateFilter('recent');
-                }}
-                type="button"
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#7C2A62';
-                  e.target.style.color = 'white';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = '#7C2A62';
-                }}
-              >
-                Clear All Filters
-              </button>
-            )}
+    <>
+      <div style={styles.container}>
+        <div style={styles.header}>
+          <button style={styles.backButton} onClick={() => setActiveView('dashboard')}>← Dashboard</button>
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <h2 style={styles.title}>Order History & Tracking</h2>
+            <p style={styles.subtitle}>Track your medicine orders with real-time updates and 20-30 mins delivery</p>
           </div>
+          <div style={styles.timeDisplay}>🕒 {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+        </div>
 
-          {/* Orders Content */}
-          <div>
-            {/* Orders Count and Filter Info */}
-            <div style={{
-              ...contentBoxStyle,
-              marginBottom: '1.5rem',
-              padding: '1rem',
-            }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
+        <div style={styles.mainSection}>
+          <h3 style={styles.sectionTitle}>📋 Your Orders <span style={styles.subtitleSmall}>Fast delivery in 20-30 mins • Updates every second</span></h3>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '2rem' }}>
+            <div style={styles.filterCard}>
+              <h4 style={{ color: '#009688', marginBottom: '1rem' }}> Filters</h4>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h5 style={{ color: '#009688', marginBottom: '0.8rem', fontSize: '0.9rem' }}>Order Status</h5>
+                {STATUS_FILTERS.map(filter => (
+                  <button key={filter.key} style={getFilterButtonStyle(statusFilter === filter.key)} onClick={() => setStatusFilter(filter.key)}>
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+              <div>
+                <h5 style={{ color: '#009688', marginBottom: '0.8rem', fontSize: '0.9rem' }}>Order Date</h5>
+                {DATE_FILTERS.map(filter => (
+                  <button key={filter.key} style={getFilterButtonStyle(dateFilter === filter.key)} onClick={() => setDateFilter(filter.key)}>
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+              {(statusFilter !== 'all' || dateFilter !== 'recent') && (
+                <button style={styles.clearButton} onClick={() => { setStatusFilter('all'); setDateFilter('recent'); }}>Clear All Filters</button>
+              )}
+              <div style={styles.infoBox}>
+                <h5 style={{ color: '#EF6C00', marginBottom: '0.5rem', fontSize: '0.9rem' }}>⭐ Rate Your Delivery</h5>
+                <p style={{ fontSize: '0.75rem', color: '#4F6F6B', margin: 0 }}>• Rate your delivery partner after order is delivered<br />• Share your experience<br />• Help improve service quality</p>
+              </div>
+            </div>
+
+            <div>
+              <div style={styles.summaryCard}>
                 <div>
-                  <h4 style={{
-                    color: '#7C2A62',
-                    margin: '0 0 0.3rem 0',
-                    fontSize: '1.1rem',
-                    fontWeight: '700',
-                  }}>
-                    {filteredOrders.length} Order{filteredOrders.length !== 1 ? 's' : ''} Found
-                  </h4>
-                  <p style={{
-                    margin: 0,
-                    fontSize: '0.8rem',
-                    color: '#666',
-                  }}>
-                    {getFilterDisplayText()}
+                  <h4 style={{ color: '#009688', margin: 0, fontSize: '1.1rem' }}>{filteredOrders.length} Order{filteredOrders.length !== 1 ? 's' : ''} Found</h4>
+                  <p style={{ margin: '0.3rem 0 0 0', fontSize: '0.8rem', color: '#4F6F6B' }}>
+                    {statusFilter === 'all' ? 'All orders' : statusFilter} • 
+                    {dateFilter === 'recent' ? ' Last 7 days' : dateFilter === 'last30days' ? ' Last 30 days' : dateFilter === 'last6months' ? ' Last 6 months' : ' Last 1 year'} • 
+                    Updated: {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                   </p>
                 </div>
-                <div style={{
-                  fontSize: '0.8rem',
-                  color: '#666',
-                  backgroundColor: '#f8f5ff',
-                  padding: '0.3rem 0.7rem',
-                  borderRadius: '6px',
-                  border: '1px solid #F7D9EB',
-                }}>
-                  Updated: {currentTime.toLocaleTimeString()}
-                </div>
-              </div>
-            </div>
-
-            {/* Orders List or Empty State */}
-            {filteredOrders.length === 0 ? (
-              <div style={{
-                ...contentBoxStyle,
-                textAlign: 'center',
-                padding: '3rem 1.5rem',
-              }}>
-                <div style={{
-                  fontSize: '4rem',
-                  marginBottom: '1.5rem',
-                  opacity: 0.7,
-                }}>
-                  📦
-                </div>
-                <h4 style={{
-                  fontSize: '1.4rem',
-                  color: '#7C2A62',
-                  marginBottom: '1rem',
-                  fontWeight: '700',
-                }}>
-                  No Orders Found
-                </h4>
-                <p style={{
-                  fontSize: '1rem',
-                  color: '#888',
-                  marginBottom: '2rem',
-                  lineHeight: '1.6',
-                  maxWidth: '400px',
-                  margin: '0 auto 2rem auto',
-                }}>
-                  {getEmptyStateMessage()}
-                </p>
-                <div style={{
-                  display: 'flex',
-                  gap: '1rem',
-                  justifyContent: 'center',
-                  flexWrap: 'wrap',
-                }}>
-                  <button 
-                    style={{
-                      padding: '0.8rem 1.5rem',
-                      backgroundColor: '#7C2A62',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '0.9rem',
-                      fontWeight: '700',
-                      transition: 'all 0.3s ease',
-                      boxShadow: '0 4px 15px rgba(124, 42, 98, 0.3)',
-                    }}
-                    onClick={handleShopMedicines}
-                    type="button"
-                    onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = '#6a2460';
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 6px 20px rgba(124, 42, 98, 0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = '#7C2A62';
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 4px 15px rgba(124, 42, 98, 0.3)';
-                    }}
-                  >
-                    🛍️ Shop Medicines
-                  </button>
-                  {(statusFilter !== 'all' || dateFilter !== 'recent') && (
-                    <button 
-                      style={{
-                        padding: '0.8rem 1.5rem',
-                        backgroundColor: 'transparent',
-                        color: '#7C2A62',
-                        border: '2px solid #7C2A62',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontSize: '0.9rem',
-                        fontWeight: '700',
-                        transition: 'all 0.3s ease',
-                      }}
-                      onClick={() => {
-                        setStatusFilter('all');
-                        setDateFilter('recent');
-                      }}
-                      type="button"
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = '#7C2A62';
-                        e.target.style.color = 'white';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = 'transparent';
-                        e.target.style.color = '#7C2A62';
-                      }}
-                    >
-                      🔄 Clear Filters
-                    </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={styles.deliveryTag}>🚚 Fast 20-30 min delivery</div>
+                  {filteredOrders.some(order => order.status === 'Delivered' && !order.rated) && (
+                    <div style={styles.ratingTag}>⭐ Rating pending</div>
                   )}
                 </div>
               </div>
-            ) : (
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.2rem',
-              }}>
-                {filteredOrders.map(order => {
-                  const vendor = getVendorInfo(order.vendorId);
-                  const timeline = getOrderTimeline(order);
-                  
-                  return (
-                    <div key={order.id} style={{
-                      ...contentBoxStyle,
-                      transition: 'all 0.3s ease',
-                      padding: '1rem',
-                    }}>
-                      {/* Order Header with Vendor Info */}
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-start',
-                        marginBottom: '1.2rem',
-                      }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.8rem',
-                            marginBottom: '0.6rem',
-                          }}>
-                            <h4 style={{
-                              margin: 0,
-                              color: '#7C2A62',
-                              fontSize: '1rem',
-                              fontWeight: '800',
-                            }}>Order #{order.id}</h4>
-                            <span style={{
-                              padding: '0.3rem 0.8rem',
-                              borderRadius: '15px',
-                              color: 'white',
-                              fontSize: '0.7rem',
-                              fontWeight: '700',
-                              backgroundColor: getStatusColor(order.status),
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.3rem',
-                            }}>
-                              {getStatusIcon(order.status)} {order.status}
-                            </span>
-                          </div>
-                          
-                          {/* Vendor Information */}
-                          <div style={{
-                            backgroundColor: '#f8f5ff',
-                            padding: '0.8rem',
-                            borderRadius: '6px',
-                            border: '1px solid #F7D9EB',
-                            marginBottom: '0.8rem',
-                          }}>
-                            <div style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'flex-start',
-                            }}>
-                              <div>
-                                <h5 style={{
-                                  margin: '0 0 0.4rem 0',
-                                  color: '#7C2A62',
-                                  fontSize: '0.9rem',
-                                  fontWeight: '700',
-                                }}>
-                                   {vendor.name}
-                                </h5>
-                                <div style={{
-                                  fontSize: '0.75rem',
-                                  color: '#666',
-                                  marginBottom: '0.2rem',
-                                }}>
-                                  📍 {vendor.address}
-                                </div>
-                                <div style={{
-                                  fontSize: '0.75rem',
-                                  color: '#666',
-                                }}>
-                                  ⭐ {vendor.rating} • 🕒 {vendor.deliveryTime}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
 
-                          <div style={{
-                            display: 'flex',
-                            gap: '1.2rem',
-                            fontSize: '0.75rem',
-                            color: '#666',
-                            flexWrap: 'wrap',
-                          }}>
-                            <span>📅 {order.date}</span>
-                            <span>💰 ₹{order.total}</span>
-                            <span>💊 {order.items.length} item{order.items.length !== 1 ? 's' : ''}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Order Timeline */}
-                      <div style={{
-                        marginBottom: '1.2rem',
-                        padding: '0.8rem',
-                        backgroundColor: '#f8f5ff',
-                        borderRadius: '6px',
-                        border: '1px solid #F7D9EB',
-                      }}>
-                        <h5 style={{
-                          margin: '0 0 0.8rem 0',
-                          color: '#7C2A62',
-                          fontSize: '0.9rem',
-                          fontWeight: '700',
-                        }}>
-                          Order Journey
-                        </h5>
-                        <div style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}>
-                          {timeline.map((step, index) => (
-                            <div key={index} style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              flex: 1,
-                              textAlign: 'center',
-                            }}>
-                              <div style={{
-                                width: '30px',
-                                height: '30px',
-                                borderRadius: '50%',
-                                backgroundColor: step.completed ? '#7C2A62' : '#E0E0E0',
-                                color: step.completed ? 'white' : '#999',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '0.9rem',
-                                marginBottom: '0.4rem',
-                                position: 'relative',
-                              }}>
-                                {step.icon}
-                                {index < timeline.length - 1 && (
-                                  <div style={{
-                                    position: 'absolute',
-                                    top: '50%',
-                                    left: '100%',
-                                    width: 'calc(100% - 30px)',
-                                    height: '2px',
-                                    backgroundColor: step.completed ? '#7C2A62' : '#E0E0E0',
-                                    transform: 'translateY(-50%)',
-                                  }} />
-                                )}
-                              </div>
-                              <div style={{
-                                fontSize: '0.65rem',
-                                color: step.completed ? '#7C2A62' : '#999',
-                                fontWeight: '600',
-                              }}>
-                                {step.status}
-                              </div>
-                              {step.timestamp && (
-                                <div style={{
-                                  fontSize: '0.6rem',
-                                  color: '#888',
-                                  marginTop: '0.2rem',
-                                }}>
-                                  {step.timestamp.toLocaleTimeString('en-IN', { 
-                                    hour: '2-digit', 
-                                    minute: '2-digit' 
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      {/* Order Items */}
-                      <div style={{
-                        marginBottom: '1rem',
-                      }}>
-                        <h5 style={{
-                          margin: '0 0 0.8rem 0',
-                          color: '#7C2A62',
-                          fontSize: '0.9rem',
-                          fontWeight: '700',
-                        }}>
-                          Medicines Ordered
-                        </h5>
-                        {order.items.map((item, index) => (
-                          <div key={index} style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            padding: '0.6rem',
-                            borderBottom: '1px solid #F7D9EB',
-                            backgroundColor: index % 2 === 0 ? 'white' : '#fafafa',
-                            borderRadius: '5px',
-                          }}>
-                            <div style={{ flex: 2 }}>
-                              <div style={{
-                                color: '#333',
-                                fontSize: '0.8rem',
-                                fontWeight: '600',
-                                marginBottom: '0.2rem',
-                              }}>
-                                💊 {item.name}
-                              </div>
-                              {item.prescriptionRequired && (
-                                <div style={{
-                                  fontSize: '0.65rem',
-                                  color: '#7C2A62',
-                                  backgroundColor: '#F7D9EB',
-                                  padding: '0.15rem 0.4rem',
-                                  borderRadius: '3px',
-                                  display: 'inline-block',
-                                }}>
-                                   Prescription Required
-                                </div>
-                              )}
-                            </div>
-                            <div style={{
-                              display: 'flex',
-                              gap: '0.6rem',
-                              alignItems: 'center',
-                              flex: 1,
-                              justifyContent: 'flex-end',
-                            }}>
-                              <span style={{
-                                color: '#666',
-                                fontSize: '0.75rem',
-                                backgroundColor: '#f8f5ff',
-                                padding: '0.25rem 0.6rem',
-                                borderRadius: '5px',
-                              }}>
-                                Qty: {item.quantity}
-                              </span>
-                              <span style={{
-                                color: '#7C2A62',
-                                fontWeight: '700',
-                                fontSize: '0.8rem',
-                              }}>
-                                ₹{item.price * item.quantity}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {/* Order Footer */}
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        paddingTop: '0.8rem',
-                        borderTop: '2px solid #F7D9EB',
-                      }}>
-                        <div style={{
-                          color: '#666',
-                          fontSize: '0.75rem',
-                          flex: 2,
-                          fontWeight: '500',
-                        }}>
-                          <strong> Delivery Address:</strong> {order.deliveryAddress}
-                        </div>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.6rem',
-                        }}>
-                          {(
-                            <button 
-                              style={{
-                                padding: '0.4rem 0.8rem',
-                                backgroundColor: '#7C2A62',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                transition: 'all 0.3s ease',
-                              }}
-                              onClick={() => startLiveTracking(order)}
-                              type="button"
-                              onMouseEnter={(e) => {
-                                e.target.style.backgroundColor = '#6a2460';
-                                e.target.style.transform = 'translateY(-2px)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.target.style.backgroundColor = '#7C2A62';
-                                e.target.style.transform = 'translateY(0)';
-                              }}
-                            >
-                               Track
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+              {filteredOrders.length === 0 ? (
+                <div style={styles.emptyState}>
+                  <div style={{ fontSize: '4rem', marginBottom: '1.5rem', opacity: 0.7 }}>📋</div>
+                  <h4 style={{ color: '#009688', marginBottom: '1rem' }}>No Orders Found</h4>
+                  <button style={styles.shopButton} onClick={() => setActiveView('medicine')}>🛒 Shop Medicines</button>
+                </div>
+              ) : (
+                <div>
+                  {filteredOrders.map(order => (
+                    <OrderCard 
+                      key={order.id} 
+                      order={order} 
+                      onViewDetails={openOrderDetails} 
+                      startLiveTracking={handleStartLiveTracking}
+                      showRatingModal={showRatingModal} 
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {selectedOrder && (
+        <OrderDetailsModal 
+          order={selectedOrder} 
+          onClose={closeModal} 
+          startLiveTracking={handleStartLiveTracking}
+          showRatingModal={showRatingModal} 
+        />
+      )}
+      
+      {showRating && ratingOrder && ratingDeliveryPartner && (
+        <RatingModal 
+          order={ratingOrder} 
+          deliveryPartner={ratingDeliveryPartner} 
+          onClose={closeRatingModal} 
+          onRatingSubmit={handleRatingSubmit} 
+        />
+      )}
+    </>
   );
 };
 

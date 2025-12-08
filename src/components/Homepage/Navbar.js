@@ -1,405 +1,406 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-const Navbar = ({ activeSection, onSectionChange, onNavigateToAuth, onNavigateToAdmin, isMobileMenuOpen, onMobileMenuToggle }) => {
+const Navbar = ({
+  activeSection,
+  onSectionChange,
+  onNavigateToAuth,
+  isMobileMenuOpen,
+  onMobileMenuToggle,
+}) => {
   const [isMobile, setIsMobile] = useState(false);
 
+  // Detect screen size on load & resize
   useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
-    // Initial check
-    checkScreenSize();
-
-    // Add event listener
-    window.addEventListener('resize', checkScreenSize);
-
-    // Cleanup
-    return () => window.removeEventListener('resize', checkScreenSize);
+    const checkSize = () => setIsMobile(window.innerWidth <= 768);
+    checkSize();
+    window.addEventListener("resize", checkSize);
+    return () => window.removeEventListener("resize", checkSize);
   }, []);
 
+  // ======================================
+  //   MEDICAL UI COLOR PALETTE
+  // ======================================
+  const colors = {
+    primary: "#009688",
+    mint: "#4DB6AC",
+    softbg: "#E0F2F1",
+    white: "#FFFFFF",
+    darktext: "#124441",
+    softtext: "#4F6F6B",
+    // Added accent color for Partner button
+  };
+
+  // ======================================
+  //   NAVBAR STYLES
+  // ======================================
   const styles = {
     header: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: isMobile ? '0.8rem 1rem' : '1rem 2rem',
-      backgroundColor: '#F7D9EB',
-      boxShadow: '0 4px 20px rgba(124, 42, 98, 0.3)',
-      position: 'sticky',
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: isMobile ? "0.8rem 1rem" : "1rem 2rem",
+      background: colors.white,
+      boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+      position: "sticky",
       top: 0,
-      zIndex: 1000,
-      minHeight: '60px',
-      boxSizing: 'border-box',
+      zIndex: 999,
+      borderBottom: `3px solid ${colors.primary}`,
     },
     logo: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: isMobile ? '10px' : '15px',
-      cursor: 'pointer',
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      cursor: "pointer",
       flexShrink: 0,
-      minWidth: isMobile ? '180px' : '220px',
     },
     logoImage: {
-      width: isMobile ? '50px' : '60px', // Increased from 38px/45px
-      height: isMobile ? '50px' : '60px', // Increased from 38px/45px
-      objectFit: 'contain',
+      width: isMobile ? "45px" : "55px",
+      height: isMobile ? "45px" : "55px",
+      objectFit: "contain",
     },
     logoText: {
       margin: 0,
-      color: '#000000',
-      fontSize: isMobile ? '2rem' : '2.5rem', // Increased from 1.8rem/2.2rem
-      fontWeight: 'bold',
-      background: 'linear-gradient(45deg, #7C2A62, #5a1a4a)',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-      lineHeight: '1.2',
+      fontSize: isMobile ? "1.7rem" : "2.2rem",
+      fontWeight: "bold",
+      color: colors.primary,
+      lineHeight: 1,
     },
     tagline: {
-      margin: 0,
-      color: '#000000',
-      fontSize: isMobile ? '0.8rem' : '0.9rem',
-      fontWeight: '500',
-      lineHeight: '1.3',
-      display: isMobile && window.innerWidth <= 480 ? 'none' : 'block',
+      fontSize: isMobile ? "0.7rem" : "0.85rem",
+      color: colors.softtext,
+      marginTop: "-5px",
     },
-    mobileMenuButton: {
-      display: isMobile ? 'flex' : 'none',
-      backgroundColor: 'transparent',
-      border: '2px solid #7C2A62',
-      cursor: 'pointer',
-      padding: '0.5rem',
-      color: '#7C2A62',
-      borderRadius: '8px',
-      transition: 'all 0.3s ease',
-      zIndex: 1001,
-      width: '50px',
-      height: '50px',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'column',
-    },
+
+    // Desktop Navigation
     nav: {
-      display: isMobile ? 'none' : 'flex',
-      alignItems: 'center',
-      gap: '0.8rem',
-      flexWrap: 'wrap',
-      justifyContent: 'center',
+      display: isMobile ? "none" : "flex",
+      alignItems: "center",
+      gap: "0.8rem",
+      flexWrap: "wrap",
+      justifyContent: "center",
     },
     navButton: {
-      padding: '0.5rem 1rem',
-      border: 'none',
-      backgroundColor: 'transparent',
-      cursor: 'pointer',
-      fontSize: '0.9rem',
-      borderRadius: '20px',
-      transition: 'all 0.3s ease',
-      fontWeight: '600',
-      color: '#000000',
-      whiteSpace: 'nowrap',
-      minHeight: '44px',
+      padding: "0.55rem 1rem",
+      background: "transparent",
+      border: "2px solid transparent",
+      borderRadius: "25px",
+      fontSize: "0.95rem",
+      cursor: "pointer",
+      fontWeight: "600",
+      color: colors.darktext,
+      transition: "all 0.25s ease",
+      whiteSpace: "nowrap",
     },
     activeNavButton: {
-      backgroundColor: '#7C2A62',
-      color: '#ffffff',
-      boxShadow: '0 2px 10px rgba(124, 42, 98, 0.3)',
+      background: colors.primary,
+      color: colors.white,
+      boxShadow: "0px 4px 10px rgba(0,150,136,0.28)",
     },
+    partnerButton: {
+      padding: "0.55rem 1.2rem",
+      
+      border: "2px solid transparent",
+      borderRadius: "25px",
+      fontSize: "0.95rem",
+      cursor: "pointer",
+      fontWeight: "600",
+      color: colors.white,
+      transition: "all 0.25s ease",
+      whiteSpace: "nowrap",
+      marginLeft: "0.5rem",
+      boxShadow: "0px 4px 10px rgba(255,107,53,0.25)",
+    },
+    partnerButtonHover: {
+      background: "#009688",
+      transform: "translateY(-2px)",
+      boxShadow: "0px 6px 15px rgba(255,107,53,0.35)",
+    },
+
+    // Desktop Auth Buttons
     authButtons: {
-      display: isMobile ? 'none' : 'flex',
-      gap: '0.5rem',
-      marginLeft: '1rem',
-      flexShrink: 0,
+      display: isMobile ? "none" : "flex",
+      alignItems: "center",
+      gap: "1rem",
+      marginLeft: "0.5rem",
     },
     loginButton: {
-      padding: '0.5rem 1rem',
-      border: '2px solid #7C2A62',
-      backgroundColor: 'transparent',
-      cursor: 'pointer',
-      borderRadius: '20px',
-      fontWeight: '600',
-      transition: 'all 0.3s ease',
-      color: '#7C2A62',
-      whiteSpace: 'nowrap',
-      minHeight: '44px',
+      padding: "0.55rem 1.2rem",
+      borderRadius: "25px",
+      background: "transparent",
+      border: `2px solid ${colors.primary}`,
+      color: colors.primary,
+      cursor: "pointer",
+      transition: "0.3s",
+      fontWeight: "600",
+      whiteSpace: "nowrap",
     },
-    adminButton: {
-      padding: '0.5rem 1rem',
-      border: 'none',
-      backgroundColor: '#7C2A62',
-      color: 'white',
-      cursor: 'pointer',
-      borderRadius: '20px',
-      fontWeight: '600',
-      transition: 'all 0.3s ease',
-      whiteSpace: 'nowrap',
-      minHeight: '44px',
+
+    // Mobile Menu Button (Hamburger Icon)
+    mobileMenuButton: {
+      display: isMobile ? "flex" : "none",
+      background: "transparent",
+      border: `2px solid ${colors.primary}`,
+      padding: "0.5rem",
+      borderRadius: "8px",
+      cursor: "pointer",
+      color: colors.primary,
+      fontSize: "1.5rem",
+      alignItems: "center",
+      justifyContent: "center",
+      width: "44px",
+      height: "44px",
+      flexDirection: "column",
+      gap: "4px",
     },
+    hamburgerLine: {
+      width: "24px",
+      height: "3px",
+      backgroundColor: colors.primary,
+      borderRadius: "2px",
+      transition: "all 0.3s ease",
+    },
+    hamburgerLineTop: {
+      transform: isMobileMenuOpen ? "rotate(45deg) translate(6px, 6px)" : "none",
+    },
+    hamburgerLineMiddle: {
+      opacity: isMobileMenuOpen ? 0 : 1,
+    },
+    hamburgerLineBottom: {
+      transform: isMobileMenuOpen ? "rotate(-45deg) translate(6px, -6px)" : "none",
+    },
+
+    // Mobile Navigation Drawer
     mobileNav: {
-      position: 'fixed',
-      top: '60px',
+      position: "fixed",
+      top: "0",
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: '#F7D9EB',
-      flexDirection: 'column',
-      padding: '2rem 1.5rem',
-      boxShadow: '0 4px 20px rgba(124, 42, 98, 0.3)',
-      zIndex: 999,
-      gap: '1rem',
-      overflowY: 'auto',
-      transform: isMobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
-      transition: 'transform 0.3s ease-in-out',
+      background: colors.white,
+      padding: "5rem 1.5rem 2rem",
+      boxShadow: "0 6px 25px rgba(0,0,0,0.1)",
+      zIndex: 998,
+      transform: isMobileMenuOpen ? "translateX(0)" : "translateX(-100%)",
+      transition: "transform 0.35s ease-in-out",
+      display: "flex",
+      flexDirection: "column",
+      overflowY: "auto",
     },
-    mobileOverlay: {
-      position: 'fixed',
+    mobileNavHeader: {
+      position: "absolute",
       top: 0,
       left: 0,
       right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      zIndex: 998,
-      display: isMobileMenuOpen ? 'block' : 'none',
+      padding: "1rem",
+      background: colors.white,
+      borderBottom: `1px solid ${colors.softbg}`,
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
     },
-    hamburgerIcon: {
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      width: '24px',
-      height: '18px',
+    mobileNavCloseButton: {
+      background: colors.softbg,
+      border: "none",
+      borderRadius: "8px",
+      width: "44px",
+      height: "44px",
+      fontSize: "1.5rem",
+      color: colors.primary,
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
     },
-    hamburgerLine: {
-      height: '3px',
-      width: '100%',
-      backgroundColor: '#7C2A62',
-      borderRadius: '3px',
-      transition: 'all 0.3s ease',
-    },
-    closeIcon: {
-      position: 'relative',
-      width: '24px',
-      height: '24px',
-    },
-    closeLine: {
-      position: 'absolute',
-      height: '3px',
-      width: '100%',
-      backgroundColor: '#7C2A62',
-      borderRadius: '3px',
-      top: '50%',
-      left: '0',
-    },
+
     mobileNavButton: {
-      padding: '1rem',
-      border: 'none',
-      backgroundColor: 'transparent',
-      cursor: 'pointer',
-      fontSize: '1.1rem',
-      borderRadius: '10px',
-      transition: 'all 0.3s ease',
-      fontWeight: '600',
-      color: '#000000',
-      textAlign: 'left',
-      width: '100%',
-      marginBottom: '0.5rem',
+      padding: "1rem",
+      borderRadius: "10px",
+      background: colors.softbg,
+      marginBottom: "0.8rem",
+      fontSize: "1.1rem",
+      fontWeight: "600",
+      border: "none",
+      color: colors.darktext,
+      cursor: "pointer",
+      transition: "0.3s",
+      textAlign: "left",
     },
-    mobileAuthButtons: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '1rem',
-      marginTop: '2rem',
-      width: '100%',
+    mobileActiveNavButton: {
+      background: colors.primary,
+      color: colors.white,
+      boxShadow: "0px 4px 10px rgba(0,150,136,0.25)",
     },
+    mobilePartnerButton: {
+      padding: "1rem",
+      borderRadius: "10px",
+      background: colors.accent,
+      marginBottom: "0.8rem",
+      fontSize: "1.1rem",
+      fontWeight: "600",
+      border: "none",
+      color: colors.white,
+      cursor: "pointer",
+      transition: "0.3s",
+      textAlign: "left",
+      boxShadow: "0px 4px 10px rgba(0,150,136,0.25)",
+    },
+
     mobileLoginButton: {
-      padding: '1rem',
-      border: '2px solid #7C2A62',
-      backgroundColor: 'transparent',
-      cursor: 'pointer',
-      borderRadius: '10px',
-      fontWeight: '600',
-      fontSize: '1.1rem',
-      color: '#7C2A62',
-      width: '100%',
+      padding: "1rem",
+      borderRadius: "10px",
+      background: colors.white,
+      border: `2px solid ${colors.primary}`,
+      color: colors.primary,
+      fontSize: "1.1rem",
+      fontWeight: "600",
+      cursor: "pointer",
+      marginTop: "1rem",
+      transition: "0.3s",
     },
-    mobileAdminButton: {
-      padding: '1rem',
-      border: 'none',
-      backgroundColor: '#7C2A62',
-      color: 'white',
-      cursor: 'pointer',
-      borderRadius: '10px',
-      fontWeight: '600',
-      fontSize: '1.1rem',
-      width: '100%',
-    }
   };
 
   const navItems = [
-    { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About Us' },
-    { id: 'services', label: 'Services' },
-    { id: 'doctors', label: 'Doctors' },
-    { id: 'reviews', label: 'Reviews' },
-    { id: 'contact', label: 'Contact' }
+    { id: "home", label: "Home" },
+    { id: "about", label: "About Us" },
+    { id: "services", label: "Services" },
+    { id: "doctors", label: "Doctors" },
+    { id: "reviews", label: "Reviews" },
+    { id: "contact", label: "Contact" },
   ];
-
-  const handleMouseEnter = (e) => {
-    if (!isMobile) {
-      e.target.style.transform = 'translateY(-2px)';
-      e.target.style.boxShadow = '0 4px 12px rgba(124, 42, 98, 0.2)';
-    }
-  };
-
-  const handleMouseLeave = (e) => {
-    if (!isMobile) {
-      e.target.style.transform = 'translateY(0)';
-      if (!e.target.style.backgroundColor || e.target.style.backgroundColor === 'transparent') {
-        e.target.style.boxShadow = 'none';
-      }
-    }
-  };
-
-  const handleMobileMenuToggle = () => {
-    onMobileMenuToggle();
-    if (isMobile) {
-      document.body.style.overflow = isMobileMenuOpen ? 'auto' : 'hidden';
-    }
-  };
-
-  const handleMobileNavClick = (sectionId) => {
-    onSectionChange(sectionId);
-    handleMobileMenuToggle();
-  };
-
-  const HamburgerIcon = () => (
-    <div style={styles.hamburgerIcon}>
-      <div style={styles.hamburgerLine} />
-      <div style={styles.hamburgerLine} />
-      <div style={styles.hamburgerLine} />
-    </div>
-  );
-
-  const CloseIcon = () => (
-    <div style={styles.closeIcon}>
-      <div style={{...styles.closeLine, transform: 'rotate(45deg)'}} />
-      <div style={{...styles.closeLine, transform: 'rotate(-45deg)'}} />
-    </div>
-  );
 
   return (
     <>
-      {/* Mobile Overlay */}
-      {isMobile && (
-        <div 
-          style={styles.mobileOverlay}
-          onClick={handleMobileMenuToggle}
-        />
-      )}
-
+      {/* MAIN NAVBAR */}
       <header style={styles.header}>
-        <div 
-          style={styles.logo} 
-          onClick={() => onSectionChange('home')}
-        >
+        {/* LOGO */}
+        <div style={styles.logo} onClick={() => onSectionChange("home")}>
           <img 
-            src="/Quickmed img.png" 
-            alt="QuickMed Logo" 
+            src="/QuickMed_logo.png" 
+            alt="QuickMed" 
             style={styles.logoImage}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTUiIGhlaWdodD0iNTUiIHZpZXdCb3g9IjAgMCA1NSA1NSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjU1IiBoZWlnaHQ9IjU1IiByeD0iMTIiIGZpbGw9IiMwMDk2ODgiLz4KPHBhdGggZD0iTTE1IDI1TDI1IDM1TDQwIDIwIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K";
+            }}
           />
           <div>
             <h1 style={styles.logoText}>QUICKMED</h1>
-            <p style={styles.tagline}>Quick Care Smarter Health</p>
+            <p style={styles.tagline}>Quick Care • Smarter Health</p>
           </div>
         </div>
 
-        {/* Hamburger Menu Button - Only shows on mobile */}
-        <button 
-          style={styles.mobileMenuButton}
-          onClick={handleMobileMenuToggle}
-          onMouseEnter={(e) => {
-            e.target.style.backgroundColor = 'rgba(124, 42, 98, 0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = 'transparent';
-          }}
-          aria-label="Toggle mobile menu"
-        >
-          {isMobileMenuOpen ? <CloseIcon /> : <HamburgerIcon />}
-        </button>
-
-        {/* Desktop Navigation - Hidden on mobile */}
+        {/* DESKTOP NAV LINKS */}
         <nav style={styles.nav}>
-          {navItems.map(item => (
+          {navItems.map((item) => (
             <button
               key={item.id}
               style={{
                 ...styles.navButton,
-                ...(activeSection === item.id && styles.activeNavButton)
+                ...(activeSection === item.id ? styles.activeNavButton : {}),
               }}
               onClick={() => onSectionChange(item.id)}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
             >
               {item.label}
             </button>
           ))}
+
+          {/* LOGIN BUTTON */}
           <div style={styles.authButtons}>
             <button 
-              style={styles.loginButton}
+              style={styles.loginButton} 
               onClick={onNavigateToAuth}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
+              onMouseEnter={(e) => {
+                e.target.style.background = colors.primary;
+                e.target.style.color = colors.white;
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = "transparent";
+                e.target.style.color = colors.primary;
+              }}
             >
               Login
-            </button>
-            <button 
-              style={styles.adminButton}
-              onClick={onNavigateToAdmin}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-            >
-              🔧 Admin
             </button>
           </div>
         </nav>
 
-        {/* Mobile Navigation - Shows when hamburger is clicked */}
-        {isMobile && (
-          <nav style={styles.mobileNav}>
-            {navItems.map(item => (
-              <button
-                key={item.id}
-                style={{
-                  ...styles.mobileNavButton,
-                  ...(activeSection === item.id && styles.activeNavButton)
-                }}
-                onClick={() => handleMobileNavClick(item.id)}
-              >
-                {item.label}
-              </button>
-            ))}
-            <div style={styles.mobileAuthButtons}>
-              <button 
-                style={styles.mobileLoginButton}
-                onClick={() => {
-                  onNavigateToAuth();
-                  handleMobileMenuToggle();
-                }}
-              >
-                Login
-              </button>
-              <button 
-                style={styles.mobileAdminButton}
-                onClick={() => {
-                  onNavigateToAdmin();
-                  handleMobileMenuToggle();
-                }}
-              >
-                🔧 Admin
-              </button>
-            </div>
-          </nav>
-        )}
+        {/* MOBILE MENU BUTTON (HAMBURGER) */}
+        <button 
+          style={styles.mobileMenuButton} 
+          onClick={onMobileMenuToggle}
+          aria-label="Toggle menu"
+        >
+          <span style={{...styles.hamburgerLine, ...styles.hamburgerLineTop}} />
+          <span style={{...styles.hamburgerLine, ...styles.hamburgerLineMiddle}} />
+          <span style={{...styles.hamburgerLine, ...styles.hamburgerLineBottom}} />
+        </button>
       </header>
+
+      {/* MOBILE SLIDE-IN MENU */}
+      <nav style={styles.mobileNav}>
+        {/* Mobile Menu Header */}
+        <div style={styles.mobileNavHeader}>
+          <div style={styles.logo} onClick={() => {
+            onSectionChange("home");
+            onMobileMenuToggle();
+          }}>
+            <img 
+              src="/Quickmed img.png" 
+              alt="QuickMed" 
+              style={{...styles.logoImage, width: "40px", height: "40px"}}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iOCIgb3BhY2l0eT0iMC4xIiBmaWxsPSIjMDA5Njg4Ii8+CjxyZWN0IHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcng9IjgiIHN0cm9rZT0iIzAwOTY4OCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxwYXRoIGQ9Ik0xMiAxOEwyMiAyOEwzMiAxOCIgc3Ryb2tlPSIjMDA5Njg4IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K";
+              }}
+            />
+            <div>
+              <h1 style={{...styles.logoText, fontSize: "1.5rem"}}>QUICKMED</h1>
+            </div>
+          </div>
+          <button 
+            style={styles.mobileNavCloseButton} 
+            onClick={onMobileMenuToggle}
+            aria-label="Close menu"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Mobile Navigation Items */}
+        {navItems.map((item) => (
+          <button
+            key={item.id}
+            style={{
+              ...styles.mobileNavButton,
+              ...(activeSection === item.id ? styles.mobileActiveNavButton : {}),
+            }}
+            onClick={() => {
+              onSectionChange(item.id);
+              onMobileMenuToggle();
+            }}
+          >
+            {item.label}
+          </button>
+        ))}
+
+        {/* MOBILE LOGIN */}
+        <button
+          style={styles.mobileLoginButton}
+          onClick={() => {
+            onNavigateToAuth();
+            onMobileMenuToggle();
+          }}
+          onTouchStart={(e) => {
+            e.target.style.background = colors.primary;
+            e.target.style.color = colors.white;
+          }}
+          onTouchEnd={(e) => {
+            e.target.style.background = colors.white;
+            e.target.style.color = colors.primary;
+          }}
+        >
+          Login
+        </button>
+      </nav>
     </>
   );
 };
