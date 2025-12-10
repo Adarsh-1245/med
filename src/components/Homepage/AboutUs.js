@@ -6,6 +6,7 @@ const AboutUs = ({ onNavigateToAuth }) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showAppointmentData, setShowAppointmentData] = useState(false); // New state for appointment data
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -22,7 +23,8 @@ const AboutUs = ({ onNavigateToAuth }) => {
   }, []);
 
   const handleBookAppointment = () => {
-    setShowLoginPrompt(true);
+    // First show appointment data
+    setShowAppointmentData(true);
   };
 
   const handleLoginConfirm = () => {
@@ -44,9 +46,23 @@ const AboutUs = ({ onNavigateToAuth }) => {
     setShowLearnMoreModal(false);
   };
 
-  const handleBackdropClick = (e) => {
+  const closeAppointmentData = () => {
+    setShowAppointmentData(false);
+  };
+
+  const handleAppointmentProceed = () => {
+    // Close appointment data modal and show login prompt
+    setShowAppointmentData(false);
+    setShowLoginPrompt(true);
+  };
+
+  const handleBackdropClick = (e, modalType) => {
     if (e.target === e.currentTarget) {
-      closeLearnMoreModal();
+      if (modalType === 'learnMore') {
+        closeLearnMoreModal();
+      } else if (modalType === 'appointmentData') {
+        closeAppointmentData();
+      }
     }
   };
 
@@ -57,6 +73,52 @@ const AboutUs = ({ onNavigateToAuth }) => {
   const WHITE = '#FFFFFF';
   const DARK_TEXT = '#124441';
   const SOFT_TEXT = '#4F6F6B';
+
+  // Appointment data
+  const appointmentTypes = [
+    {
+      id: 1,
+      type: 'Pregnancy Care',
+      icon: '🤰',
+      duration: '45-60 mins',
+      price: '₹1200',
+      features: [
+        'Trimester-wise consultation',
+        'Scan & test planning',
+        'Diet & exercise guidance',
+        'Risk assessment'
+      ],
+      availableSlots: ['Today 4:00 PM', 'Tomorrow 10:00 AM', 'Tomorrow 3:00 PM']
+    },
+    {
+      id: 2,
+      type: 'Baby & Child Care',
+      icon: '👶',
+      duration: '30-45 mins',
+      price: '₹900',
+      features: [
+        'Vaccination consultation',
+        'Growth monitoring',
+        'Nutrition advice',
+        'Developmental check'
+      ],
+      availableSlots: ['Today 5:00 PM', 'Tomorrow 11:00 AM', 'Tomorrow 4:00 PM']
+    },
+    {
+      id: 3,
+      type: 'General & Family Care',
+      icon: '👨‍👩‍👧‍👦',
+      duration: '20-30 mins',
+      price: '₹600',
+      features: [
+        'General consultation',
+        'Prescription review',
+        'Chronic care follow-up',
+        'Medication advice'
+      ],
+      availableSlots: ['Today 6:00 PM', 'Tomorrow 9:00 AM', 'Tomorrow 2:00 PM']
+    }
+  ];
 
   const styles = {
     about: {
@@ -735,6 +797,148 @@ const AboutUs = ({ onNavigateToAuth }) => {
       flexShrink: 0,
     },
 
+    // Appointment Data Modal Styles
+    appointmentModalContent: {
+      backgroundColor: WHITE,
+      padding: isMobile ? '1rem' : '1.8rem',
+      borderRadius: '18px',
+      maxWidth: isMobile ? '95%' : '900px',
+      width: '100%',
+      maxHeight: isMobile ? '90vh' : '85vh',
+      overflowY: 'auto',
+      boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
+      border: `1px solid rgba(0,150,136,0.2)`,
+      position: 'relative',
+    },
+    appointmentGrid: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+      gap: '1rem',
+      marginBottom: '1.5rem',
+    },
+    appointmentCard: {
+      backgroundColor: SOFT_BG,
+      borderRadius: '12px',
+      padding: '1rem',
+      border: `1px solid rgba(0,150,136,0.15)`,
+      transition: 'all 0.3s ease',
+      cursor: 'pointer',
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+    },
+    appointmentCardSelected: {
+      backgroundColor: 'rgba(0,150,136,0.1)',
+      border: `2px solid ${PRIMARY}`,
+      transform: 'translateY(-2px)',
+      boxShadow: '0 8px 25px rgba(0,150,136,0.15)',
+    },
+    appointmentIcon: {
+      fontSize: '2rem',
+      marginBottom: '0.5rem',
+    },
+    appointmentType: {
+      fontSize: '1.1rem',
+      fontWeight: 600,
+      color: DARK_TEXT,
+      marginBottom: '0.25rem',
+    },
+    appointmentDetails: {
+      fontSize: '0.85rem',
+      color: SOFT_TEXT,
+      marginBottom: '0.5rem',
+    },
+    appointmentPrice: {
+      fontSize: '1.2rem',
+      fontWeight: 700,
+      color: PRIMARY,
+      margin: '0.5rem 0',
+    },
+    appointmentFeatures: {
+      listStyle: 'none',
+      padding: 0,
+      margin: '0.5rem 0',
+      fontSize: '0.8rem',
+      color: SOFT_TEXT,
+    },
+    appointmentFeature: {
+      marginBottom: '0.25rem',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+    },
+    appointmentSlots: {
+      backgroundColor: WHITE,
+      borderRadius: '12px',
+      padding: '1rem',
+      border: `1px solid rgba(0,150,136,0.1)`,
+    },
+    slotTitle: {
+      fontSize: '1rem',
+      fontWeight: 600,
+      color: DARK_TEXT,
+      marginBottom: '0.75rem',
+    },
+    slotGrid: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+      gap: '0.5rem',
+    },
+    slotButton: {
+      backgroundColor: SOFT_BG,
+      border: `1px solid rgba(0,150,136,0.2)`,
+      borderRadius: '8px',
+      padding: '0.75rem 0.5rem',
+      fontSize: '0.85rem',
+      cursor: 'pointer',
+      transition: 'all 0.3s ease',
+      textAlign: 'center',
+    },
+    slotButtonSelected: {
+      backgroundColor: PRIMARY,
+      color: WHITE,
+      border: `1px solid ${PRIMARY}`,
+    },
+    appointmentFooter: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginTop: '1.5rem',
+      paddingTop: '1rem',
+      borderTop: `1px solid rgba(0,150,136,0.1)`,
+    },
+    appointmentSummary: {
+      fontSize: '0.9rem',
+      color: SOFT_TEXT,
+    },
+    appointmentActions: {
+      display: 'flex',
+      gap: '0.75rem',
+    },
+    btnCancel: {
+      backgroundColor: 'transparent',
+      color: SOFT_TEXT,
+      border: `1px solid ${SOFT_TEXT}`,
+      padding: '0.75rem 1.5rem',
+      borderRadius: '999px',
+      fontSize: '0.9rem',
+      fontWeight: 600,
+      cursor: 'pointer',
+      transition: 'all 0.3s ease',
+    },
+    btnProceed: {
+      backgroundColor: PRIMARY,
+      color: WHITE,
+      border: 'none',
+      padding: '0.75rem 1.5rem',
+      borderRadius: '999px',
+      fontSize: '0.9rem',
+      fontWeight: 600,
+      cursor: 'pointer',
+      transition: 'all 0.3s ease',
+      boxShadow: '0 6px 18px rgba(0,150,136,0.4)',
+    },
+
     loginPromptModal: {
       position: 'fixed',
       top: 0,
@@ -915,7 +1119,7 @@ const AboutUs = ({ onNavigateToAuth }) => {
     {
       avatar: '👩‍⚕️',
       name: 'Dr. Ananya Reddy',
-      role: 'Lead Obstetrician & Women’s Health',
+      role: 'Lead Obstetrician & Women\'s Health',
       bio: '15+ years in high-risk pregnancy care and evidence-based maternal medicine.',
     },
     {
@@ -935,7 +1139,7 @@ const AboutUs = ({ onNavigateToAuth }) => {
   /* MODALS */
 
   const LearnMoreModal = ({ onClose }) => (
-    <div style={styles.modalOverlay} onClick={handleBackdropClick}>
+    <div style={styles.modalOverlay} onClick={(e) => handleBackdropClick(e, 'learnMore')}>
       <div style={styles.modalContent}>
         <div style={styles.modalHeader}>
           <h2 style={styles.modalTitle}>Deep-dive into our care experience</h2>
@@ -1026,7 +1230,7 @@ const AboutUs = ({ onNavigateToAuth }) => {
             <h3 style={styles.modalHeading}>Start small, grow with us</h3>
             <p style={styles.modalText}>
               Begin with a single consultation or order and gradually move more of your
-              family’s healthcare into QuickMed as you gain confidence.
+              family's healthcare into QuickMed as you gain confidence.
             </p>
           </div>
         </div>
@@ -1034,13 +1238,138 @@ const AboutUs = ({ onNavigateToAuth }) => {
     </div>
   );
 
+  // Appointment Data Modal Component
+  const AppointmentDataModal = ({ onClose, onProceed }) => {
+    const [selectedAppointment, setSelectedAppointment] = useState(appointmentTypes[0]);
+    const [selectedSlot, setSelectedSlot] = useState('');
+
+    return (
+      <div style={styles.modalOverlay} onClick={(e) => handleBackdropClick(e, 'appointmentData')}>
+        <div style={styles.appointmentModalContent}>
+          <div style={styles.modalHeader}>
+            <h2 style={styles.modalTitle}>Book Your Appointment</h2>
+            <button
+              style={styles.closeButton}
+              onClick={onClose}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = SOFT_BG;
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+              }}
+              aria-label="Close modal"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div style={styles.modalBody}>
+            <p style={styles.modalText}>
+              Select the type of appointment you need and choose a convenient time slot.
+            </p>
+
+            <div style={styles.appointmentGrid}>
+              {appointmentTypes.map((appointment) => (
+                <div
+                  key={appointment.id}
+                  style={{
+                    ...styles.appointmentCard,
+                    ...(selectedAppointment.id === appointment.id && styles.appointmentCardSelected)
+                  }}
+                  onClick={() => setSelectedAppointment(appointment)}
+                  onMouseEnter={(e) => {
+                    if (selectedAppointment.id !== appointment.id) {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,150,136,0.1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedAppointment.id !== appointment.id) {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }
+                  }}
+                >
+                  <div style={styles.appointmentIcon}>{appointment.icon}</div>
+                  <h3 style={styles.appointmentType}>{appointment.type}</h3>
+                  <div style={styles.appointmentDetails}>
+                    Duration: {appointment.duration}
+                  </div>
+                  <div style={styles.appointmentPrice}>{appointment.price}</div>
+                  <ul style={styles.appointmentFeatures}>
+                    {appointment.features.map((feature, index) => (
+                      <li key={index} style={styles.appointmentFeature}>
+                        <span>✓</span> {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            <div style={styles.appointmentSlots}>
+              <h3 style={styles.slotTitle}>Available Time Slots</h3>
+              <div style={styles.slotGrid}>
+                {selectedAppointment.availableSlots.map((slot, index) => (
+                  <button
+                    key={index}
+                    style={{
+                      ...styles.slotButton,
+                      ...(selectedSlot === slot && styles.slotButtonSelected)
+                    }}
+                    onClick={() => setSelectedSlot(slot)}
+                    onMouseEnter={(e) => {
+                      if (selectedSlot !== slot) {
+                        e.currentTarget.style.backgroundColor = 'rgba(0,150,136,0.1)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (selectedSlot !== slot) {
+                        e.currentTarget.style.backgroundColor = SOFT_BG;
+                      }
+                    }}
+                  >
+                    {slot}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={styles.appointmentFooter}>
+              <div style={styles.appointmentSummary}>
+                {selectedAppointment.type} appointment • {selectedAppointment.duration} • {selectedAppointment.price}
+                {selectedSlot && ` • ${selectedSlot}`}
+              </div>
+              <div style={styles.appointmentActions}>
+                <button
+                  style={styles.btnCancel}
+                  onClick={onClose}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = SOFT_TEXT;
+                    e.target.style.color = WHITE;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.color = SOFT_TEXT;
+                  }}
+                >
+                  Cancel
+                </button>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const LoginPromptModal = ({ onConfirm, onCancel }) => (
     <div style={styles.loginPromptModal} onClick={onCancel}>
       <div style={styles.loginPromptContent} onClick={(e) => e.stopPropagation()}>
         <h2 style={styles.loginPromptTitle}>Login to continue</h2>
         <p style={styles.loginPromptText}>
           Please login or create an account to book pregnancy, baby care, or general
-          health appointments and manage your family’s health records in real time.
+          health appointments and manage your family's health records in real time.
         </p>
         <div style={styles.loginPromptButtons}>
           <button
@@ -1157,7 +1486,7 @@ const AboutUs = ({ onNavigateToAuth }) => {
                 <ul style={styles.aboutList}>
                   <li>All modules stay in sync to reduce delays and confusion.</li>
                   <li>Digital prescriptions and records avoid paper loss and repetition.</li>
-                  <li>Every family member’s records stay organised under one account.</li>
+                  <li>Every family member's records stay organised under one account.</li>
                 </ul>
               </div>
               <div style={styles.aboutHighlight}>
@@ -1365,7 +1694,7 @@ const AboutUs = ({ onNavigateToAuth }) => {
             <h2 style={styles.ctaTitle}>Ready to experience QuickMed?</h2>
             <p style={styles.ctaDescription}>
               Start with a pregnancy consult, book a baby vaccination, or order your
-              monthly medicines. Your family’s complete healthcare journey—from
+              monthly medicines. Your family's complete healthcare journey—from
               appointments and prescriptions to delivery and records—can live in one
               simple, secure place.
             </p>
@@ -1411,6 +1740,12 @@ const AboutUs = ({ onNavigateToAuth }) => {
 
       {/* MODALS */}
       {showLearnMoreModal && <LearnMoreModal onClose={closeLearnMoreModal} />}
+      {showAppointmentData && (
+        <AppointmentDataModal 
+          onClose={closeAppointmentData}
+          onProceed={handleAppointmentProceed}
+        />
+      )}
       {showLoginPrompt && (
         <LoginPromptModal
           onConfirm={handleLoginConfirm}

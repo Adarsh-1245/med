@@ -15,11 +15,14 @@ const ProfileView = ({ setActiveView }) => {
     city: "",
     state: "",
     pincode: "",
+    district: "", // Add district field
     country: "India",
     dateOfBirth: "",
     age: "",
     gender: "",
-    profilePhoto: ""
+    profilePhoto: "",
+    emergencyContact: "",
+    linkedAccounts: []
   });
 
   const [localFormErrors, setLocalFormErrors] = useState({});
@@ -28,6 +31,10 @@ const ProfileView = ({ setActiveView }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [pincodeLoading, setPincodeLoading] = useState(false); // Add loading state for pincode lookup
+  const [pincodeData, setPincodeData] = useState(null); // Store pincode API response
   
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -35,6 +42,9 @@ const ProfileView = ({ setActiveView }) => {
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
   const [modalAction, setModalAction] = useState(null);
+
+  // Store initial profile data to track changes
+  const [initialProfile, setInitialProfile] = useState(null);
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -217,107 +227,242 @@ const ProfileView = ({ setActiveView }) => {
     }
   };
 
-  // Real-time profile sync from context - FIXED: Only update local state when profile changes
-  useEffect(() => {
-    if (!profile) return;
+  // Helper function to check if two profiles are equal
+  const areProfilesEqual = (profile1, profile2) => {
+    if (!profile1 || !profile2) return false;
     
-    console.log('Profile sync from context to ProfileView:', profile);
+    const fieldsToCompare = [
+      'firstName', 'lastName', 'email', 'phone', 'streetAddress',
+      'apartment', 'city', 'state', 'pincode', 'district', 'country',
+      'dateOfBirth', 'age', 'gender', 'emergencyContact', 'profilePhoto'
+    ];
+    
+    return fieldsToCompare.every(field => {
+      const val1 = profile1[field] || '';
+      const val2 = profile2[field] || '';
+      return val1.toString().trim() === val2.toString().trim();
+    });
+  };
+
+  // Helper function to calculate age from DOB
+  const calculateAgeFromDOB = (dateOfBirth) => {
+    if (!dateOfBirth) return "";
+    
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+    
+    if (dob > today) return "0";
+    
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    
+    return age > 0 ? age.toString() : "0";
+  };
+
+  // Function to fetch pincode details
+  const fetchPincodeDetails = async (pincode) => {
+    if (!pincode || pincode.length !== 6) {
+      return null;
+    }
+    
+    try {
+      setPincodeLoading(true);
+      // Using a free pincode API
+      const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+      const data = await response.json();
+      
+      if (data && data[0] && data[0].Status === "Success") {
+        const postOffice = data[0].PostOffice[0];
+        return {
+          district: postOffice.District || '',
+          state: postOffice.State || '',
+          country: postOffice.Country || 'India'
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching pincode details:', error);
+      return null;
+    } finally {
+      setPincodeLoading(false);
+    }
+  };
+
+  // Enhanced function to parse profile data
+  const parseProfileData = useCallback((profileData) => {
+    if (!profileData) return null;
+    
+    console.log('Parsing profile data:', profileData);
     
     // Parse fullName into firstName and lastName
-    const fullName = profile.fullName || "";
-    const nameParts = fullName.split(' ');
+    const fullName = profileData.fullName || "";
+    const nameParts = fullName.trim().split(' ');
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(' ') || "";
     
     // Parse address into components
-    const address = profile.address || "";
+    const address = profileData.address || "";
     let streetAddress = "";
     let apartment = "";
+    let city = profileData.city || "";
+    let state = profileData.state || "";
+    let pincode = profileData.pincode || "";
+    let district = profileData.district || "";
     
     if (address.includes(',')) {
       const addressParts = address.split(',');
       streetAddress = addressParts[0] || "";
-      apartment = addressParts.length > 1 ? addressParts[1].trim() : "";
+      
+      // Try to extract city, state, pincode from address if not already provided
+      if (!city && addressParts.length >= 3) {
+        city = addressParts[addressParts.length - 3]?.trim() || "";
+      }
+      if (!state && addressParts.length >= 2) {
+        state = addressParts[addressParts.length - 2]?.trim() || "";
+      }
+      if (!pincode && addressParts.length >= 1) {
+        pincode = addressParts[addressParts.length - 1]?.trim() || "";
+      }
+      
+      // If we have more than 1 part, the rest might be apartment
+      if (addressParts.length > 1) {
+        apartment = addressParts.slice(1, -2).join(', ').trim() || "";
+      }
     } else {
       streetAddress = address;
     }
     
-    setLocalProfile(prev => ({
-      ...prev,
+    const parsedProfile = {
       firstName,
       lastName,
-      email: profile.email || "",
-      phone: profile.phone || "",
-      streetAddress,
-      apartment,
-      city: profile.city || "",
-      state: profile.state || "",
-      pincode: profile.pincode || "",
-      country: profile.country || "India",
-      dateOfBirth: profile.dateOfBirth || "",
-      age: profile.age || "",
-      gender: profile.gender || "",
-      profilePhoto: profile.profilePhoto || ""
-    }));
-  }, [profile]);
+      email: profileData.email || "",
+      phone: profileData.phone || "",
+      streetAddress: streetAddress.trim(),
+      apartment: apartment.trim(),
+      city: city.trim(),
+      state: state.trim(),
+      pincode: pincode.trim(),
+      district: district.trim(), // Add district
+      country: profileData.country || "India",
+      dateOfBirth: profileData.dateOfBirth || "",
+      age: profileData.age || calculateAgeFromDOB(profileData.dateOfBirth),
+      gender: profileData.gender || "",
+      profilePhoto: profileData.profilePhoto || "",
+      emergencyContact: profileData.emergencyContact || "",
+      linkedAccounts: profileData.linkedAccounts || []
+    };
+    
+    console.log('Parsed profile:', parsedProfile);
+    return parsedProfile;
+  }, []);
+
+  // Real-time profile sync from context - Enhanced to handle signup data
+  useEffect(() => {
+    console.log('Profile context updated:', profile);
+    
+    if (!profile) {
+      setIsLoading(false);
+      return;
+    }
+    
+    const parsedProfile = parseProfileData(profile);
+    
+    if (parsedProfile) {
+      console.log('Setting local profile from parsed data:', parsedProfile);
+      
+      // Only update if profile has changed
+      if (!areProfilesEqual(localProfile, parsedProfile)) {
+        setLocalProfile(parsedProfile);
+        setInitialProfile(parsedProfile);
+        setHasChanges(false);
+        setIsLoading(false);
+      }
+    } else {
+      setIsLoading(false);
+    }
+  }, [profile, parseProfileData]);
+
+  // Track changes in form
+  useEffect(() => {
+    if (initialProfile && !isLoading) {
+      const hasFormChanges = !areProfilesEqual(localProfile, initialProfile);
+      setHasChanges(hasFormChanges);
+    }
+  }, [localProfile, initialProfile, isLoading]);
 
   // Real-time age calculation
   useEffect(() => {
-    if (!localProfile.dateOfBirth) return;
+    if (!localProfile.dateOfBirth || !isEditMode) return;
 
-    const calculateAge = (birthDate) => {
-      const dob = new Date(birthDate);
-      const today = new Date();
-      
-      if (dob > today) {
-        return "0";
-      }
-
-      let age = today.getFullYear() - dob.getFullYear();
-      const monthDiff = today.getMonth() - dob.getMonth();
-      
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-        age--;
-      }
-      
-      return age > 0 ? age.toString() : "0";
-    };
-
-    const calculatedAge = calculateAge(localProfile.dateOfBirth);
+    const calculatedAge = calculateAgeFromDOB(localProfile.dateOfBirth);
     if (calculatedAge !== localProfile.age) {
       setLocalProfile(prev => ({ ...prev, age: calculatedAge }));
     }
-  }, [localProfile.dateOfBirth, localProfile.age]);
+  }, [localProfile.dateOfBirth, localProfile.age, isEditMode]);
 
-  // Real-time validation
-  const validateLocalForm = useCallback(() => {
+  // Effect to fetch pincode details when pincode changes
+  useEffect(() => {
+    if (isEditMode && localProfile.pincode && localProfile.pincode.length === 6) {
+      const fetchPincode = async () => {
+        const pincodeData = await fetchPincodeDetails(localProfile.pincode);
+        if (pincodeData) {
+          // Auto-fill state and district based on pincode
+          setLocalProfile(prev => ({
+            ...prev,
+            state: pincodeData.state || prev.state,
+            district: pincodeData.district || prev.district,
+            country: pincodeData.country || prev.country
+          }));
+        }
+      };
+      
+      // Debounce the API call
+      const timer = setTimeout(() => {
+        fetchPincode();
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [localProfile.pincode, isEditMode]);
+
+  // Enhanced validation that triggers on form submit
+  const validateLocalForm = useCallback((triggerAll = false) => {
     const errors = {};
+
+    // Trigger validation for all fields on save
+    const shouldValidate = (field) => {
+      return triggerAll || localIsFormTouched || localProfile[field] !== '';
+    };
 
     // First Name validation
     if (!localProfile.firstName.trim()) {
       errors.firstName = "First name is required";
     } else if (localProfile.firstName.trim().length < 2) {
       errors.firstName = "First name should be at least 2 characters long";
-    } else if (!/^[A-Za-z]{2,}$/.test(localProfile.firstName)) {
+    } else if (!/^[A-Za-z]{2,}$/.test(localProfile.firstName.trim())) {
       errors.firstName = "First name should contain only letters";
     }
 
     // Last Name validation (optional)
-    if (localProfile.lastName && !/^[A-Za-z\s]{0,}$/.test(localProfile.lastName)) {
+    if (localProfile.lastName && localProfile.lastName.trim() && !/^[A-Za-z\s]{0,}$/.test(localProfile.lastName.trim())) {
       errors.lastName = "Last name should contain only letters";
     }
 
     // Email validation
     if (!localProfile.email.trim()) {
       errors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(localProfile.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(localProfile.email.trim())) {
       errors.email = "Enter a valid email address";
     }
 
     // Phone validation
     if (!localProfile.phone.trim()) {
       errors.phone = "Phone number is required";
-    } else if (!/^[6-9]\d{9}$/.test(localProfile.phone)) {
+    } else if (!/^[6-9]\d{9}$/.test(localProfile.phone.trim())) {
       errors.phone = "Enter a valid 10-digit number starting with 6-9";
     }
 
@@ -328,40 +473,56 @@ const ProfileView = ({ setActiveView }) => {
       errors.streetAddress = "Street address should be at least 5 characters long";
     }
 
-    // City validation
-    if (!localProfile.city.trim()) {
-      errors.city = "City is required";
-    } else if (!/^[A-Za-z\s]{2,}$/.test(localProfile.city)) {
+    // City validation - REMOVED: City is now optional
+    if (localProfile.city && localProfile.city.trim() && !/^[A-Za-z\s]{2,}$/.test(localProfile.city.trim())) {
       errors.city = "City should contain only letters and be at least 2 characters";
+    }
+
+    // District validation (optional but recommended)
+    if (!localProfile.district.trim()) {
+      errors.district = "District is required (automatically fetched from pincode)";
+    } else if (!/^[A-Za-z\s]{2,}$/.test(localProfile.district.trim())) {
+      errors.district = "District should contain only letters and be at least 2 characters";
     }
 
     // State validation
     if (!localProfile.state.trim()) {
       errors.state = "State is required";
-    } else if (!/^[A-Za-z\s]{2,}$/.test(localProfile.state)) {
+    } else if (!/^[A-Za-z\s]{2,}$/.test(localProfile.state.trim())) {
       errors.state = "State should contain only letters and be at least 2 characters";
     }
 
     // Pincode validation
     if (!localProfile.pincode) {
       errors.pincode = "Pincode is required";
-    } else if (!/^\d{6}$/.test(localProfile.pincode)) {
+    } else if (!/^\d{6}$/.test(localProfile.pincode.trim())) {
       errors.pincode = "Pincode must be exactly 6 digits";
+    } else if (pincodeLoading) {
+      errors.pincode = "Verifying pincode...";
+    } else if (!localProfile.district && !pincodeLoading) {
+      errors.pincode = "Enter a valid Indian pincode";
     }
 
-    // Date of Birth validation
+    // Date of Birth validation - FIXED: Allow today's date
     if (!localProfile.dateOfBirth) {
       errors.dateOfBirth = "Date of birth is required";
     } else {
       const dob = new Date(localProfile.dateOfBirth);
       const today = new Date();
-      if (dob > today) {
+      
+      // Set both to midnight for date-only comparison
+      const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const dobMidnight = new Date(dob.getFullYear(), dob.getMonth(), dob.getDate());
+      
+      if (dobMidnight > todayMidnight) {
         errors.dateOfBirth = "Date of birth cannot be in the future";
       }
     }
 
     // Age validation
-    if (!localProfile.age || parseInt(localProfile.age) <= 0) {
+    if (!localProfile.age) {
+      errors.age = "Age is required";
+    } else if (parseInt(localProfile.age) <= 0) {
       errors.age = "Age must be a positive number";
     } else if (parseInt(localProfile.age) > 120) {
       errors.age = "Please enter a valid age";
@@ -372,14 +533,24 @@ const ProfileView = ({ setActiveView }) => {
       errors.gender = "Please select your gender";
     }
 
+    // Emergency Contact validation (optional but if provided, validate)
+    if (localProfile.emergencyContact && localProfile.emergencyContact.trim() && !/^[6-9]\d{9}$/.test(localProfile.emergencyContact.trim())) {
+      errors.emergencyContact = "Enter a valid 10-digit number starting with 6-9";
+    }
+
     setLocalFormErrors(errors);
-    setLocalIsFormValid(Object.keys(errors).length === 0);
-  }, [localProfile]);
+    const isValid = Object.keys(errors).length === 0;
+    setLocalIsFormValid(isValid);
+    
+    return isValid;
+  }, [localProfile, localIsFormTouched, pincodeLoading]);
 
   // Real-time validation on every change
   useEffect(() => {
-    validateLocalForm();
-  }, [validateLocalForm]);
+    if (localIsFormTouched && isEditMode) {
+      validateLocalForm(false);
+    }
+  }, [localProfile, localIsFormTouched, validateLocalForm, isEditMode]);
 
   // Real-time input handlers
   const handleLocalProfileChange = (e) => {
@@ -396,12 +567,17 @@ const ProfileView = ({ setActiveView }) => {
         break;
       case "city":
       case "state":
+      case "country":
+      case "district":
         updatedValue = value.replace(/[^A-Za-z\s]/g, "");
         break;
       case "pincode":
         updatedValue = value.replace(/\D/g, "").slice(0, 6);
         break;
       case "phone":
+        updatedValue = value.replace(/\D/g, "").slice(0, 10);
+        break;
+      case "emergencyContact":
         updatedValue = value.replace(/\D/g, "").slice(0, 10);
         break;
       default:
@@ -424,7 +600,15 @@ const ProfileView = ({ setActiveView }) => {
     
     // Auto-trim on blur
     if (value && typeof value === 'string') {
-      setLocalProfile(prev => ({ ...prev, [name]: value.trim() }));
+      const trimmedValue = value.trim();
+      if (trimmedValue !== value) {
+        setLocalProfile(prev => ({ ...prev, [name]: trimmedValue }));
+      }
+    }
+    
+    // Trigger validation for this field
+    if (isEditMode) {
+      validateLocalForm(false);
     }
   };
 
@@ -454,6 +638,7 @@ const ProfileView = ({ setActiveView }) => {
       
       // Update local state
       setLocalProfile(prev => ({ ...prev, profilePhoto: imgURL }));
+      setHasChanges(true);
       
       showModalPopup('success', 'Photo Updated', 'Your profile photo has been updated successfully!');
       setSaveStatus('');
@@ -472,6 +657,7 @@ const ProfileView = ({ setActiveView }) => {
       
       // Update local state
       setLocalProfile(prev => ({ ...prev, profilePhoto: "" }));
+      setHasChanges(true);
       
       showModalPopup('success', 'Photo Removed', 'Your profile photo has been removed successfully!');
       setSaveStatus('');
@@ -484,11 +670,15 @@ const ProfileView = ({ setActiveView }) => {
   // Enhanced edit mode handler
   const handleEditModeToggle = () => {
     setIsEditMode(true);
+    // Mark all fields as touched to show validation errors
+    setLocalIsFormTouched(true);
+    // Trigger validation for all fields
+    validateLocalForm(true);
   };
 
   // Cancel Edit with modal confirmation
   const handleCancelEditWithModal = () => {
-    if (localIsFormTouched) {
+    if (hasChanges) {
       showModalPopup(
         'warning',
         'Discard Changes?',
@@ -507,49 +697,22 @@ const ProfileView = ({ setActiveView }) => {
   const handleCancelEdit = () => {
     if (!profile) return;
     
-    // Parse fullName into firstName and lastName
-    const fullName = profile.fullName || "";
-    const nameParts = fullName.split(' ');
-    const firstName = nameParts[0] || "";
-    const lastName = nameParts.slice(1).join(' ') || "";
-    
-    // Parse address into components
-    const address = profile.address || "";
-    let streetAddress = "";
-    let apartment = "";
-    
-    if (address.includes(',')) {
-      const addressParts = address.split(',');
-      streetAddress = addressParts[0] || "";
-      apartment = addressParts.length > 1 ? addressParts[1].trim() : "";
-    } else {
-      streetAddress = address;
+    const parsedProfile = parseProfileData(profile);
+    if (parsedProfile) {
+      setLocalProfile(parsedProfile);
+      setInitialProfile(parsedProfile);
     }
-
-    setLocalProfile({
-      firstName,
-      lastName,
-      email: profile.email || "",
-      phone: profile.phone || "",
-      streetAddress,
-      apartment,
-      city: profile.city || "",
-      state: profile.state || "",
-      pincode: profile.pincode || "",
-      country: profile.country || "India",
-      dateOfBirth: profile.dateOfBirth || "",
-      age: profile.age || "",
-      gender: profile.gender || "",
-      profilePhoto: profile.profilePhoto || ""
-    });
     
     setLocalFormErrors({});
     setLocalIsFormTouched(false);
+    setHasChanges(false);
     setIsEditMode(false);
     setSaveStatus('');
+    setPincodeLoading(false);
+    setPincodeData(null);
   };
 
-  // Real-time form submission - FIXED: Update context properly
+  // Real-time form submission - Enhanced to include all signup fields
   const handleLocalProfileUpdate = async (e) => {
     e.preventDefault();
 
@@ -558,9 +721,23 @@ const ProfileView = ({ setActiveView }) => {
       return;
     }
 
-    // Final validation check
-    validateLocalForm();
-    if (!localIsFormValid) {
+    // Check if there are any actual changes
+    if (!hasChanges) {
+      showModalPopup(
+        'info',
+        'No Changes Detected',
+        'You haven\'t made any changes to save.',
+        () => {
+          setIsEditMode(false);
+          hideModal();
+        }
+      );
+      return;
+    }
+
+    // Final validation check with all fields
+    const isValid = validateLocalForm(true);
+    if (!isValid) {
       showModalPopup(
         'error',
         'Validation Error',
@@ -577,24 +754,35 @@ const ProfileView = ({ setActiveView }) => {
       // Combine name fields
       const fullName = `${localProfile.firstName} ${localProfile.lastName}`.trim();
       
-      // Combine address fields
-      const address = localProfile.apartment 
-        ? `${localProfile.streetAddress}, ${localProfile.apartment}`
-        : localProfile.streetAddress;
+      // Combine address fields (include district)
+      const addressParts = [
+        localProfile.streetAddress,
+        localProfile.apartment,
+        localProfile.city, // City is optional now
+        localProfile.district, // Include district
+        localProfile.state,
+        localProfile.pincode
+      ].filter(part => part && part.trim());
+      
+      const address = addressParts.join(', ');
 
-      // Create the updated profile data
+      // Create the updated profile data including all fields from signup
       const updatedProfileData = {
         fullName: fullName,
         email: localProfile.email,
         phone: localProfile.phone,
         address: address,
-        city: localProfile.city,
+        city: localProfile.city || '', // City is optional
         state: localProfile.state,
         pincode: localProfile.pincode,
+        district: localProfile.district, // Add district
         country: localProfile.country,
         dateOfBirth: localProfile.dateOfBirth,
         age: localProfile.age,
         gender: localProfile.gender,
+        profilePhoto: localProfile.profilePhoto || '',
+        emergencyContact: localProfile.emergencyContact || '',
+        linkedAccounts: localProfile.linkedAccounts || [],
         lastUpdated: new Date().toISOString()
       };
 
@@ -602,6 +790,10 @@ const ProfileView = ({ setActiveView }) => {
       
       // Call updateProfile from context - this will update both context and localStorage
       await updateProfile(updatedProfileData);
+      
+      // Update initial profile to current state
+      setInitialProfile(localProfile);
+      setHasChanges(false);
       
       // Show success modal
       showModalPopup(
@@ -633,7 +825,7 @@ const ProfileView = ({ setActiveView }) => {
   const getInputStyle = (fieldName) => {
     const baseStyle = {
       padding: '0.75rem',
-      border: '2px solid #E0F2F1',
+      border: '2px solid #E0F6F4',
       borderRadius: '8px',
       fontSize: '0.9rem',
       transition: 'all 0.3s ease',
@@ -642,12 +834,12 @@ const ProfileView = ({ setActiveView }) => {
       backgroundColor: '#FFFFFF',
       color: '#124441'
     };
-    const errorStyle = localIsFormTouched && localFormErrors[fieldName] ? {
+    const errorStyle = localFormErrors[fieldName] ? {
       borderColor: '#FF6B6B !important',
       backgroundColor: '#FFF5F5',
     } : {};
     const disabledStyle = !isEditMode ? {
-      backgroundColor: '#E0F2F1',
+      backgroundColor: '#E0F6F4',
       color: '#4F6F6B',
       cursor: 'not-allowed',
       borderColor: '#4DB6AC',
@@ -657,19 +849,26 @@ const ProfileView = ({ setActiveView }) => {
       boxShadow: '0 0 0 2px rgba(0, 150, 136, 0.1)',
       outline: 'none'
     } : {};
+    const pincodeLoadingStyle = (fieldName === 'pincode' && pincodeLoading) ? {
+      borderColor: '#FF9800',
+      backgroundImage: 'linear-gradient(45deg, #FF9800 25%, transparent 25%, transparent 50%, #FF9800 50%, #FF9800 75%, transparent 75%, transparent)',
+      backgroundSize: '20px 20px',
+      animation: 'loadingBar 1s infinite linear',
+    } : {};
     
     return {
       ...baseStyle,
       ...errorStyle,
       ...disabledStyle,
       ...focusStyle,
+      ...pincodeLoadingStyle,
       cursor: !isEditMode ? 'not-allowed' : 'text'
     };
   };
 
-  // Check if profile is complete
+  // Check if profile is complete (updated to include district instead of required city)
   const isProfileComplete = () => {
-    const requiredFields = ['firstName', 'email', 'phone', 'streetAddress', 'city', 'state', 'pincode', 'dateOfBirth', 'gender'];
+    const requiredFields = ['firstName', 'email', 'phone', 'streetAddress', 'district', 'state', 'pincode', 'dateOfBirth', 'gender'];
     return requiredFields.every(field => localProfile[field] && localProfile[field].trim());
   };
 
@@ -684,11 +883,31 @@ const ProfileView = ({ setActiveView }) => {
       fontSize: '0.85rem',
     };
     
-    if (saveStatus.includes('✅')) return { ...baseStyle, backgroundColor: '#E0F2F1', color: '#009688', border: '2px solid #4DB6AC' };
+    if (saveStatus.includes('✅')) return { ...baseStyle, backgroundColor: '#E0F6F4', color: '#009688', border: '2px solid #4DB6AC' };
     if (saveStatus.includes('❌')) return { ...baseStyle, backgroundColor: '#FFE5E5', color: '#FF6B6B', border: '2px solid #FF6B6B' };
-    if (saveStatus.includes('🔄')) return { ...baseStyle, backgroundColor: '#E0F2F1', color: '#009688', border: '2px solid #4DB6AC' };
+    if (saveStatus.includes('🔄')) return { ...baseStyle, backgroundColor: '#E0F6F4', color: '#009688', border: '2px solid #4DB6AC' };
     return baseStyle;
   };
+
+  // Add loading animation for pincode
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes loadingBar {
+        0% {
+          backgroundPosition: 0 0;
+        }
+        100% {
+          backgroundPosition: 20px 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   // Modal Component
   const Modal = () => {
@@ -734,6 +953,29 @@ const ProfileView = ({ setActiveView }) => {
                   Continue Editing
                 </button>
               </>
+            ) : modalType === 'info' ? (
+              <>
+                <button
+                  style={getModalButtonStyle(true)}
+                  onClick={() => {
+                    if (modalAction) {
+                      modalAction();
+                    } else {
+                      hideModal();
+                    }
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#00796B';
+                    e.target.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = '#009688';
+                    e.target.style.transform = 'translateY(0)';
+                  }}
+                >
+                  Continue
+                </button>
+              </>
             ) : (
               <button
                 style={getModalButtonStyle(true)}
@@ -765,16 +1007,27 @@ const ProfileView = ({ setActiveView }) => {
   // Profile-specific styles with new color scheme
   const styles = {
     profileContainer: {
-      marginTop: '100px',
+      marginTop: '140px',
       padding: '2rem 1rem 1rem 1rem',
       maxWidth: '800px',
       marginLeft: 'auto',
       marginRight: 'auto',
       minHeight: 'calc(100vh - 120px)',
-      backgroundColor: '#E0F2F1',
+      backgroundColor: '#E0F6F4',
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
       position: 'relative',
       zIndex: 1,
+    },
+    loadingContainer: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '400px',
+    },
+    loadingText: {
+      color: '#009688',
+      fontSize: '1.2rem',
+      fontWeight: '600',
     },
     pageHeader: {
       display: 'flex',
@@ -829,7 +1082,7 @@ const ProfileView = ({ setActiveView }) => {
       fontWeight: '700',
       fontSize: '0.9rem',
       padding: '0.5rem 1rem',
-      backgroundColor: '#E0F2F1',
+      backgroundColor: '#E0F6F4',
       borderRadius: '20px',
       border: '2px solid #4DB6AC',
     },
@@ -849,7 +1102,7 @@ const ProfileView = ({ setActiveView }) => {
       boxShadow: '0 4px 16px rgba(18, 68, 65, 0.1)',
       marginBottom: '1.5rem',
       textAlign: 'center',
-      border: '2px solid #E0F2F1',
+      border: '2px solid #E0F6F4',
     },
     profilePhotoContainer: {
       display: 'flex',
@@ -861,7 +1114,7 @@ const ProfileView = ({ setActiveView }) => {
       width: '120px',
       height: '120px',
       borderRadius: '50%',
-      backgroundColor: '#E0F2F1',
+      backgroundColor: '#E0F6F4',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -935,7 +1188,7 @@ const ProfileView = ({ setActiveView }) => {
       padding: '1.5rem',
       borderRadius: '12px',
       boxShadow: '0 4px 16px rgba(18, 68, 65, 0.1)',
-      border: '2px solid #E0F2F1',
+      border: '2px solid #E0F6F4',
     },
     formGrid: {
       display: 'grid',
@@ -952,6 +1205,13 @@ const ProfileView = ({ setActiveView }) => {
       color: '#124441',
       fontWeight: '600',
       fontSize: '0.9rem',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.25rem',
+    },
+    requiredMarker: {
+      color: '#FF6B6B',
+      fontSize: '1rem',
     },
     formError: {
       color: '#FF6B6B',
@@ -961,7 +1221,7 @@ const ProfileView = ({ setActiveView }) => {
     },
     formTextarea: {
       padding: '0.75rem',
-      border: '2px solid #E0F2F1',
+      border: '2px solid #E0F6F4',
       borderRadius: '8px',
       fontSize: '0.9rem',
       resize: 'vertical',
@@ -988,7 +1248,7 @@ const ProfileView = ({ setActiveView }) => {
       alignItems: 'center',
       gap: '0.5rem',
       padding: '0.75rem 1rem',
-      backgroundColor: '#E0F2F1',
+      backgroundColor: '#E0F6F4',
       borderRadius: '8px',
       fontWeight: '600',
       color: '#009688',
@@ -1004,7 +1264,7 @@ const ProfileView = ({ setActiveView }) => {
       justifyContent: 'center',
       marginTop: '1.5rem',
       paddingTop: '1.5rem',
-      borderTop: '2px solid #E0F2F1',
+      borderTop: '2px solid #E0F6F4',
     },
     updateButton: {
       padding: '0.75rem 2rem',
@@ -1037,7 +1297,102 @@ const ProfileView = ({ setActiveView }) => {
       transition: 'all 0.3s ease',
       minWidth: '120px',
     },
+    validationSummary: {
+      backgroundColor: '#FFF5F5',
+      border: '2px solid #FF6B6B',
+      borderRadius: '8px',
+      padding: '1rem',
+      marginBottom: '1.5rem',
+    },
+    validationSummaryTitle: {
+      color: '#FF6B6B',
+      margin: '0 0 0.5rem 0',
+      fontSize: '1rem',
+      fontWeight: '600',
+    },
+    validationSummaryList: {
+      margin: 0,
+      paddingLeft: '1.5rem',
+    },
+    validationSummaryItem: {
+      color: '#D32F2F',
+      fontSize: '0.85rem',
+      marginBottom: '0.25rem',
+    },
+    autoFilledField: {
+      backgroundColor: '#F0FFF8',
+      borderColor: '#4CAF50',
+      borderStyle: 'dashed',
+    },
   };
+
+  // Get validation summary
+  const getValidationSummary = () => {
+    const errorCount = Object.keys(localFormErrors).length;
+    if (errorCount === 0 || !localIsFormTouched) return null;
+
+    return (
+      <div style={styles.validationSummary}>
+        <h4 style={styles.validationSummaryTitle}>
+          ⚠️ Please fix {errorCount} error{errorCount !== 1 ? 's' : ''} before saving:
+        </h4>
+        <ul style={styles.validationSummaryList}>
+          {Object.entries(localFormErrors).map(([field, error]) => (
+            <li key={field} style={styles.validationSummaryItem}>
+              {error}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div style={styles.profileContainer}>
+        <div style={styles.loadingContainer}>
+          <div style={styles.loadingText}>Loading profile data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state if no profile
+  if (!profile) {
+    return (
+      <div style={styles.profileContainer}>
+        <div style={styles.pageHeader}>
+          <button 
+            style={styles.backButton} 
+            onClick={handleBackToDashboard}
+            aria-label="Back to dashboard"
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#009688';
+              e.target.style.color = '#FFFFFF';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.color = '#009688';
+            }}
+          >
+            ← Back to Dashboard
+          </button>
+          <div style={styles.headerContent}>
+            <h2 style={styles.sectionTitle}>My Profile</h2>
+          </div>
+        </div>
+        <div style={styles.profileForm}>
+          <div style={{ textAlign: 'center', padding: '3rem' }}>
+            <h3 style={{ color: '#124441', marginBottom: '1rem' }}>No Profile Data Found</h3>
+            <p style={{ color: '#4F6F6B', marginBottom: '2rem' }}>
+              Please complete your signup to create a profile.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -1114,7 +1469,7 @@ const ProfileView = ({ setActiveView }) => {
               ) : (
                 <>
                   <label style={styles.uploadPhotoButton}>
-                     Update Photo
+                    📷 Update Photo
                     <input
                       type="file"
                       accept="image/*"
@@ -1146,6 +1501,9 @@ const ProfileView = ({ setActiveView }) => {
           </div>
         </div>
 
+        {/* Validation Summary */}
+        {getValidationSummary()}
+
         {/* Save Status Display */}
         {saveStatus && (
           <div style={getSaveStatusStyle()}>
@@ -1158,7 +1516,9 @@ const ProfileView = ({ setActiveView }) => {
           <div style={styles.formGrid}>
             {/* Name Section */}
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>First Name *</label>
+              <label style={styles.formLabel}>
+                First Name <span style={styles.requiredMarker}>*</span>
+              </label>
               <input
                 type="text"
                 name="firstName"
@@ -1170,7 +1530,7 @@ const ProfileView = ({ setActiveView }) => {
                 disabled={!isEditMode}
                 onFocus={(e) => e.target.style.borderColor = '#009688'}
               />
-              {localIsFormTouched && localFormErrors.firstName && (
+              {localFormErrors.firstName && (
                 <span style={styles.formError}>{localFormErrors.firstName}</span>
               )}
             </div>
@@ -1188,14 +1548,16 @@ const ProfileView = ({ setActiveView }) => {
                 disabled={!isEditMode}
                 onFocus={(e) => e.target.style.borderColor = '#009688'}
               />
-              {localIsFormTouched && localFormErrors.lastName && (
+              {localFormErrors.lastName && (
                 <span style={styles.formError}>{localFormErrors.lastName}</span>
               )}
             </div>
 
             {/* Contact Information */}
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Email *</label>
+              <label style={styles.formLabel}>
+                Email <span style={styles.requiredMarker}>*</span>
+              </label>
               <input
                 type="email"
                 name="email"
@@ -1207,14 +1569,16 @@ const ProfileView = ({ setActiveView }) => {
                 disabled={!isEditMode}
                 onFocus={(e) => e.target.style.borderColor = '#009688'}
               />
-              {localIsFormTouched && localFormErrors.email && (
+              {localFormErrors.email && (
                 <span style={styles.formError}>{localFormErrors.email}</span>
               )}
             </div>
 
             {/* Phone Field - Extended container */}
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Phone *</label>
+              <label style={styles.formLabel}>
+                Phone <span style={styles.requiredMarker}>*</span>
+              </label>
               <div style={styles.phoneInputContainer}>
                 <div style={styles.phonePrefix}>🇮🇳 +91</div>
                 <input
@@ -1230,14 +1594,40 @@ const ProfileView = ({ setActiveView }) => {
                   onFocus={(e) => e.target.style.borderColor = '#009688'}
                 />
               </div>
-              {localIsFormTouched && localFormErrors.phone && (
+              {localFormErrors.phone && (
                 <span style={styles.formError}>{localFormErrors.phone}</span>
               )}
             </div>
 
+            {/* Emergency Contact */}
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>Emergency Contact</label>
+              <div style={styles.phoneInputContainer}>
+                <div style={styles.phonePrefix}>🇮🇳 +91</div>
+                <input
+                  type="tel"
+                  name="emergencyContact"
+                  value={localProfile.emergencyContact}
+                  onChange={handleLocalProfileChange}
+                  onBlur={handleLocalProfileBlur}
+                  style={getInputStyle("emergencyContact")}
+                  placeholder="10-digit emergency number"
+                  maxLength="10"
+                  disabled={!isEditMode}
+                  onFocus={(e) => e.target.style.borderColor = '#009688'}
+                />
+              </div>
+              {localFormErrors.emergencyContact && (
+                <span style={styles.formError}>{localFormErrors.emergencyContact}</span>
+              )}
+              <p style={styles.fieldNote}>Optional - for emergency notifications</p>
+            </div>
+
             {/* Personal Information */}
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Date of Birth *</label>
+              <label style={styles.formLabel}>
+                Date of Birth <span style={styles.requiredMarker}>*</span>
+              </label>
               <input
                 type="date"
                 name="dateOfBirth"
@@ -1248,14 +1638,17 @@ const ProfileView = ({ setActiveView }) => {
                 max={new Date().toISOString().split('T')[0]}
                 onFocus={(e) => e.target.style.borderColor = '#009688'}
               />
-              {localIsFormTouched && localFormErrors.dateOfBirth && (
+              {localFormErrors.dateOfBirth && (
                 <span style={styles.formError}>{localFormErrors.dateOfBirth}</span>
               )}
+              <p style={styles.fieldNote}>Today's date is allowed</p>
             </div>
 
             {/* Age Field (Read-only) */}
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Age *</label>
+              <label style={styles.formLabel}>
+                Age <span style={styles.requiredMarker}>*</span>
+              </label>
               <input
                 type="text"
                 name="age"
@@ -1264,11 +1657,16 @@ const ProfileView = ({ setActiveView }) => {
                 style={getInputStyle("age")}
               />
               <p style={styles.fieldNote}>Automatically calculated from date of birth</p>
+              {localFormErrors.age && (
+                <span style={styles.formError}>{localFormErrors.age}</span>
+              )}
             </div>
 
             {/* Gender Field */}
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Gender *</label>
+              <label style={styles.formLabel}>
+                Gender <span style={styles.requiredMarker}>*</span>
+              </label>
               <select
                 name="gender"
                 value={localProfile.gender}
@@ -1283,14 +1681,16 @@ const ProfileView = ({ setActiveView }) => {
                 <option value="other">Other</option>
                 <option value="prefer-not-to-say">Prefer not to say</option>
               </select>
-              {localIsFormTouched && localFormErrors.gender && (
+              {localFormErrors.gender && (
                 <span style={styles.formError}>{localFormErrors.gender}</span>
               )}
             </div>
 
             {/* Address Section */}
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Street Address *</label>
+              <label style={styles.formLabel}>
+                Street Address <span style={styles.requiredMarker}>*</span>
+              </label>
               <textarea
                 name="streetAddress"
                 rows="2"
@@ -1302,7 +1702,7 @@ const ProfileView = ({ setActiveView }) => {
                 placeholder="House number, street name"
                 onFocus={(e) => e.target.style.borderColor = '#009688'}
               />
-              {localIsFormTouched && localFormErrors.streetAddress && (
+              {localFormErrors.streetAddress && (
                 <span style={styles.formError}>{localFormErrors.streetAddress}</span>
               )}
             </div>
@@ -1322,44 +1722,93 @@ const ProfileView = ({ setActiveView }) => {
               />
             </div>
 
+            {/* City Field - Now Optional */}
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>City *</label>
+              <label style={styles.formLabel}>City (Optional)</label>
               <input
                 type="text"
                 name="city"
                 value={localProfile.city}
                 onChange={handleLocalProfileChange}
                 onBlur={handleLocalProfileBlur}
-                placeholder="Enter your city"
+                placeholder="Enter your city (optional)"
                 style={getInputStyle("city")}
                 disabled={!isEditMode}
                 onFocus={(e) => e.target.style.borderColor = '#009688'}
               />
-              {localIsFormTouched && localFormErrors.city && (
+              {localFormErrors.city && (
                 <span style={styles.formError}>{localFormErrors.city}</span>
               )}
+              <p style={styles.fieldNote}>Optional - District will be auto-filled from pincode</p>
+            </div>
+
+            {/* District Field - Auto-filled from pincode */}
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>
+                District <span style={styles.requiredMarker}>*</span>
+              </label>
+              <input
+                type="text"
+                name="district"
+                value={localProfile.district}
+                onChange={handleLocalProfileChange}
+                onBlur={handleLocalProfileBlur}
+                placeholder="District (auto-filled from pincode)"
+                style={{
+                  ...getInputStyle("district"),
+                  ...(localProfile.district && !localFormErrors.district && styles.autoFilledField)
+                }}
+                disabled={!isEditMode}
+                onFocus={(e) => e.target.style.borderColor = '#009688'}
+                readOnly={!!localProfile.district && pincodeData}
+              />
+              {localFormErrors.district && (
+                <span style={styles.formError}>{localFormErrors.district}</span>
+              )}
+              <p style={styles.fieldNote}>
+                {pincodeLoading 
+                  ? "🔍 Looking up district from pincode..." 
+                  : localProfile.district 
+                    ? "✅ Auto-filled from pincode" 
+                    : "Enter pincode to auto-fill district"}
+              </p>
             </div>
 
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>State *</label>
+              <label style={styles.formLabel}>
+                State <span style={styles.requiredMarker}>*</span>
+              </label>
               <input
                 type="text"
                 name="state"
                 value={localProfile.state}
                 onChange={handleLocalProfileChange}
                 onBlur={handleLocalProfileBlur}
-                placeholder="Enter your state"
-                style={getInputStyle("state")}
+                placeholder="State"
+                style={{
+                  ...getInputStyle("state"),
+                  ...(localProfile.state && !localFormErrors.state && localProfile.pincode && styles.autoFilledField)
+                }}
                 disabled={!isEditMode}
                 onFocus={(e) => e.target.style.borderColor = '#009688'}
+                readOnly={!!localProfile.state && pincodeData}
               />
-              {localIsFormTouched && localFormErrors.state && (
+              {localFormErrors.state && (
                 <span style={styles.formError}>{localFormErrors.state}</span>
               )}
+              <p style={styles.fieldNote}>
+                {pincodeLoading 
+                  ? "🔍 Looking up state from pincode..." 
+                  : localProfile.state && localProfile.pincode
+                    ? "✅ Auto-filled from pincode" 
+                    : "Enter pincode to auto-fill state"}
+              </p>
             </div>
 
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Pincode *</label>
+              <label style={styles.formLabel}>
+                Pincode <span style={styles.requiredMarker}>*</span>
+              </label>
               <input
                 type="text"
                 name="pincode"
@@ -1371,9 +1820,17 @@ const ProfileView = ({ setActiveView }) => {
                 disabled={!isEditMode}
                 onFocus={(e) => e.target.style.borderColor = '#009688'}
               />
-              {localIsFormTouched && localFormErrors.pincode && (
-                <span style={styles.formError}>{localFormErrors.pincode}</span>
+              {localFormErrors.pincode && (
+                <span style={styles.formError}>
+                  {localFormErrors.pincode}
+                  {pincodeLoading && " (Verifying...)"}
+                </span>
               )}
+              <p style={styles.fieldNote}>
+                {pincodeLoading 
+                  ? "🔍 Verifying pincode and fetching district..." 
+                  : "Enter 6-digit Indian pincode to auto-fill district & state"}
+              </p>
             </div>
 
             <div style={styles.formGroup}>
@@ -1383,12 +1840,45 @@ const ProfileView = ({ setActiveView }) => {
                 name="country"
                 value={localProfile.country}
                 onChange={handleLocalProfileChange}
+                onBlur={handleLocalProfileBlur}
+                placeholder="Enter your country"
                 style={getInputStyle("country")}
                 disabled={!isEditMode}
                 onFocus={(e) => e.target.style.borderColor = '#009688'}
               />
+              {localFormErrors.country && (
+                <span style={styles.formError}>{localFormErrors.country}</span>
+              )}
             </div>
           </div>
+
+          {/* Linked Accounts Section (Read-only if exists) */}
+          {localProfile.linkedAccounts && localProfile.linkedAccounts.length > 0 && (
+            <div style={{
+              backgroundColor: '#E0F6F4',
+              padding: '1rem',
+              borderRadius: '8px',
+              marginBottom: '1.5rem'
+            }}>
+              <h4 style={{ color: '#124441', marginBottom: '0.5rem' }}>Linked Accounts</h4>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                {localProfile.linkedAccounts.map((account, index) => (
+                  <span key={index} style={{
+                    backgroundColor: '#009688',
+                    color: 'white',
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: '4px',
+                    fontSize: '0.85rem'
+                  }}>
+                    {account === 'guardian' ? '👨‍👩‍👧‍👦 Guardian' : '💑 Spouse'}
+                  </span>
+                ))}
+              </div>
+              <p style={{ color: '#4F6F6B', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                These accounts were set up during signup and can access your profile
+              </p>
+            </div>
+          )}
 
           {/* Action Buttons - Compact */}
           {isEditMode && (
@@ -1397,24 +1887,24 @@ const ProfileView = ({ setActiveView }) => {
                 type="submit"
                 style={{
                   ...styles.updateButton,
-                  ...(!localIsFormValid && styles.updateButtonDisabled),
+                  ...((!localIsFormValid || !hasChanges) && styles.updateButtonDisabled),
                   ...(isSubmitting && styles.updateButtonDisabled)
                 }}
-                disabled={!localIsFormValid || isSubmitting}
+                disabled={!localIsFormValid || !hasChanges || isSubmitting}
                 onMouseEnter={(e) => {
-                  if (!isSubmitting && localIsFormValid) {
+                  if (!isSubmitting && localIsFormValid && hasChanges) {
                     e.target.style.backgroundColor = '#00796B';
                     e.target.style.transform = 'translateY(-1px)';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (!isSubmitting && localIsFormValid) {
+                  if (!isSubmitting && localIsFormValid && hasChanges) {
                     e.target.style.backgroundColor = '#009688';
                     e.target.style.transform = 'translateY(0)';
                   }
                 }}
               >
-                {isSubmitting ? "🔄 Saving..." : "Save Changes"}
+                {isSubmitting ? "🔄 Saving..." : hasChanges ? "Save Changes" : "No Changes"}
               </button>
               <button
                 type="button"

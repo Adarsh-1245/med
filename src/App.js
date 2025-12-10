@@ -1,4 +1,4 @@
-// App.js - Consolidated with Guardian/Wife System
+// App.js - Complete Consolidated Version
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
@@ -31,6 +31,9 @@ import DoctorDashboard from './components/doctor/DoctorDashboard';
 import UserDashboard from './components/user/UserDashboard';
 import VendorDashboard from './components/vendor/VendorDashboard';
 import DeliveryDashboard from './components/delivery/DeliveryDashboard';
+
+// Import Profile Components
+import ProfileView from './components/user/ProfileView';
 
 // Import Context Provider
 import { ProfileProvider } from './components/user/ProfileContext';
@@ -359,6 +362,18 @@ const AppWrapper = () => {
     handleLoginSuccess(user);
   }, [handleLoginSuccess]);
 
+  // Handle user signup success (for profile integration)
+  const handleUserSignupSuccess = useCallback((signupData) => {
+    console.log('Signup successful:', signupData);
+    // Transform signup data to match user object structure
+    const userData = {
+      ...signupData,
+      userType: 'user',
+      id: Date.now().toString()
+    };
+    handleSignupSuccess(userData);
+  }, [handleSignupSuccess]);
+
   return (
     <div className="App">
       <main>
@@ -436,7 +451,7 @@ const AppWrapper = () => {
             path="/signup/user" 
             element={
               <PublicRoute>
-                <UserSignup onSignupSuccess={handleSignupSuccess} />
+                <UserSignup onSignupSuccess={handleUserSignupSuccess} />
               </PublicRoute>
             } 
           />
@@ -462,6 +477,26 @@ const AppWrapper = () => {
               <PublicRoute>
                 <DoctorSignup onSignupSuccess={handleSignupSuccess} />
               </PublicRoute>
+            } 
+          />
+          
+          {/* Profile View Route - Protected */}
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute requiredType="user">
+                <ProfileView 
+                  setActiveView={(view) => {
+                    if (view === 'signup') {
+                      // Redirect to signup or handle appropriately
+                      navigate('/signup/user');
+                    } else {
+                      // Handle other view changes
+                      console.log('Profile view change:', view);
+                    }
+                  }}
+                />
+              </ProtectedRoute>
             } 
           />
           

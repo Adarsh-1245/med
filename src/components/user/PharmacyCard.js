@@ -18,23 +18,13 @@ const PharmacyCard = ({
     medicines = []
   } = pharmacy || {};
 
-  // Enhanced handleViewStore with scroll to top
+  // Enhanced handleViewStore that scrolls to top when navigating to store view
   const handleViewStore = () => {
-    // Scroll to top first
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'smooth'
-    });
-    
-    // Then open the pharmacy store with a small delay
-    setTimeout(() => {
-      if (onViewStore) {
-        onViewStore(pharmacy);
-      } else if (viewPharmacyStore) {
-        viewPharmacyStore(pharmacy);
-      }
-    }, 100);
+    if (onViewStore) {
+      onViewStore(pharmacy);
+    } else if (viewPharmacyStore) {
+      viewPharmacyStore(pharmacy);
+    }
   };
 
   return (

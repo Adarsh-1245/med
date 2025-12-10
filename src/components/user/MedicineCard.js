@@ -4,24 +4,13 @@ const MedicineCard = ({ medicine, cart, addToCart, updateQuantity }) => {
   const cartItem = cart.find(item => item.id === medicine.id);
   const quantity = cartItem ? cartItem.quantity : 0;
 
-  // Enhanced add to cart handler with scroll to top
+  // Simplified handlers without scroll
   const handleAddToCart = (med) => {
-    // Scroll to top first
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    // Then add to cart after a small delay to ensure scroll completes
-    setTimeout(() => {
-      addToCart(med);
-    }, 100);
+    addToCart(med);
   };
 
-  // Enhanced update quantity handler with scroll to top
   const handleUpdateQuantity = (id, newQuantity) => {
-    // Scroll to top first
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    // Then update quantity after a small delay to ensure scroll completes
-    setTimeout(() => {
-      updateQuantity(id, newQuantity);
-    }, 100);
+    updateQuantity(id, newQuantity);
   };
 
   return (
@@ -30,7 +19,7 @@ const MedicineCard = ({ medicine, cart, addToCart, updateQuantity }) => {
       borderRadius: '12px',
       padding: '1.5rem',
       display: 'flex',
-      marginTop: '60px',
+      marginTop: '80px',
       flexDirection: 'column',
       transition: 'all 0.3s ease',
       backgroundColor: 'white',
@@ -95,8 +84,15 @@ const MedicineCard = ({ medicine, cart, addToCart, updateQuantity }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    transition: 'all 0.2s ease',
                   }}
                   onClick={() => handleUpdateQuantity(medicine.id, quantity - 1)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#E0F2F1';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
                   type="button"
                 >
                   −
@@ -106,6 +102,7 @@ const MedicineCard = ({ medicine, cart, addToCart, updateQuantity }) => {
                   fontWeight: '600',
                   minWidth: '30px',
                   textAlign: 'center',
+                  transition: 'all 0.2s ease',
                 }}>{quantity}</span>
                 <button 
                   style={{
@@ -120,8 +117,15 @@ const MedicineCard = ({ medicine, cart, addToCart, updateQuantity }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    transition: 'all 0.2s ease',
                   }}
                   onClick={() => handleUpdateQuantity(medicine.id, quantity + 1)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#E0F2F1';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
                   type="button"
                 >
                   +
@@ -141,6 +145,16 @@ const MedicineCard = ({ medicine, cart, addToCart, updateQuantity }) => {
                   transition: 'all 0.3s ease',
                 }}
                 onClick={() => handleAddToCart(medicine)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#00796B';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#009688';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
                 type="button"
               >
                 Add to Cart

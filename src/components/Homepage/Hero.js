@@ -1539,7 +1539,7 @@ export default function Home() {
                   "0 10px 26px rgba(255,107,107,0.55)";
               }}
             >
-               Emergency Contact: 9392416962
+               Emergency Contact
             </button>
           </div>
         </div>

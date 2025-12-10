@@ -1,4 +1,4 @@
-// UserDashboard.js - Complete Integrated Version with Fix
+// UserDashboard.js - Complete Integrated Version with Vehicle Dashboard
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Header from './Header';
 import ProfileView from './ProfileView';
@@ -21,6 +21,7 @@ import LabTestsView from './LabTestsView';
 import HealthRecordsView from './HealthRecordsView';
 import BloodBankView from './BloodBankView';
 import BabyCareView from './BabyCareView';
+import VehicleDashboard from './VehicleDashboard';
 
 // Add React Router imports
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -142,7 +143,7 @@ const DASHBOARD_STYLES = {
     borderRadius: '15px', 
     boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
     width: '100%', 
-    marginTop: '80px',
+    marginTop: '90px',
     borderBottom: `4px solid ${COLORS.primary}`,
     boxSizing: 'border-box'
   },
@@ -286,48 +287,55 @@ const SERVICES = [
     view: 'medicine',  
     title: 'Medicine Delivery', 
     desc: 'Get prescribed medicines delivered within 2 hours. Upload prescriptions for quick verification.',
-   
+    icon: '💊'
   },
   { 
     view: 'consultation',  
     title: 'Doctor Consultation', 
     desc: 'Connect with certified doctors online for video consultations. Available 24/7 for all your healthcare needs.',
-    
+    icon: '👨‍⚕️'
   },
   { 
     view: 'products',  
     title: 'Product Catalog', 
     desc: 'Browse complete medicine catalog with detailed information, health guides, and expert recommendations.',
-    
+    icon: '🛒'
   },
   { 
     view: 'pregnancy-care',  
     title: 'Pregnancy Care', 
     desc: 'Track your pregnancy journey, appointments, and baby\'s development week by week.',
-    
+    icon: '🤰'
   },
   { 
     view: 'lab-tests', 
     title: 'Lab Tests', 
     desc: 'Book diagnostic tests, view results online, and track your health metrics.',
-   
+    icon: '🔬'
   },
   { 
     view: 'health-records', 
     title: 'Health Records', 
     desc: 'Store and access your complete medical history, lab results, prescriptions securely.',
-    
+    icon: '📋'
   },
   { 
     view: 'blood-bank',  
     title: 'Blood Bank', 
     desc: 'Find blood donors, request blood, donate blood, and save lives with our services.',
+    icon: '🩸'
   },
   { 
     view: 'baby-care',  
     title: 'Baby Care', 
     desc: 'Track your baby\'s growth, vaccination schedule, feeding, and development milestones.',
-    
+    icon: '👶'
+  },
+  {
+    view: 'vehicle',
+    title: 'Vehicle ',
+    desc: 'View ambulance, cab, auto, and bike availability near your location in real-time.',
+    icon: '🚗'
   }
 ];
 
@@ -377,7 +385,7 @@ const SUBSCRIPTION_PLANS = {
       title: 'Basic Pregnancy Care',
       price: 25000,
       duration: '9 months',
-    
+      patientsEnrolled: '450+ Patients',
       popular: false,
       features: [
         'Monthly checkups',
@@ -392,7 +400,7 @@ const SUBSCRIPTION_PLANS = {
       title: 'Premium Pregnancy Care',
       price: 50000,
       duration: '9 months',
-     
+      patientsEnrolled: '680+ Patients',
       popular: true,
       features: [
         'Fortnightly checkups',
@@ -408,7 +416,7 @@ const SUBSCRIPTION_PLANS = {
       title: 'Comprehensive Pregnancy Care',
       price: 75000,
       duration: '9 months',
-    
+      patientsEnrolled: '320+ Patients',
       popular: false,
       features: [
         'Weekly checkups',
@@ -521,7 +529,7 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
     const validViews = [
       'dashboard', 'profile', 'appointments', 'orders', 'medicine',
       'products', 'cart', 'consultation', 'live-tracking', 'notifications',
-      'pregnancy-care', 'lab-tests', 'health-records', 'blood-bank', 'baby-care'
+      'pregnancy-care', 'lab-tests', 'health-records', 'blood-bank', 'baby-care', 'vehicle-dashboard'
     ];
     
     return validViews.includes(currentView) ? currentView : 'dashboard';
@@ -572,6 +580,13 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
   const [selectedUpgradePlan, setSelectedUpgradePlan] = useState(null);
   const [userSubscriptions, setUserSubscriptions] = useState([]);
 
+  // New state for phone confirmation
+  const [showPhoneConfirm, setShowPhoneConfirm] = useState(false);
+  const [tempPhone, setTempPhone] = useState('');
+  const [paymentPlan, setPaymentPlan] = useState(null);
+  const [checkoutData, setCheckoutData] = useState(null);
+  const [paymentType, setPaymentType] = useState(''); // 'subscription' or 'checkout'
+
   const chatInputRef = useRef(null);
   const chatMessagesEndRef = useRef(null);
   const profilePhotoInputRef = useRef(null);
@@ -595,28 +610,26 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
   const specialties = ['General Physician', 'Pediatrician', 'Cardiologist', 'Dermatologist', 'Orthopedic'];
   const allTimeSlots = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'];
 
-  // Handle browser back/forward navigation
+  // Sync URL changes with activeView state
   useEffect(() => {
-    const handlePopState = () => {
-      const path = window.location.pathname;
-      const segments = path.split('/');
-      const currentView = segments[segments.length - 1];
-      
-      const validViews = [
-        'dashboard', 'profile', 'appointments', 'orders', 'medicine',
-        'products', 'cart', 'consultation', 'live-tracking', 'notifications',
-        'pregnancy-care', 'lab-tests', 'health-records', 'blood-bank', 'baby-care'
-      ];
-      
-      if (validViews.includes(currentView) && currentView !== activeView) {
-        setActiveView(currentView);
-      }
-    };
+    // Get current view from URL pathname
+    const path = location.pathname;
+    const segments = path.split('/');
+    const currentView = segments[segments.length - 1];
+    
+    // List of valid views
+    const validViews = [
+      'dashboard', 'profile', 'appointments', 'orders', 'medicine',
+      'products', 'cart', 'consultation', 'live-tracking', 'notifications',
+      'pregnancy-care', 'lab-tests', 'health-records', 'blood-bank', 'baby-care', 'vehicle-dashboard'
+    ];
+    
+    // If URL contains a valid view and it's different from current activeView, update state
+    if (validViews.includes(currentView) && currentView !== activeView) {
+      setActiveView(currentView);
+    }
+  }, [location.pathname, activeView]);
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [activeView]);
-  
   // Initialize activeView on component mount
   useEffect(() => {
     // Ensure URL matches active view
@@ -639,19 +652,20 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
 
   // Core Functions
   const handleNavigation = useCallback((view) => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Update URL first
+    if (view === 'dashboard') {
+      navigate('/user/dashboard');
+    } else {
+      navigate(`/user/${view}`);
+    }
     
-    // Update state first (immediate)
-    setActiveView(view);
-    
-    // Then update URL
+    // Then update the state after a tiny delay to ensure URL change is processed
     setTimeout(() => {
-      if (view === 'dashboard') {
-        navigate('/user/dashboard');
-      } else {
-        navigate(`/user/${view}`);
-      }
-    }, 0);
+      setActiveView(view);
+    }, 10);
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [navigate]);
 
   const safeSetActiveView = useCallback((view) => handleNavigation(view), [handleNavigation]);
@@ -753,13 +767,60 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
     initializeRazorpay();
   }, []);
 
-  // Razorpay Payment Handler for Subscriptions
+  // ========== PHONE CONFIRMATION FUNCTIONS ==========
+  
+  const showPhoneConfirmation = (plan, type = 'subscription') => {
+    setPaymentPlan(plan);
+    setPaymentType(type);
+    setTempPhone(profile?.phone || '');
+    setShowPhoneConfirm(true);
+  };
+
+  const handlePhoneConfirm = () => {
+    if (tempPhone.length !== 10) {
+      alert('Please enter a valid 10-digit mobile number');
+      return;
+    }
+    
+    // Update profile if phone changed
+    if (tempPhone !== profile?.phone) {
+      updateProfile({ ...profile, phone: tempPhone });
+    }
+    
+    // Only close the modal
+    setShowPhoneConfirm(false);
+    
+    // Based on payment type, initiate the actual payment
+    if (paymentType === 'subscription' && paymentPlan) {
+      proceedWithSubscriptionPayment(paymentPlan, tempPhone);
+    } else if (paymentType === 'checkout' && checkoutData) {
+      proceedWithCheckoutPayment(checkoutData, tempPhone);
+    } else {
+      // For backward compatibility with old flow
+      initiatePayment();
+    }
+    
+    // Reset state (except phone which we want to keep for Razorpay)
+    setPaymentPlan(null);
+    setCheckoutData(null);
+    setPaymentType('');
+  };
+
+  // ========== UPDATED PAYMENT FUNCTIONS ==========
+
+  // Subscription Payment with Phone Confirmation
   const initiateSubscriptionPayment = async (plan) => {
     if (!razorpayLoaded) {
       addNotification('Payment Error', 'Payment service is not available. Please try again.', 'error');
       return false;
     }
 
+    // Show phone confirmation modal instead of directly opening Razorpay
+    showPhoneConfirmation(plan, 'subscription');
+    return true;
+  };
+
+  const proceedWithSubscriptionPayment = async (plan, phoneNumber) => {
     setPaymentLoading(true);
 
     try {
@@ -773,7 +834,7 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
         prefill: {
           name: profile?.fullName || 'Customer',
           email: profile?.email || 'customer@example.com',
-          contact: profile?.phone || '0000000000'
+          contact: phoneNumber  // Use confirmed phone number
         },
         theme: { color: COLORS.primary },
         modal: {
@@ -872,7 +933,7 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
     setSelectedSubscription(plan);
     setShowSubscriptionModal(true);
     
-    // Initiate payment
+    // Initiate payment with phone confirmation
     const paymentInitiated = await initiateSubscriptionPayment(plan);
     
     if (!paymentInitiated) {
@@ -1160,7 +1221,9 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
     return progressMap[status] || 0;
   };
 
-  // Payment Functions for Cart
+  // ===== UPDATED PAYMENT FUNCTIONS WITH PHONE CONFIRMATION =====
+  
+  // Original payment function for backward compatibility
   const initiatePayment = async () => {
     if (cart.length === 0) {
       alert('Your cart is empty!');
@@ -1170,50 +1233,159 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
       alert('Payment system is loading, please try again in a moment.');
       return;
     }
+    
+    // Show phone confirmation first
+    setCheckoutData({
+      cartItems: cart,
+      totalAmount: getTotalPrice(),
+      subtotal: getTotalPrice(),
+      tip: 0,
+      selectedItems: cart.map(item => item.id)
+    });
+    setPaymentType('checkout');
+    setTempPhone(profile?.phone || '');
+    setShowPhoneConfirm(true);
+  };
+
+  // Updated handleCheckoutConfirmation to include phone confirmation
+  const handleCheckoutConfirmation = async (checkoutData) => {
+    console.log('Checkout data received:', checkoutData);
+    
+    if (!checkoutData || !checkoutData.cartItems || checkoutData.cartItems.length === 0) {
+      alert('Invalid checkout data. Please try again.');
+      return;
+    }
+    
+    if (!window.Razorpay) {
+      alert('Payment system is loading, please try again in a moment.');
+      return;
+    }
+    
+    // Store checkout data and show phone confirmation
+    setCheckoutData(checkoutData);
+    showPhoneConfirmation(checkoutData, 'checkout');
+  };
+
+  // Proceed with checkout payment after phone confirmation
+  const proceedWithCheckoutPayment = async (checkoutData, phoneNumber) => {
     setPaymentLoading(true);
+    
     try {
+      // Use the totalAmount from checkoutData (which includes tip)
+      const razorpayAmount = checkoutData.totalAmount * 100; // Convert to paise
+      
       const options = {
         key: 'rzp_test_1DP5mmOlF5G5ag',
-        amount: getTotalPrice() * 100,
+        amount: razorpayAmount,
         currency: 'INR',
         name: 'QuickMed Pharmacy',
-        description: 'Medicine Purchase',
-        handler: handlePaymentSuccess,
-        prefill: { name: profile?.fullName || 'Customer', email: profile?.email || 'customer@example.com', contact: profile?.phone || '0000000000' },
+        description: `Order with ${checkoutData.selectedItems?.length || checkoutData.cartItems?.length || 0} item(s)`,
+        handler: (response) => handlePaymentSuccess(response, checkoutData),
+        prefill: {
+          name: checkoutData.address?.fullName || profile?.fullName || 'Customer',
+          contact: phoneNumber, // Use confirmed phone number
+          email: profile?.email || 'customer@example.com'
+        },
         theme: { color: COLORS.primary },
-        modal: { ondismiss: () => {
-          setPaymentLoading(false);
-          alert('Payment was cancelled. You can try again.');
-        }}
+        modal: {
+          ondismiss: () => {
+            setPaymentLoading(false);
+            console.log('Payment was cancelled');
+          }
+        }
       };
-      new window.Razorpay(options).open();
-    } catch {
-      alert('Error initializing payment. Please try again.');
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+      
+    } catch (error) {
+      console.error('Error initiating payment:', error);
       setPaymentLoading(false);
     }
   };
 
-  const handlePaymentSuccess = async (paymentResponse) => {
+  // Updated handlePaymentSuccess to handle tip data
+  const handlePaymentSuccess = async (paymentResponse, checkoutData = null) => {
     try {
+      // Verify payment with your backend (simulated here)
       await verifyPayment(paymentResponse);
+      
       const orderId = `ORD${Date.now()}`;
-      const newOrder = {
-        id: orderId,
-        date: new Date().toISOString().split('T')[0],
-        items: [...cart],
-        total: getTotalPrice(),
-        status: 'Confirmed',
-        paymentId: paymentResponse.razorpay_payment_id,
-        trackingAvailable: true,
-        deliveryPartner: { name: 'Rahul Kumar', phone: '+91 9876543210', estimatedTime: '30 min' }
-      };
-      setOrders(prev => [newOrder, ...prev]);
-      clearCart();
+      
+      // If checkoutData is provided (from CartView with tip), use it
+      if (checkoutData) {
+        const newOrder = {
+          id: orderId,
+          date: new Date().toISOString().split('T')[0],
+          items: checkoutData.cartItems || [],
+          total: checkoutData.totalAmount || getTotalPrice(),
+          subtotal: checkoutData.subtotal || (checkoutData.totalAmount - (checkoutData.tip || 0)),
+          tip: checkoutData.tip || 0,
+          status: 'Confirmed',
+          paymentId: paymentResponse.razorpay_payment_id,
+          orderId: paymentResponse.razorpay_order_id,
+          signature: paymentResponse.razorpay_signature,
+          trackingAvailable: true,
+          deliveryPartner: { 
+            name: 'Rahul Kumar', 
+            phone: '+91 9876543210', 
+            estimatedTime: '30 min' 
+          },
+          address: checkoutData.address || null,
+          selectedItems: checkoutData.selectedItems || []
+        };
+        
+        setOrders(prev => [newOrder, ...prev]);
+        
+        // Remove selected items from cart
+        if (checkoutData.selectedItems && checkoutData.selectedItems.length > 0) {
+          setCart(prev => prev.filter(item => !checkoutData.selectedItems.includes(item.id)));
+        } else {
+          clearCart();
+        }
+        
+        addNotification(
+          'Order Confirmed', 
+          `Your order ${orderId} has been placed successfully${checkoutData.tip > 0 ? ` with a ₹${checkoutData.tip} tip` : ''}`, 
+          'order'
+        );
+        
+      } else {
+        // Original logic for regular checkout
+        const newOrder = {
+          id: orderId,
+          date: new Date().toISOString().split('T')[0],
+          items: [...cart],
+          total: getTotalPrice(),
+          subtotal: getTotalPrice(),
+          tip: 0,
+          status: 'Confirmed',
+          paymentId: paymentResponse.razorpay_payment_id,
+          orderId: paymentResponse.razorpay_order_id,
+          signature: paymentResponse.razorpay_signature,
+          trackingAvailable: true,
+          deliveryPartner: { 
+            name: 'Rahul Kumar', 
+            phone: '+91 9876543210', 
+            estimatedTime: '30 min' 
+          }
+        };
+        
+        setOrders(prev => [newOrder, ...prev]);
+        clearCart();
+        
+        addNotification(
+          'Order Confirmed', 
+          `Your order ${orderId} has been placed successfully`, 
+          'order'
+        );
+      }
+      
       safeSetActiveView('orders');
-      addNotification('Order Confirmed', `Your order ${orderId} has been placed successfully`, 'order');
-      alert(`Payment successful! Order ID: ${orderId}`);
-    } catch {
-      alert('Payment verification failed. Please contact support.');
+      console.log('Payment successful! Order ID:', orderId);
+      
+    } catch (error) {
+      console.error('Payment verification failed:', error);
     } finally {
       setPaymentLoading(false);
     }
@@ -1221,11 +1393,12 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
 
   const verifyPayment = () => new Promise(resolve => setTimeout(() => resolve({ success: true }), 1000));
 
-  const handleCheckoutConfirmation = () => setShowCheckoutConfirm(true);
+  // Old confirmation modal handlers (keep for backward compatibility)
   const handleConfirmCheckout = () => {
     setShowCheckoutConfirm(false);
     initiatePayment();
   };
+
   const handleCancelCheckout = () => setShowCheckoutConfirm(false);
   const confirmLogout = () => {
     setShowLogoutConfirm(false);
@@ -1256,6 +1429,8 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
         date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         items: [{ name: 'Paracetamol 500mg', quantity: 2, price: 30 }, { name: 'Vitamin C 1000mg', quantity: 1, price: 40 }],
         total: 100,
+        subtotal: 100,
+        tip: 0,
         status: 'Delivered',
         trackingAvailable: false
       },
@@ -1264,6 +1439,8 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
         date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         items: [{ name: 'Aspirin 75mg', quantity: 1, price: 25 }],
         total: 25,
+        subtotal: 25,
+        tip: 0,
         status: 'In Transit',
         trackingAvailable: true,
         deliveryPartner: { name: 'Rahul Kumar', phone: '+91 9876543210', estimatedTime: '25 min' }
@@ -1353,8 +1530,226 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // ========== RENDER SECTION ==========
+  // ========== MODAL COMPONENTS ==========
   
+  // Phone Confirmation Modal Component - FIXED: Only continue when button is clicked
+  const PhoneConfirmationModal = () => {
+    if (!showPhoneConfirm) return null;
+
+    const handlePhoneConfirmClick = () => {
+      if (tempPhone.length !== 10) {
+        alert('Please enter a valid 10-digit mobile number');
+        return;
+      }
+      
+      // Update profile if phone changed
+      if (tempPhone !== profile?.phone) {
+        updateProfile({ ...profile, phone: tempPhone });
+      }
+      
+      // Close the modal first
+      setShowPhoneConfirm(false);
+      
+      // Based on payment type, initiate the actual payment
+      if (paymentType === 'subscription' && paymentPlan) {
+        proceedWithSubscriptionPayment(paymentPlan, tempPhone);
+      } else if (paymentType === 'checkout' && checkoutData) {
+        proceedWithCheckoutPayment(checkoutData, tempPhone);
+      } else {
+        // For backward compatibility with old flow
+        initiatePayment();
+      }
+      
+      // Reset state
+      setPaymentPlan(null);
+      setCheckoutData(null);
+      setPaymentType('');
+    };
+
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10000,
+        padding: 'max(20px, 2vw)'
+      }}>
+        <div style={{
+          backgroundColor: COLORS.white,
+          borderRadius: '15px',
+          padding: 'max(30px, 3vw) max(25px, 2.5vw)',
+          maxWidth: 'min(500px, 90vw)',
+          width: '100%',
+          boxSizing: 'border-box'
+        }}>
+          <h3 style={{ 
+            fontSize: 'clamp(1.2rem, 3vw, 1.4rem)', 
+            fontWeight: 'bold', 
+            color: COLORS.primary, 
+            marginBottom: 'max(15px, 1.5vw)',
+            textAlign: 'center'
+          }}>
+            Edit contact details
+          </h3>
+          
+          <p style={{ 
+            fontSize: 'clamp(0.9rem, 2vw, 1rem)', 
+            color: COLORS.softtext, 
+            marginBottom: 'max(25px, 2.5vw)',
+            lineHeight: '1.5',
+            textAlign: 'center'
+          }}>
+            Enter mobile number to continue
+          </p>
+          
+          <div style={{ marginBottom: 'max(25px, 2.5vw)' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              border: `1px solid ${tempPhone.length === 10 ? '#4CAF50' : COLORS.mint}`,
+              borderRadius: '8px',
+              padding: 'max(12px, 1.2vw) max(15px, 1.5vw)',
+              backgroundColor: '#f9f9f9',
+              marginBottom: 'max(10px, 1vw)'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                marginRight: '10px',
+                paddingRight: '10px',
+                borderRight: `1px solid ${COLORS.mint}`
+              }}>
+                <span style={{ 
+                  fontSize: 'clamp(1rem, 2vw, 1.1rem)', 
+                  color: COLORS.darktext,
+                  marginRight: '8px'
+                }}>+91</span>
+                <span style={{ 
+                  fontSize: 'clamp(0.9rem, 1.5vw, 1rem)', 
+                  color: COLORS.softtext 
+                }}>▼</span>
+              </div>
+              <input
+                type="tel"
+                value={tempPhone}
+                onChange={(e) => setTempPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                placeholder="6300604470"
+                style={{
+                  flex: 1,
+                  border: 'none',
+                  outline: 'none',
+                  backgroundColor: 'transparent',
+                  fontSize: 'clamp(1rem, 2vw, 1.1rem)',
+                  color: COLORS.darktext,
+                  minWidth: '0'
+                }}
+                maxLength={10}
+                autoFocus
+                // REMOVED: Don't automatically submit on Enter key or when reaching 10 digits
+                // Only allow manual submission via the Continue button
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && tempPhone.length === 10) {
+                    // Prevent automatic submission when pressing Enter
+                    e.preventDefault();
+                  }
+                }}
+              />
+            </div>
+            
+            <div style={{ 
+              fontSize: 'clamp(0.8rem, 1.5vw, 0.9rem)', 
+              color: COLORS.softtext,
+              marginTop: 'max(5px, 0.5vw)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span>{tempPhone.length}/10 digits</span>
+              {tempPhone.length === 10 && (
+                <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>✓ Valid number</span>
+              )}
+            </div>
+          </div>
+          
+          <div style={{ 
+            display: 'flex', 
+            gap: 'max(15px, 1.5vw)', 
+            justifyContent: 'center'
+          }}>
+            <button
+              onClick={() => {
+                setShowPhoneConfirm(false);
+                setPaymentPlan(null);
+                setCheckoutData(null);
+                setTempPhone('');
+                setPaymentType('');
+                setPaymentLoading(false);
+              }}
+              style={{
+                backgroundColor: 'transparent',
+                color: COLORS.softtext,
+                border: `1px solid ${COLORS.mint}`,
+                padding: 'max(12px, 1.2vw) max(24px, 2.4vw)',
+                borderRadius: '25px',
+                fontSize: 'clamp(0.9rem, 2vw, 1rem)',
+                cursor: 'pointer',
+                flex: 1,
+                transition: 'all 0.3s ease',
+                minWidth: '120px'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = COLORS.softbg;
+                e.target.style.borderColor = COLORS.primary;
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.borderColor = COLORS.mint;
+              }}
+            >
+              Cancel
+            </button>
+            
+            <button
+              onClick={handlePhoneConfirmClick}
+              disabled={tempPhone.length !== 10}
+              style={{
+                backgroundColor: tempPhone.length === 10 ? COLORS.primary : '#ccc',
+                color: COLORS.white,
+                border: 'none',
+                padding: 'max(12px, 1.2vw) max(24px, 2.4vw)',
+                borderRadius: '25px',
+                fontSize: 'clamp(0.9rem, 2vw, 1rem)',
+                fontWeight: 'bold',
+                cursor: tempPhone.length === 10 ? 'pointer' : 'not-allowed',
+                flex: 1,
+                transition: 'background-color 0.3s ease',
+                minWidth: '120px'
+              }}
+              onMouseEnter={(e) => {
+                if (tempPhone.length === 10) {
+                  e.target.style.backgroundColor = '#00897B';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (tempPhone.length === 10) {
+                  e.target.style.backgroundColor = COLORS.primary;
+                }
+              }}
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Subscription Modal Component
   const SubscriptionModal = () => {
     if (!showSubscriptionModal || !selectedSubscription) return null;
@@ -1601,7 +1996,8 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
     );
   };
 
-  // Components
+  // ========== COMPONENTS ==========
+  
   const SubscriptionSection = () => {
     return (
       <section style={{ 
@@ -1942,11 +2338,11 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
             flexWrap: 'wrap' 
           }}>
             {[
-              { text: '24/7 Expert Support' },
-              { itext: 'Personalized Care Plans' },
-              {  text: 'Cost Savings' },
-              {  text: 'Priority Services' },
-              {  text: 'Progress Tracking' }
+              { icon: '📞', text: '24/7 Expert Support' },
+              { icon: '🎯', text: 'Personalized Care Plans' },
+              { icon: '💰', text: 'Cost Savings' },
+              { icon: '⚡', text: 'Priority Services' },
+              { icon: '📊', text: 'Progress Tracking' }
             ].map((benefit, index) => (
               <div key={index} style={{ 
                 textAlign: 'center', 
@@ -2057,7 +2453,7 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
             gap: 'max(8px, 0.8vw)',
             flex: '1 1 min(200px, 100%)'
           }}>
-            <span style={{ color: COLORS.primary, fontSize: 'clamp(1rem, 2vw, 1.2rem)' }}></span>
+            <span style={{ color: COLORS.primary, fontSize: 'clamp(1rem, 2vw, 1.2rem)' }}>📅</span>
             <span style={{ 
               fontWeight: '500', 
               color: COLORS.darktext,
@@ -2075,7 +2471,7 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
             gap: 'max(8px, 0.8vw)',
             flex: '1 1 min(200px, 100%)'
           }}>
-            <span style={{ color: COLORS.primary, fontSize: 'clamp(1rem, 2vw, 1.2rem)' }}></span>
+            <span style={{ color: COLORS.primary, fontSize: 'clamp(1rem, 2vw, 1.2rem)' }}>📦</span>
             <span style={{ 
               fontWeight: '500', 
               color: COLORS.darktext,
@@ -2093,7 +2489,7 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
             gap: 'max(8px, 0.8vw)',
             flex: '1 1 min(200px, 100%)'
           }}>
-            <span style={{ color: COLORS.primary, fontSize: 'clamp(1rem, 2vw, 1.2rem)' }}></span>
+              <span style={{ color: COLORS.primary, fontSize: 'clamp(1rem, 2vw, 1.2rem)' }}>🛒</span>
             <span style={{ 
               fontWeight: '500', 
               color: COLORS.darktext,
@@ -2135,7 +2531,7 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
                 flexDirection: 'column',
                 justifyContent: 'space-between'
               }}
-              onClick={() => safeSetActiveView(service.view)}
+              // Card container has no onClick handler - only hover effects
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-5px)';
                 e.currentTarget.style.boxShadow = `0 8px 25px ${COLORS.primary}15`;
@@ -2145,7 +2541,7 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
                 e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
               }}
             >
-              <div>
+              <div style={{ flex: 1 }}>
                 <div style={DASHBOARD_STYLES.serviceIcon}>{service.icon}</div>
                 <h3 style={DASHBOARD_STYLES.serviceTitle}>{service.title}</h3>
                 <p style={DASHBOARD_STYLES.serviceDescription}>{service.desc}</p>
@@ -2154,11 +2550,15 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
                 style={{
                   ...DASHBOARD_STYLES.serviceButton,
                   marginTop: 'auto',
-                  alignSelf: 'flex-end',
                   width: '100%',
                 }}
                 onMouseEnter={(e) => e.target.style.backgroundColor = '#00897B'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = COLORS.primary}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleNavigation(service.view);
+                }}
               >
                 {getButtonText(service.title)}
               </button>
@@ -2189,17 +2589,17 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
           <div style={DASHBOARD_STYLES.infoGrid}>
             {[
               { 
-                
+                icon: '💊',
                 title: 'Medicine Safety Guidelines', 
                 content: ['Always follow prescription instructions', 'Check expiry dates before consumption', 'Store medicines in proper conditions', 'Avoid self-medication without consultation'] 
               },
               { 
-                
+                icon: '👨‍⚕️',
                 title: 'Online Consultation Benefits', 
                 content: ['Time-saving with no travel required', 'Access specialists from anywhere', 'Private and confidential consultations', 'Easy follow-up appointments'] 
               },
               { 
-                 
+                icon: '🚨',
                 title: 'Emergency Preparedness', 
                 content: ['Contact emergency services immediately (108)', 'Maintain a well-stocked first aid kit', 'Keep emergency medical contacts ready', 'Have medical records easily accessible'] 
               }
@@ -2314,6 +2714,8 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
         date: new Date().toISOString().split('T')[0],
         items: [],
         total: 0,
+        subtotal: 0,
+        tip: 0,
         status: 'No active tracking',
         trackingAvailable: false
       };
@@ -2388,6 +2790,9 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
         />
         <Modals {...modalProps} />
         
+        {/* Phone Confirmation Modal - FIXED VERSION */}
+        <PhoneConfirmationModal />
+        
         {/* Subscription Modal */}
         <SubscriptionModal />
         
@@ -2437,6 +2842,7 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
             colors={COLORS}
           />
         )}
+        
         {activeView === 'products' && (
           <Products
             searchQuery={searchQuery}
@@ -2538,6 +2944,13 @@ const UserDashboardContent = ({ user, onLogout, onWriteReview }) => {
         )}
         {activeView === 'baby-care' && (
           <BabyCareView
+            setActiveView={safeSetActiveView}
+            addNotification={addNotification}
+            colors={COLORS}
+          />
+        )}
+        {activeView === 'vehicle-dashboard' && (
+          <VehicleDashboard
             setActiveView={safeSetActiveView}
             addNotification={addNotification}
             colors={COLORS}

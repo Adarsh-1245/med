@@ -131,16 +131,78 @@ const Reviews = ({ onReviewSubmit }) => {
   // Get reviews to display (show first 6 by default, or all if showAllReviews is true)
   const displayedReviews = showAllReviews ? reviews : reviews.slice(0, 6);
 
-  // Modal handlers
-  const handleInputChange = (field, value) => {
+  // Input validation functions
+  const validateName = (name) => {
+    // Allow only alphabets, spaces, and common name characters (apostrophes, hyphens)
+    return /^[A-Za-z\s.'-]+$/.test(name);
+  };
+
+  const validateEmail = (email) => {
+    // Comprehensive email validation
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
+
+  // Handle name input with validation
+  const handleNameChange = (value) => {
+    // Remove any non-alphabetic characters except spaces, apostrophes, and hyphens
+    const cleanedValue = value.replace(/[^A-Za-z\s.'-]/g, '');
+    
+    // Limit to 50 characters
+    const limitedValue = cleanedValue.slice(0, 50);
+    
     setCurrentReview(prev => ({
       ...prev,
-      [field]: value
+      name: limitedValue
     }));
-    if (errors[field]) {
+    
+    // Clear name error if any
+    if (errors.name) {
       setErrors(prev => ({
         ...prev,
-        [field]: ''
+        name: ''
+      }));
+    }
+  };
+
+  // Handle email input with validation
+  const handleEmailChange = (value) => {
+    setCurrentReview(prev => ({
+      ...prev,
+      email: value
+    }));
+    
+    // Real-time email validation
+    if (value.trim() === '') {
+      setErrors(prev => ({
+        ...prev,
+        email: ''
+      }));
+    } else if (!validateEmail(value)) {
+      setErrors(prev => ({
+        ...prev,
+        email: 'Please enter a valid email address (e.g., user@example.com)'
+      }));
+    } else {
+      setErrors(prev => ({
+        ...prev,
+        email: ''
+      }));
+    }
+  };
+
+  const handleCommentChange = (value) => {
+    // Limit comment to 500 characters
+    const limitedValue = value.slice(0, 500);
+    setCurrentReview(prev => ({
+      ...prev,
+      comment: limitedValue
+    }));
+    
+    if (errors.comment) {
+      setErrors(prev => ({
+        ...prev,
+        comment: ''
       }));
     }
   };
@@ -160,12 +222,35 @@ const Reviews = ({ onReviewSubmit }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!currentReview.name.trim()) newErrors.name = 'Name is required';
-    if (!currentReview.email.trim()) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(currentReview.email)) newErrors.email = 'Email is invalid';
-    if (currentReview.rating === 0) newErrors.rating = 'Please select a rating';
-    if (!currentReview.comment.trim()) newErrors.comment = 'Review comment is required';
-    else if (currentReview.comment.length < 10) newErrors.comment = 'Review should be at least 10 characters';
+    
+    // Name validation
+    if (!currentReview.name.trim()) {
+      newErrors.name = 'Name is required';
+    } else if (!validateName(currentReview.name.trim())) {
+      newErrors.name = 'Name can only contain letters, spaces, apostrophes, and hyphens';
+    } else if (currentReview.name.trim().length < 2) {
+      newErrors.name = 'Name should be at least 2 characters';
+    }
+    
+    // Email validation
+    if (!currentReview.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!validateEmail(currentReview.email.trim())) {
+      newErrors.email = 'Please enter a valid email address (e.g., user@example.com)';
+    }
+    
+    // Rating validation
+    if (currentReview.rating === 0) {
+      newErrors.rating = 'Please select a rating';
+    }
+    
+    // Comment validation
+    if (!currentReview.comment.trim()) {
+      newErrors.comment = 'Review comment is required';
+    } else if (currentReview.comment.trim().length < 10) {
+      newErrors.comment = 'Review should be at least 10 characters';
+    }
+    
     return newErrors;
   };
 
@@ -471,13 +556,22 @@ const Reviews = ({ onReviewSubmit }) => {
                   <input
                     type="text"
                     value={currentReview.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="Enter your full name"
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    placeholder="Enter your full name (e.g., John Doe)"
                     className={`form-input ${errors.name ? 'error' : ''}`}
                     disabled={isSubmitting}
                     autoFocus
+                    maxLength={50}
+                    title="Only letters, spaces, apostrophes, and hyphens allowed"
                   />
                   {errors.name && <span className="error-text">{errors.name}</span>}
+                  <div className="input-hint">
+                    {currentReview.name.length >= 45 && (
+                      <span className="warning-text">
+                        {50 - currentReview.name.length} characters remaining
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="form-group">
@@ -485,12 +579,19 @@ const Reviews = ({ onReviewSubmit }) => {
                   <input
                     type="email"
                     value={currentReview.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="Enter your email"
+                    onChange={(e) => handleEmailChange(e.target.value)}
+                    placeholder="Enter your email (e.g., user@example.com)"
                     className={`form-input ${errors.email ? 'error' : ''}`}
                     disabled={isSubmitting}
+                    pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                    title="Please enter a valid email address (e.g., user@example.com)"
                   />
                   {errors.email && <span className="error-text">{errors.email}</span>}
+                  <div className="input-hint">
+                    {!errors.email && currentReview.email && validateEmail(currentReview.email) && (
+                      <span className="success-text">✓ Valid email format</span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="form-group">
@@ -504,13 +605,23 @@ const Reviews = ({ onReviewSubmit }) => {
                         onClick={() => handleStarClick(star)}
                         disabled={isSubmitting}
                       >
-                        ☆
+                        ★
                       </button>
                     ))}
                   </div>
                   <div className="rating-text">
                     {currentReview.rating > 0 ? (
-                      <span>{currentReview.rating} {currentReview.rating === 1 ? 'star' : 'stars'} selected</span>
+                      <span>
+                        <span className="rating-value">{currentReview.rating}</span>
+                        <span className="rating-label">
+                          {currentReview.rating === 1 ? ' star' : ' stars'} selected
+                          {currentReview.rating === 5 && ' - Excellent!'}
+                          {currentReview.rating === 4 && ' - Good!'}
+                          {currentReview.rating === 3 && ' - Average'}
+                          {currentReview.rating === 2 && ' - Below Average'}
+                          {currentReview.rating === 1 && ' - Poor'}
+                        </span>
+                      </span>
                     ) : (
                       <span>No rating selected</span>
                     )}
@@ -522,15 +633,19 @@ const Reviews = ({ onReviewSubmit }) => {
                   <label className="form-label">Your Review *</label>
                   <textarea
                     value={currentReview.comment}
-                    onChange={(e) => handleInputChange('comment', e.target.value)}
-                    placeholder="Share your experience with QuickMed..."
+                    onChange={(e) => handleCommentChange(e.target.value)}
+                    placeholder="Share your experience with QuickMed (minimum 10 characters)..."
                     className={`form-textarea ${errors.comment ? 'error' : ''}`}
                     maxLength={500}
                     disabled={isSubmitting}
+                    rows={5}
                   />
                   {errors.comment && <span className="error-text">{errors.comment}</span>}
-                  <div className="char-count">
+                  <div className={`char-count ${currentReview.comment.length >= 490 ? 'warning' : ''}`}>
                     {currentReview.comment.length}/500 characters
+                    {currentReview.comment.length >= 10 && currentReview.comment.length < 490 && (
+                      <span className="valid-text"> ✓ Minimum requirement met</span>
+                    )}
                   </div>
                 </div>
 
@@ -554,7 +669,12 @@ const Reviews = ({ onReviewSubmit }) => {
                     className={`submit-btn ${isSubmitting ? 'disabled' : ''}`}
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Submitting...' : 'Submit Review'}
+                    {isSubmitting ? (
+                      <>
+                        <span className="spinner"></span>
+                        Submitting...
+                      </>
+                    ) : 'Submit Review'}
                   </button>
                 </div>
               </form>

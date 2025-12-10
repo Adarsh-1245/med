@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -16,6 +16,9 @@ const Contact = () => {
   const [emailStatus, setEmailStatus] = useState('');
   const [phoneStatus, setPhoneStatus] = useState('');
   const [currentAnimation, setCurrentAnimation] = useState(0);
+  
+  // Ref to track cursor position
+  const phoneInputRef = useRef(null);
   
   useEffect(() => {
     const checkScreenSize = () => {
@@ -83,8 +86,10 @@ const Contact = () => {
   };
 
   const validatePhone = (phone) => {
+    // Remove all non-digits
+    const cleanedPhone = phone.replace(/\D/g, '');
     const phoneRegex = /^[6-9]\d{9}$/;
-    return phoneRegex.test(phone.replace('+91', '').trim());
+    return phoneRegex.test(cleanedPhone);
   };
 
   const styles = {
@@ -107,7 +112,7 @@ const Contact = () => {
     },
     floatingElement: {
       position: 'absolute',
-      background: 'rgba(77, 182, 172, 0.1)',
+      background: 'rgba(0, 150, 136, 0.1)',
       borderRadius: '50%',
       animation: 'float 6s ease-in-out infinite',
     },
@@ -247,16 +252,15 @@ const Contact = () => {
     },
     formInput: {
       padding: isMobile ? '0.8rem' : '1rem',
-      border: '2px solid #E0F2F1',
+      border: '2px solid #e9ecef',
       borderRadius: '10px',
       fontSize: isMobile ? '0.9rem' : '1rem',
       transition: 'all 0.3s ease',
       outline: 'none',
-      background: '#FFFFFF',
+      background: '#f8f9fa',
       width: '100%',
       boxSizing: 'border-box',
       fontFamily: 'inherit',
-      color: '#124441',
     },
     formInputFocus: {
       borderColor: '#009688',
@@ -268,26 +272,25 @@ const Contact = () => {
       background: '#fff5f5',
     },
     formInputValid: {
-      borderColor: '#4DB6AC',
+      borderColor: '#28a745',
       background: '#f8fff9',
     },
     formSelect: {
       padding: isMobile ? '0.8rem' : '1rem',
-      border: '2px solid #E0F2F1',
+      border: '2px solid #e9ecef',
       borderRadius: '10px',
       fontSize: isMobile ? '0.9rem' : '1rem',
       transition: 'all 0.3s ease',
       outline: 'none',
-      background: '#FFFFFF',
+      background: '#f8f9fa',
       cursor: 'pointer',
       width: '100%',
       boxSizing: 'border-box',
       fontFamily: 'inherit',
-      color: '#124441',
     },
     formTextarea: {
       padding: isMobile ? '0.8rem' : '1rem',
-      border: '2px solid #E0F2F1',
+      border: '2px solid #e9ecef',
       borderRadius: '10px',
       fontSize: isMobile ? '0.9rem' : '1rem',
       minHeight: isMobile ? '100px' : '120px',
@@ -295,12 +298,11 @@ const Contact = () => {
       transition: 'all 0.3s ease',
       outline: 'none',
       fontFamily: 'inherit',
-      background: '#FFFFFF',
+      background: '#f8f9fa',
       width: '100%',
       boxSizing: 'border-box',
       lineHeight: '1.4',
       flex: 1,
-      color: '#124441',
     },
     errorText: {
       color: '#dc3545',
@@ -318,7 +320,7 @@ const Contact = () => {
       marginTop: '0.3rem',
     },
     validStatus: {
-      color: '#4DB6AC',
+      color: '#28a745',
       fontWeight: '600',
     },
     invalidStatus: {
@@ -398,7 +400,7 @@ const Contact = () => {
     },
     featureItem: {
       padding: '0.8rem',
-      background: 'rgba(77, 182, 172, 0.1)',
+      background: 'rgba(0, 150, 136, 0.1)',
       borderRadius: '10px',
       fontSize: isMobile ? '0.8rem' : '0.9rem',
       fontWeight: '600',
@@ -414,7 +416,7 @@ const Contact = () => {
       width: '12px',
       height: '12px',
       borderRadius: '50%',
-      background: '#E0F2F1',
+      background: '#e9ecef',
       cursor: 'pointer',
       transition: 'all 0.3s ease',
     },
@@ -429,7 +431,7 @@ const Contact = () => {
       marginBottom: '2rem',
       overflow: 'hidden',
       borderRadius: '15px',
-      background: 'linear-gradient(135deg, #E0F2F1, #FFFFFF)',
+      background: 'linear-gradient(135deg, #f8f9fa, #ffffff)',
       flexShrink: 0,
     },
     // Medicine Delivery Animation - FIXED DIRECTION
@@ -443,7 +445,7 @@ const Contact = () => {
     deliveryTruck: {
       fontSize: '3rem',
       position: 'relative',
-      transform: 'scaleX(-1)',
+      transform: 'scaleX(-1)', // This flips the truck to face right
     },
     deliveryPath: {
       position: 'absolute',
@@ -506,7 +508,7 @@ const Contact = () => {
       left: '20px',
       right: '20px',
       height: '2px',
-      background: 'linear-gradient(90deg, transparent, #009688, transparent)',
+      background: 'linear-gradient(90deg, transparent, #dc3545, transparent)',
       animation: 'heartbeat 1.5s ease-in-out infinite',
     },
   };
@@ -527,17 +529,6 @@ const Contact = () => {
 
     if (field === 'name') {
       processedValue = value.replace(/[^A-Za-z\s]/g, '');
-    }
-
-    if (field === 'phone') {
-      processedValue = value.replace(/\D/g, '');
-      if (processedValue.length > 0 && /^[6-9]/.test(processedValue)) {
-        if (processedValue.length <= 10) {
-          processedValue = `+91 ${processedValue.slice(0, 10)}`;
-        } else {
-          processedValue = `+91 ${processedValue.slice(0, 10)}`;
-        }
-      }
     }
 
     setFormData(prev => ({
@@ -561,11 +552,38 @@ const Contact = () => {
     }
 
     if (field === 'phone') {
-      const phoneWithoutPrefix = processedValue.replace('+91', '').trim();
-      if (phoneWithoutPrefix === '') {
+      if (processedValue.trim() === '') {
         setPhoneStatus('');
       } else {
         setPhoneStatus(validatePhone(processedValue) ? 'valid' : 'invalid');
+      }
+    }
+  };
+
+  // Special handler for phone input
+  const handlePhoneChange = (e) => {
+    const value = e.target.value;
+    
+    // Remove all non-digits
+    const cleanedValue = value.replace(/\D/g, '');
+    
+    // Limit to 10 digits
+    if (cleanedValue.length <= 10) {
+      setFormData(prev => ({
+        ...prev,
+        phone: cleanedValue
+      }));
+      
+      // Clear any existing phone error
+      if (errors.phone) {
+        setErrors(prev => ({ ...prev, phone: '' }));
+      }
+      
+      // Update phone status
+      if (cleanedValue === '') {
+        setPhoneStatus('');
+      } else {
+        setPhoneStatus(validatePhone(cleanedValue) ? 'valid' : 'invalid');
       }
     }
   };
@@ -651,6 +669,13 @@ const Contact = () => {
     setCurrentAnimation(index);
   };
 
+  // Format phone number for display with +91 prefix
+  const formatPhoneDisplay = (phone) => {
+    if (!phone) return '';
+    // Just return the digits, we'll show +91 separately in placeholder
+    return phone;
+  };
+
   // Generate floating elements
   const floatingElements = Array.from({ length: isMobile ? 8 : 15 }, (_, i) => ({
     id: i,
@@ -682,7 +707,7 @@ const Contact = () => {
         return (
           <div style={styles.realTimeAnimation}>
             <div style={styles.consultationAnimation}>
-              <div style={styles.doctorIcon}></div>
+              <div style={styles.doctorIcon}>👨‍⚕️</div>
               <div style={styles.videoWaves}></div>
               <div style={{...styles.videoWaves, animationDelay: '0.5s'}}></div>
               <div style={{...styles.videoWaves, animationDelay: '1s'}}></div>
@@ -839,20 +864,36 @@ const Contact = () => {
                     <label style={styles.formLabel}>
                       Phone <span style={styles.requiredStar}>*</span>
                     </label>
-                    <input
-                      type="tel"
-                      placeholder=" "
-                      style={{
-                        ...styles.formInput,
-                        ...(hoverStates.formFocus.phone && styles.formInputFocus),
-                        ...(errors.phone && styles.formInputError),
-                        ...(phoneStatus === 'valid' && styles.formInputValid)
-                      }}
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      onFocus={() => handleFocus('phone')}
-                      onBlur={() => handleBlur('phone')}
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <span style={{
+                        position: 'absolute',
+                        left: '1rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#4F6F6B',
+                        fontSize: isMobile ? '0.9rem' : '1rem',
+                        pointerEvents: 'none',
+                      }}>
+                        +91
+                      </span>
+                      <input
+                        ref={phoneInputRef}
+                        type="tel"
+                        placeholder="Enter your 10-digit mobile number"
+                        style={{
+                          ...styles.formInput,
+                          paddingLeft: '3.5rem',
+                          ...(hoverStates.formFocus.phone && styles.formInputFocus),
+                          ...(errors.phone && styles.formInputError),
+                          ...(phoneStatus === 'valid' && styles.formInputValid)
+                        }}
+                        value={formatPhoneDisplay(formData.phone)}
+                        onChange={handlePhoneChange}
+                        onFocus={() => handleFocus('phone')}
+                        onBlur={() => handleBlur('phone')}
+                        maxLength="10"
+                      />
+                    </div>
                     {errors.phone && (
                       <span style={styles.errorText}>⚠️ {errors.phone}</span>
                     )}
@@ -886,8 +927,11 @@ const Contact = () => {
                       <option value="">Select service</option>
                       <option value="medicine-delivery">Medicine Delivery</option>
                       <option value="doctor-consultation">Doctor Consultation</option>
-                      <option value="Pregnancy-care">Pregnancy care</option>
-                      <option value="Baby-care">Baby care</option>
+                      <option value="Baby-care">Baby Care Delivery</option>
+                      <option value="Pregnancy-care">Pregnancy Care</option>
+                      <option value="General-physician">General Physician</option>
+                      <option value="Other">Other</option>
+                      
                     </select>
                     {errors.service && (
                       <span style={styles.errorText}>⚠️ {errors.service}</span>

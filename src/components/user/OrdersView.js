@@ -150,7 +150,7 @@ const generateStatusTimeline = (orderDate, currentStatus) => {
 
 // Styles
 const styles = {
-  container: { padding: '1.5rem', maxWidth: '1400px', margin: '0 auto', minHeight: '100vh', marginTop: '130px' },
+  container: { padding: '1.5rem', maxWidth: '1400px', margin: '0 auto', minHeight: '100vh', marginTop: '140px' },
   header: { display: 'flex', alignItems: 'center', gap: '2rem', marginBottom: '1.5rem', paddingTop: '1rem' },
   title: { color: '#009688', fontSize: '2.2rem', margin: '0 0 0.5rem 0', fontWeight: '800', background: 'linear-gradient(135deg, #009688, #4DB6AC)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' },
   subtitle: { color: '#4F6F6B', fontSize: '1rem', maxWidth: '600px', margin: '0 auto', lineHeight: '1.5' },

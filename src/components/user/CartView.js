@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import './CartView.css';
 
 const CartView = ({
   cart,
@@ -23,9 +24,15 @@ const CartView = ({
   // Validation errors state
   const [validationErrors, setValidationErrors] = useState({});
   
-  // Tip options
+  // Tip states
   const [selectedTip, setSelectedTip] = useState(0);
   const [customTip, setCustomTip] = useState('');
+  const [tipAmount, setTipAmount] = useState(0); // Store actual tip amount
+  
+  // Selection state
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  
   const tipOptions = [
     { amount: 10, label: '₹10' },
     { amount: 20, label: '₹20' },
@@ -35,13 +42,34 @@ const CartView = ({
     { amount: 0, label: 'Custom' }
   ];
 
-  // Ref for modal overlay
   const modalRef = useRef(null);
 
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
+
+  // Initialize selected items when cart changes
+  useEffect(() => {
+    if (cart.length > 0 && selectedItems.length === 0) {
+      // Initially select all items
+      setSelectedItems(cart.map(item => item.id));
+      setSelectAll(true);
+    }
+  }, [cart, selectedItems.length]);
+
+  // Calculate tip amount whenever selectedTip or customTip changes
+  useEffect(() => {
+    let calculatedTip = 0;
+    
+    if (selectedTip > 0) {
+      calculatedTip = selectedTip;
+    } else if (customTip) {
+      calculatedTip = parseInt(customTip) || 0;
+    }
+    
+    setTipAmount(calculatedTip);
+  }, [selectedTip, customTip]);
 
   // Enhanced back button handler
   const handleBackToMedicines = () => {
@@ -50,14 +78,29 @@ const CartView = ({
 
   // Modal handlers
   const openAddressModal = () => {
+    // Check if any items are selected
+    if (selectedItems.length === 0) {
+      alert('Please select at least one item to checkout');
+      return;
+    }
+    
+    // Calculate current tip amount before opening modal
+    let currentTip = 0;
+    if (selectedTip > 0) {
+      currentTip = selectedTip;
+    } else if (customTip) {
+      currentTip = parseInt(customTip) || 0;
+    }
+    setTipAmount(currentTip);
+    
     setShowAddressModal(true);
-    document.body.style.overflow = 'hidden'; // Prevent scrolling
+    document.body.style.overflow = 'hidden';
   };
 
   const closeAddressModal = () => {
     setShowAddressModal(false);
-    setValidationErrors({}); // Clear validation errors when closing modal
-    document.body.style.overflow = 'auto'; // Re-enable scrolling
+    setValidationErrors({});
+    document.body.style.overflow = 'auto';
   };
 
   // Handle click outside modal
@@ -69,27 +112,9 @@ const CartView = ({
 
   const BackButton = ({ onClick, text = 'Back' }) => (
     <button 
-      style={{
-        padding: '0.5rem 1rem',
-        backgroundColor: 'transparent',
-        color: '#009688',
-        border: '2px solid #009688',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        fontSize: '0.9rem',
-        fontWeight: '600',
-        transition: 'all 0.3s ease',
-      }}
+      className="back-button"
       onClick={onClick}
       type="button"
-      onMouseEnter={(e) => {
-        e.target.style.backgroundColor = '#009688';
-        e.target.style.color = 'white';
-      }}
-      onMouseLeave={(e) => {
-        e.target.style.backgroundColor = 'transparent';
-        e.target.style.color = '#009688';
-      }}
     >
       ← {text}
     </button>
@@ -135,14 +160,44 @@ const CartView = ({
     return numbersOnly;
   };
 
-  // Calculate total with tip
-  const getTotalWithTip = () => {
-    const subtotal = getTotalPrice();
-    let tipAmount = selectedTip;
-    
-    if (selectedTip === 0 && customTip) {
-      tipAmount = parseInt(customTip) || 0;
+  // Item selection functions
+  const toggleItemSelection = (itemId) => {
+    setSelectedItems(prev => {
+      if (prev.includes(itemId)) {
+        const newSelected = prev.filter(id => id !== itemId);
+        setSelectAll(newSelected.length === cart.length);
+        return newSelected;
+      } else {
+        const newSelected = [...prev, itemId];
+        setSelectAll(newSelected.length === cart.length);
+        return newSelected;
+      }
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectAll) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(cart.map(item => item.id));
     }
+    setSelectAll(!selectAll);
+  };
+
+  // Get selected cart items
+  const getSelectedCartItems = () => {
+    return cart.filter(item => selectedItems.includes(item.id));
+  };
+
+  // Get total price for selected items only
+  const getSelectedTotalPrice = () => {
+    const selected = getSelectedCartItems();
+    return selected.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  // Calculate total with tip for selected items only
+  const getTotalWithTip = () => {
+    const subtotal = getSelectedTotalPrice();
     
     return {
       subtotal,
@@ -156,6 +211,9 @@ const CartView = ({
     setSelectedTip(amount);
     if (amount !== 0) {
       setCustomTip('');
+      setTipAmount(amount);
+    } else {
+      setTipAmount(0);
     }
   };
 
@@ -163,8 +221,12 @@ const CartView = ({
   const handleCustomTipChange = (value) => {
     const validatedValue = validateCustomTip(value);
     setCustomTip(validatedValue);
+    
     if (validatedValue) {
       setSelectedTip(0);
+      setTipAmount(parseInt(validatedValue) || 0);
+    } else {
+      setTipAmount(0);
     }
   };
 
@@ -267,6 +329,19 @@ const CartView = ({
 
   // Handle checkout process
   const handleCheckout = async () => {
+    // Check if any items are selected
+    if (selectedItems.length === 0) {
+      alert('Please select at least one item to checkout');
+      return;
+    }
+    
+    // Ensure tip amount is calculated before opening modal
+    let currentTip = tipAmount;
+    if (selectedTip === 0 && customTip) {
+      currentTip = parseInt(customTip) || 0;
+    }
+    setTipAmount(currentTip);
+    
     // First step: Open address modal
     openAddressModal();
   };
@@ -287,24 +362,37 @@ const CartView = ({
       return;
     }
 
-    // Prepare checkout data with tip
+    // Prepare checkout data with tip and selected items
     const totals = getTotalWithTip();
+    
+    // Create cart items array with selected items only
+    const selectedCartItems = getSelectedCartItems();
+    
     const checkoutData = {
       address,
       tip: totals.tip,
-      totalAmount: totals.total
+      subtotal: totals.subtotal,
+      totalAmount: totals.total,
+      selectedItems: selectedItems, // Pass selected item IDs
+      cartItems: selectedCartItems, // Pass selected cart items for Razorpay
+      tipDetails: {
+        selectedTip,
+        customTip,
+        tipAmount: totals.tip
+      }
     };
+
+    console.log('Checkout data:', checkoutData); // For debugging
 
     // Close modal first
     closeAddressModal();
 
-    // Proceed with payment (wrap in try-catch to handle payment cancellation)
+    // Proceed with payment
     try {
       await handleCheckoutConfirmation(checkoutData);
     } catch (error) {
       // Handle payment cancellation or error
       console.log('Payment was cancelled or failed:', error);
-      // No alert or localhost message shown
     }
   };
 
@@ -312,16 +400,8 @@ const CartView = ({
   const renderErrorMessage = (field) => {
     if (validationErrors[field]) {
       return (
-        <div style={{
-          color: '#ff4444',
-          fontSize: '0.75rem',
-          marginTop: '0.25rem',
-          marginLeft: '0.25rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.25rem'
-        }}>
-          <span style={{ fontSize: '0.9rem' }}>⚠️</span>
+        <div className="error-message">
+          <span className="error-icon">⚠️</span>
           {validationErrors[field]}
         </div>
       );
@@ -329,491 +409,215 @@ const CartView = ({
     return null;
   };
 
+  // Get selection stats
+  const getSelectionStats = () => {
+    const selectedCount = selectedItems.length;
+    const totalCount = cart.length;
+    const selectedTotal = getSelectedTotalPrice();
+    
+    return {
+      selectedCount,
+      totalCount,
+      selectedTotal
+    };
+  };
+
+  const stats = getSelectionStats();
+  const totals = getTotalWithTip();
+
   return (
-    <div style={{
-      marginTop: '120px',
-      padding: '1.5rem',
-      maxWidth: '1400px',
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      minHeight: '80vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      backgroundColor: '#E0F2F1', // softbg
-    }}>
+    <div className="cart-container">
       {/* Header Section - Compact */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '0.75rem',
-        marginBottom: '2rem',
-        textAlign: 'center',
-        width: '100%',
-        position: 'relative',
-      }}>
+      <div className="cart-header">
         {/* Back Button - Left Edge */}
-        <div style={{
-          position: 'absolute',
-          left: 0,
-          top: '10%',
-          marginTop: '1.5rem',
-          transform: 'translateY(-50%)',
-        }}>
+        <div className="back-button-container">
           <BackButton onClick={handleBackToMedicines} text="Back to Medicines" />
         </div>
         
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          justifyContent: 'center',
-          width: '100%',
-        }}>
-          <h2 style={{
-            color: '#124441', // darktext
-            fontSize: '2rem',
-            margin: 0,
-            marginTop: '1.5rem',
-            fontWeight: '800',
-            background: 'linear-gradient(135deg, #009688, #4DB6AC)', // primary to mint
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}>Your Shopping Cart</h2>
+        <div className="header-title-container">
+          <h2 className="cart-title">Your Shopping Cart</h2>
         </div>
         
         {/* Cart Summary Stats - Compact */}
         {cart.length > 0 && (
-          <div style={{
-            display: 'flex',
-            gap: '1.5rem',
-            justifyContent: 'center',
-            flexWrap: 'wrap',
-            marginTop: '0.5rem',
-          }}>
-            <div style={{
-              backgroundColor: 'white',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '10px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              border: '1px solid #4DB6AC', // mint
-              textAlign: 'center',
-            }}>
-              <div style={{
-                color: '#009688', // primary
-                fontSize: '1.4rem',
-                fontWeight: '800',
-                marginBottom: '0.25rem',
-              }}>
-                {cart.length}
-              </div>
-              <div style={{
-                color: '#4F6F6B', // softtext
-                fontSize: '0.8rem',
-                fontWeight: '600',
-              }}>
-                📦 Items
-              </div>
+          <div className="cart-stats">
+            <div className="stat-box">
+              <div className="stat-value">{stats.selectedCount}/{cart.length}</div>
+              <div className="stat-label">✅ Selected</div>
             </div>
             
-            <div style={{
-              backgroundColor: 'white',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '10px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              border: '1px solid #4DB6AC', // mint
-              textAlign: 'center',
-            }}>
-              <div style={{
-                color: '#009688', // primary
-                fontSize: '1.4rem',
-                fontWeight: '800',
-                marginBottom: '0.25rem',
-              }}>
-                ₹{formatIndianNumber(getTotalPrice())}
-              </div>
-              <div style={{
-                color: '#4F6F6B', // softtext
-                fontSize: '0.8rem',
-                fontWeight: '600',
-              }}>
-                💰 Total
-              </div>
+            <div className="stat-box">
+              <div className="stat-value">₹{formatIndianNumber(stats.selectedTotal)}</div>
+              <div className="stat-label">💰 Selected Total</div>
             </div>
           </div>
         )}
       </div>
       
       {/* Main Content - Side by Side Layout */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'flex-start',
-        width: '100%',
-        maxWidth: '1300px',
-        gap: '2rem',
-        flexWrap: 'wrap',
-      }}>
+      <div className="cart-content">
         {cart.length === 0 ? (
           /* Empty Cart State - Compact */
-          <div style={{
-            backgroundColor: 'white',
-            padding: '3rem 2rem',
-            borderRadius: '15px',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-            border: '1px solid #4DB6AC', // mint
-            textAlign: 'center',
-            width: '100%',
-            maxWidth: '500px',
-          }}>
-            <div style={{
-              fontSize: '4rem',
-              marginBottom: '1.5rem',
-              opacity: 0.7,
-              animation: 'pulse 2s infinite',
-              color: '#009688' // primary
-            }}>🛒</div>
-            <h3 style={{
-              margin: '0 0 0.75rem 0',
-              fontSize: '1.5rem',
-              fontWeight: '700',
-              color: '#124441' // darktext
-            }}>Your cart is empty</h3>
-            <p style={{
-              margin: '0 0 2rem 0',
-              fontSize: '1rem',
-              color: '#4F6F6B', // softtext
-              lineHeight: '1.5'
-            }}>Looks like you haven't added any medicines to your cart yet.</p>
+          <div className="empty-cart">
+            <div className="empty-cart-icon">🛒</div>
+            <h3 className="empty-cart-title">Your cart is empty</h3>
+            <p className="empty-cart-message">
+              Looks like you haven't added any medicines to your cart yet.
+            </p>
             <button 
-              style={{
-                padding: '1rem 2.5rem',
-                backgroundColor: '#009688', // primary
-                color: 'white',
-                border: 'none',
-                borderRadius: '10px',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                fontWeight: '700',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 2px 8px rgba(0, 150, 136, 0.3)',
-              }}
+              className="shop-now-btn"
               onClick={handleBackToMedicines}
               type="button"
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#00796B';
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 4px 12px rgba(0, 150, 136, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = '#009688';
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 2px 8px rgba(0, 150, 136, 0.3)';
-              }}
             >
                Shop Medicines Now
             </button>
           </div>
         ) : (
-          /* Cart with Items - Side by Side Layout */
           <>
             {/* Cart Items Box - Left Side */}
-            <div style={{
-              backgroundColor: 'white',
-              padding: '2rem',
-              borderRadius: '15px',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-              border: '1px solid #4DB6AC', // mint
-              flex: '1 1 600px',
-              minWidth: '300px',
-              maxWidth: '800px',
-            }}>
-              <div style={{
-                borderBottom: '2px solid #E0F2F1', // softbg
-                paddingBottom: '1rem',
-                marginBottom: '1.5rem',
-                textAlign: 'center',
-              }}>
-                <h3 style={{
-                  margin: '0 0 0.25rem 0',
-                  color: '#124441', // darktext
-                  fontSize: '1.5rem',
-                  fontWeight: '800',
-                }}>🛒 Cart Items ({cart.length})</h3>
-                <p style={{
-                  margin: 0,
-                  color: '#4F6F6B', // softtext
-                  fontSize: '0.9rem',
-                  fontWeight: '500',
-                }}>Review your items before checkout</p>
+            <div className="cart-items-container">
+              <div className="cart-items-header">
+                <div className="selection-header">
+                  <h3 className="cart-items-title">🛒 Cart Items ({cart.length})</h3>
+                  <div className="select-all-container">
+                    <label className="select-all-label">
+                      <input
+                        type="checkbox"
+                        checked={selectAll}
+                        onChange={toggleSelectAll}
+                        className="select-all-checkbox"
+                      />
+                      <span className="select-all-text">
+                        {selectAll ? 'Deselect All' : 'Select All'}
+                      </span>
+                    </label>
+                    <span className="selection-count">
+                      ({stats.selectedCount} selected)
+                    </span>
+                  </div>
+                </div>
+                <p className="cart-items-subtitle">Select items you want to checkout</p>
               </div>
               
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-                maxHeight: '600px',
-                overflowY: 'auto',
-                paddingRight: '0.5rem',
-              }}>
-                {cart.map(item => (
-                  <div key={item.id} style={{
-                    display: 'grid',
-                    gridTemplateColumns: '2fr 1fr 1fr auto',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    padding: '1.25rem',
-                    border: '1px solid #E0F2F1', // softbg
-                    borderRadius: '12px',
-                    backgroundColor: '#fafafa',
-                    transition: 'all 0.3s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-                    e.currentTarget.style.borderColor = '#009688'; // primary
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = 'none';
-                    e.currentTarget.style.borderColor = '#E0F2F1'; // softbg
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}>
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                    }}>
-                      <h4 style={{
-                        margin: '0 0 0.25rem 0',
-                        fontSize: '1rem',
-                        color: '#124441', // darktext
-                        fontWeight: '700'
-                      }}> {item.name}</h4>
-                      <p style={{
-                        margin: '0 0 0.25rem 0',
-                        fontSize: '0.8rem',
-                        color: '#4F6F6B', // softtext
-                        fontWeight: '500'
-                      }}> {item.vendor}</p>
-                      <p style={{
-                        margin: 0,
-                        fontSize: '0.85rem',
-                        color: '#009688', // primary
-                        fontWeight: '600'
-                      }}>₹{formatIndianNumber(item.price)} each</p>
-                    </div>
-                    
-                    {/* Quantity Controls */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      justifyContent: 'center',
-                    }}>
+              <div className="cart-items-list">
+                {cart.map(item => {
+                  const isSelected = selectedItems.includes(item.id);
+                  return (
+                    <div key={item.id} className={`cart-item ${isSelected ? 'selected' : ''}`}>
+                      {/* Selection Checkbox */}
+                      <div className="item-selection">
+                        <label className="selection-label">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleItemSelection(item.id)}
+                            className="item-checkbox"
+                          />
+                          <span className="checkmark"></span>
+                        </label>
+                      </div>
+                      
+                      <div className="item-info">
+                        <h4 className="item-name">
+                          {item.name}
+                          {isSelected && <span className="selected-badge">✓ Selected</span>}
+                        </h4>
+                        <p className="item-vendor"> {item.vendor}</p>
+                        <p className="item-price">₹{formatIndianNumber(item.price)} each</p>
+                      </div>
+                      
+                      {/* Quantity Controls */}
+                      <div className="quantity-controls">
+                        <button 
+                          className={`quantity-btn ${item.quantity <= 1 ? 'disabled' : ''}`}
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          type="button"
+                          disabled={item.quantity <= 1}
+                        >
+                          −
+                        </button>
+                        <span className="quantity-display">{item.quantity}</span>
+                        <button 
+                          className="quantity-btn increase"
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          type="button"
+                        >
+                          +
+                        </button>
+                      </div>
+                      
+                      {/* Item Total */}
+                      <div className="item-total">
+                        ₹{formatIndianNumber(item.price * item.quantity)}
+                      </div>
+                      
+                      {/* Remove Button */}
                       <button 
-                        style={{
-                          width: '35px',
-                          height: '35px',
-                          border: '2px solid #009688', // primary
-                          backgroundColor: item.quantity <= 1 ? '#E0F2F1' : 'transparent', // softbg
-                          borderRadius: '6px',
-                          cursor: item.quantity <= 1 ? 'not-allowed' : 'pointer',
-                          fontSize: '1rem',
-                          fontWeight: 'bold',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.3s ease',
-                          color: item.quantity <= 1 ? '#ccc' : '#009688', // primary
-                        }}
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        className="remove-btn"
+                        onClick={() => removeFromCart(item.id)}
+                        title="Remove item"
                         type="button"
-                        disabled={item.quantity <= 1}
                       >
-                        −
-                      </button>
-                      <span style={{
-                          padding: '0.4rem 0.8rem',
-                          fontWeight: '700',
-                          minWidth: '35px',
-                          textAlign: 'center',
-                          backgroundColor: '#009688', // primary
-                          color: 'white',
-                          borderRadius: '6px',
-                          fontSize: '0.9rem',
-                        }}>{item.quantity}</span>
-                      <button 
-                        style={{
-                          width: '35px',
-                          height: '35px',
-                          border: '2px solid #009688', // primary
-                          backgroundColor: 'transparent',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontSize: '1rem',
-                          fontWeight: 'bold',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.3s ease',
-                          color: '#009688', // primary
-                        }}
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        type="button"
-                        onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = '#009688'; // primary
-                          e.target.style.color = 'white';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = 'transparent';
-                          e.target.style.color = '#009688'; // primary
-                        }}
-                      >
-                        +
+                        ×
                       </button>
                     </div>
-                    
-                    {/* Item Total */}
-                    <div style={{
-                      fontWeight: '800',
-                      color: '#009688', // primary
-                      fontSize: '1.1rem',
-                      textAlign: 'center',
-                      backgroundColor: '#E0F2F1', // softbg
-                      padding: '0.6rem 0.8rem',
-                      borderRadius: '8px',
-                      border: '1px solid #4DB6AC', // mint
-                    }}>
-                      ₹{formatIndianNumber(item.price * item.quantity)}
-                    </div>
-                    
-                    {/* Remove Button */}
-                    <button 
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        border: 'none',
-                        backgroundColor: '#ff4444',
-                        color: 'white',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontSize: '1.2rem',
-                        fontWeight: 'bold',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'all 0.3s ease',
-                        boxShadow: '0 1px 4px rgba(255, 68, 68, 0.3)',
-                      }}
-                      onClick={() => removeFromCart(item.id)}
-                      title="Remove item"
-                      type="button"
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = '#cc0000';
-                        e.target.style.transform = 'scale(1.05)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = '#ff4444';
-                        e.target.style.transform = 'scale(1)';
-                      }}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
             {/* Order Summary Box - Right Side */}
-            <div style={{
-              backgroundColor: 'white',
-              padding: '2rem',
-              borderRadius: '15px',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-              border: '1px solid #4DB6AC', // mint
-              flex: '0 1 400px',
-              minWidth: '350px',
-              position: 'sticky',
-              top: '140px',
-            }}>
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.5rem'
-              }}>
-                <h3 style={{
-                  color: '#124441', // darktext
-                  fontSize: '1.5rem',
-                  margin: 0,
-                  textAlign: 'center',
-                  fontWeight: '800',
-                  borderBottom: '2px solid #E0F2F1', // softbg
-                  paddingBottom: '0.75rem',
-                }}>💰 Order Summary</h3>
+            <div className="order-summary">
+              <div className="summary-content">
+                <h3 className="summary-title">💰 Order Summary</h3>
+                
+                {/* Selection Summary */}
+                <div className="selection-summary">
+                  <div className="selection-summary-header">
+                    <span className="selection-summary-icon">📋</span>
+                    <span className="selection-summary-title">Selected Items Summary</span>
+                  </div>
+                  <div className="selection-summary-content">
+                    {getSelectedCartItems().map(item => (
+                      <div key={item.id} className="selected-item-summary">
+                        <span className="selected-item-name">{item.name}</span>
+                        <span className="selected-item-qty">×{item.quantity}</span>
+                        <span className="selected-item-price">
+                          ₹{formatIndianNumber(item.price * item.quantity)}
+                        </span>
+                      </div>
+                    ))}
+                    {stats.selectedCount === 0 && (
+                      <div className="no-selection-message">
+                        ⚠️ No items selected. Please select items to checkout.
+                      </div>
+                    )}
+                  </div>
+                </div>
                 
                 {/* Tip Section - Always Visible */}
-                <div style={{
-                  marginBottom: '1rem',
-                  padding: '1.25rem',
-                  backgroundColor: '#E0F2F1', // softbg
-                  borderRadius: '12px',
-                  border: '1px solid #4DB6AC', // mint
-                }}>
-                  <h4 style={{
-                    margin: '0 0 1rem 0',
-                    fontSize: '1.1rem',
-                    fontWeight: '700',
-                    color: '#124441', // darktext
-                    textAlign: 'center',
-                  }}>💝 Tip Your Delivery Agent (Optional)</h4>
+                <div className="tip-section">
+                  <h4 className="tip-title">💝 Tip Your Delivery Agent (Optional)</h4>
                   
-                  <p style={{
-                    fontSize: '0.8rem',
-                    color: '#4F6F6B', // softtext
-                    marginBottom: '1rem',
-                    textAlign: 'center',
-                    fontStyle: 'italic',
-                  }}>
+                  <p className="tip-subtitle">
                     Support your delivery agent with a small tip for their service
                   </p>
                   
                   {/* Tip Options */}
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '0.5rem',
-                    marginBottom: '1rem'
-                  }}>
+                  <div className="tip-options">
                     {tipOptions.map((tip) => (
                       <button
                         key={tip.amount}
-                        style={{
-                          padding: '0.75rem 0.5rem',
-                          border: `2px solid ${selectedTip === tip.amount ? '#009688' : '#4DB6AC'}`, // primary : mint
-                          backgroundColor: selectedTip === tip.amount ? '#E0F2F1' : 'white', // softbg
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          fontSize: '0.9rem',
-                          fontWeight: selectedTip === tip.amount ? '700' : '600',
-                          color: selectedTip === tip.amount ? '#009688' : '#124441', // primary : darktext
-                          transition: 'all 0.2s ease',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
+                        className={`tip-option ${selectedTip === tip.amount ? 'selected' : ''}`}
                         onClick={() => handleTipSelect(tip.amount)}
                         type="button"
+                        disabled={stats.selectedCount === 0}
                       >
-                        {tip.label}
+                        <span className="tip-label">
+                          {tip.label}
+                        </span>
                         {tip.amount > 0 && (
-                          <span style={{
-                            fontSize: '0.7rem',
-                            color: selectedTip === tip.amount ? '#009688' : '#4F6F6B', // primary : softtext
-                            marginTop: '0.2rem'
-                          }}>
+                          <span className="tip-emoji">
                             👍
                           </span>
                         )}
@@ -823,15 +627,8 @@ const CartView = ({
                   
                   {/* Custom Tip Input */}
                   {selectedTip === 0 && (
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '0.8rem',
-                        fontWeight: '600',
-                        color: '#124441', // darktext
-                        marginBottom: '0.25rem',
-                        marginLeft: '0.25rem'
-                      }}>
+                    <div className="custom-tip">
+                      <label className="custom-tip-label">
                         Enter Custom Tip Amount (₹)
                       </label>
                       <input
@@ -839,167 +636,79 @@ const CartView = ({
                         placeholder="Enter amount"
                         value={customTip}
                         onChange={(e) => handleCustomTipChange(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          border: '2px solid #4DB6AC', // mint
-                          borderRadius: '8px',
-                          fontSize: '0.9rem',
-                          outline: 'none',
-                          transition: 'border-color 0.3s ease',
-                          backgroundColor: 'white',
-                          boxSizing: 'border-box',
-                          textAlign: 'center'
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#009688'} // primary
-                        onBlur={(e) => e.target.style.borderColor = '#4DB6AC'} // mint
+                        className="custom-tip-input"
+                        maxLength="5"
+                        disabled={stats.selectedCount === 0}
                       />
                     </div>
                   )}
                 </div>
                 
                 {/* Price Breakdown */}
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.75rem'
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingBottom: '0.75rem',
-                    borderBottom: '1px solid #f0f0f0'
-                  }}>
-                    <span style={{ fontSize: '1rem', fontWeight: '600', color: '#124441' }}>Subtotal:</span>
-                    <span style={{ fontSize: '1rem', fontWeight: '600', color: '#124441' }}>₹{formatIndianNumber(getTotalPrice())}</span>
+                <div className="price-breakdown">
+                  <div className="price-row">
+                    <span className="price-label">Selected Items Total:</span>
+                    <span className="price-value">₹{formatIndianNumber(totals.subtotal)}</span>
                   </div>
                   
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingBottom: '0.75rem',
-                    borderBottom: '1px solid #f0f0f0'
-                  }}>
-                    <span style={{ fontSize: '0.9rem', fontWeight: '500', color: '#4F6F6B' }}>Delivery Fee:</span>
-                    <span style={{
-                      color: '#009688', // primary
-                      fontWeight: '700',
-                      fontSize: '1rem'
-                    }}>🆓 Free</span>
+                  <div className="price-row">
+                    <span className="price-label">Delivery Fee:</span>
+                    <span className="price-free">🆓 Free</span>
                   </div>
                   
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingBottom: '0.75rem',
-                    borderBottom: '1px solid #f0f0f0'
-                  }}>
-                    <span style={{ fontSize: '0.9rem', fontWeight: '500', color: '#4F6F6B' }}>Tax (GST):</span>
-                    <span style={{ fontSize: '0.9rem', fontWeight: '500', color: '#4F6F6B' }}>₹0</span>
+                  <div className="price-row">
+                    <span className="price-label">Tax (GST):</span>
+                    <span className="price-tax">₹0</span>
                   </div>
                   
                   {/* Tip Display */}
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingBottom: '0.75rem',
-                    borderBottom: '1px solid #f0f0f0'
-                  }}>
-                    <div>
-                      <span style={{ fontSize: '0.9rem', fontWeight: '500', color: '#4F6F6B' }}>Delivery Tip:</span>
-                      <span style={{
-                        fontSize: '0.7rem',
-                        color: '#009688', // primary
-                        marginLeft: '0.5rem',
-                        backgroundColor: '#E0F2F1', // softbg
-                        padding: '0.1rem 0.3rem',
-                        borderRadius: '4px'
-                      }}>
+                  <div className="price-row">
+                    <div className="tip-label-container">
+                      <span className="price-label">Delivery Tip:</span>
+                      <span className="tip-optional">
                         Optional
                       </span>
                     </div>
-                    <span style={{
-                      color: getTotalWithTip().tip > 0 ? '#009688' : '#4F6F6B', // primary : softtext
-                      fontWeight: getTotalWithTip().tip > 0 ? '700' : '500',
-                      fontSize: getTotalWithTip().tip > 0 ? '1rem' : '0.9rem'
-                    }}>
-                      {getTotalWithTip().tip > 0 ? `₹${formatIndianNumber(getTotalWithTip().tip)}` : '₹0'}
+                    <span className={`tip-amount ${totals.tip > 0 ? 'has-tip' : ''}`}>
+                      {totals.tip > 0 ? `₹${formatIndianNumber(totals.tip)}` : '₹0'}
                     </span>
                   </div>
                   
                   {/* Grand Total */}
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingTop: '1rem',
-                    borderTop: '2px solid #009688', // primary
-                    fontWeight: '800',
-                    fontSize: '1.2rem',
-                    color: '#124441', // darktext
-                    backgroundColor: '#E0F2F1', // softbg
-                    padding: '1.25rem',
-                    borderRadius: '10px',
-                  }}>
-                    <span>Grand Total:</span>
-                    <span>₹{formatIndianNumber(getTotalWithTip().total)}</span>
+                  <div className="grand-total">
+                    <span className="total-label">Grand Total:</span>
+                    <span className="total-value">
+                      ₹{formatIndianNumber(totals.total)}
+                    </span>
                   </div>
                   
                   {/* Tip Note */}
-                  {getTotalWithTip().tip > 0 && (
-                    <div style={{
-                      fontSize: '0.75rem',
-                      color: '#009688', // primary
-                      textAlign: 'center',
-                      fontStyle: 'italic',
-                      backgroundColor: '#E0F2F1', // softbg
-                      padding: '0.5rem',
-                      borderRadius: '6px',
-                      border: '1px solid #4DB6AC' // mint
-                    }}>
+                  {totals.tip > 0 && (
+                    <div className="tip-note">
                       💝 Thank you for supporting your delivery agent!
+                    </div>
+                  )}
+                  
+                  {/* Selection Note */}
+                  {stats.selectedCount > 0 && stats.selectedCount < cart.length && (
+                    <div className="selection-note">
+                      📝 Note: {cart.length - stats.selectedCount} item(s) will remain in your cart
                     </div>
                   )}
                 </div>
                 
                 {/* Checkout Button */}
                 <button 
-                  style={{
-                    width: '100%',
-                    padding: '1.25rem',
-                    backgroundColor: paymentLoading ? '#cccccc' : '#009688', // primary
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    cursor: paymentLoading ? 'not-allowed' : 'pointer',
-                    fontWeight: '800',
-                    fontSize: '1.1rem',
-                    transition: 'all 0.3s ease',
-                    boxShadow: paymentLoading ? 'none' : '0 2px 8px rgba(0, 150, 136, 0.3)',
-                  }}
+                  className={`checkout-btn ${paymentLoading ? 'loading' : ''} ${stats.selectedCount === 0 ? 'disabled' : ''}`}
                   onClick={handleCheckout}
-                  disabled={paymentLoading}
+                  disabled={paymentLoading || stats.selectedCount === 0}
                   type="button"
-                  onMouseEnter={(e) => {
-                    if (!paymentLoading) {
-                      e.target.style.backgroundColor = '#00796B';
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 4px 12px rgba(0, 150, 136, 0.4)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!paymentLoading) {
-                      e.target.style.backgroundColor = '#009688';
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 2px 8px rgba(0, 150, 136, 0.3)';
-                    }
-                  }}
                 >
-                  {paymentLoading ? '⏳ Processing Payment...' : '🚀 Proceed to Checkout'}
+                  {paymentLoading 
+                    ? '⏳ Processing Payment...' 
+                    : stats.selectedCount === 0
+                    ? '⚠️ Select Items to Checkout'
+                    : `🚀 Checkout ${stats.selectedCount} Item(s)`}
                 </button>
               </div>
             </div>
@@ -1010,88 +719,23 @@ const CartView = ({
       {/* Address Modal Popup */}
       {showAddressModal && (
         <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1000,
-            padding: '1rem',
-            animation: 'fadeIn 0.3s ease',
-            cursor: 'pointer'
-          }}
+          className="modal-overlay"
           onClick={handleOverlayClick}
         >
           <div 
             ref={modalRef}
-            style={{
-              backgroundColor: 'white',
-              borderRadius: '15px',
-              width: '100%',
-              maxWidth: '600px',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-              animation: 'slideUp 0.3s ease',
-              cursor: 'default'
-            }}
+            className="modal-container"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div style={{
-              padding: '1.5rem 2rem',
-              borderBottom: '2px solid #E0F2F1', // softbg
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              backgroundColor: '#E0F2F1', // softbg
-              borderTopLeftRadius: '15px',
-              borderTopRightRadius: '15px',
-              position: 'sticky',
-              top: 0,
-              zIndex: 1
-            }}>
-              <h2 style={{
-                margin: 0,
-                color: '#124441', // darktext
-                fontSize: '1.5rem',
-                fontWeight: '800',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}>
-                📍 Delivery Address
+            <div className="modal-header">
+              <h2 className="modal-title">
+                <span className="modal-icon">📍</span>
+                Delivery Address
               </h2>
               <button
                 onClick={closeAddressModal}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  color: '#124441', // darktext
-                  padding: '0.5rem',
-                  borderRadius: '50%',
-                  width: '40px',
-                  height: '40px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#4DB6AC'; // mint
-                  e.target.style.transform = 'rotate(90deg)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.transform = 'rotate(0deg)';
-                }}
+                className="modal-close-btn"
                 type="button"
               >
                 ×
@@ -1099,38 +743,45 @@ const CartView = ({
             </div>
 
             {/* Modal Body */}
-            <div style={{
-              padding: '2rem'
-            }}>
-              <p style={{
-                margin: '0 0 1.5rem 0',
-                color: '#4F6F6B', // softtext
-                fontSize: '0.95rem',
-                lineHeight: '1.5'
-              }}>
+            <div className="modal-body">
+              <p className="modal-instruction">
                 Please enter your delivery details. All fields marked with * are required.
               </p>
 
+              {/* Checkout Summary */}
+              <div className="checkout-summary-modal">
+                <h4 className="checkout-summary-title">📋 Order Summary ({stats.selectedCount} items)</h4>
+                <div className="checkout-items-list">
+                  {getSelectedCartItems().map(item => (
+                    <div key={item.id} className="checkout-item">
+                      <span className="checkout-item-name">{item.name}</span>
+                      <span className="checkout-item-details">
+                        {item.quantity} × ₹{formatIndianNumber(item.price)} = 
+                        ₹{formatIndianNumber(item.price * item.quantity)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="checkout-total">
+                  <span>Subtotal:</span>
+                  <span>₹{formatIndianNumber(totals.subtotal)}</span>
+                </div>
+                <div className="checkout-total">
+                  <span>Delivery Tip:</span>
+                  <span>₹{formatIndianNumber(totals.tip)}</span>
+                </div>
+                <div className="checkout-total" style={{ borderTop: '2px solid #009688', fontWeight: '700' }}>
+                  <span>Total to Pay:</span>
+                  <span>₹{formatIndianNumber(totals.total)}</span>
+                </div>
+              </div>
+
               {/* Address Form */}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.5rem'
-              }}>
+              <div className="address-form">
                 {/* Full Name & Phone Number - Same Row */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '1rem'
-                }}>
-                  <div id="address-fullName">
-                    <label style={{
-                      display: 'block',
-                      fontSize: '0.85rem',
-                      fontWeight: '600',
-                      color: '#124441', // darktext
-                      marginBottom: '0.5rem'
-                    }}>
+                <div className="form-row">
+                  <div id="address-fullName" className="form-group">
+                    <label className="form-label">
                       Full Name *
                     </label>
                     <input
@@ -1138,34 +789,12 @@ const CartView = ({
                       placeholder="Enter full name"
                       value={address.fullName}
                       onChange={(e) => handleAddressChange('fullName', e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        border: `2px solid ${validationErrors.fullName ? '#ff4444' : '#4DB6AC'}`, // mint
-                        borderRadius: '8px',
-                        fontSize: '0.9rem',
-                        outline: 'none',
-                        transition: 'border-color 0.3s ease',
-                        backgroundColor: 'white',
-                        boxSizing: 'border-box',
-                      }}
-                      onFocus={(e) => e.target.style.borderColor = '#009688'} // primary
-                      onBlur={(e) => {
-                        if (!validationErrors.fullName) {
-                          e.target.style.borderColor = '#4DB6AC'; // mint
-                        }
-                      }}
+                      className={`form-input ${validationErrors.fullName ? 'error' : ''}`}
                     />
                     {renderErrorMessage('fullName')}
                   </div>
-                  <div id="address-phone">
-                    <label style={{
-                      display: 'block',
-                      fontSize: '0.85rem',
-                      fontWeight: '600',
-                      color: '#124441', // darktext
-                      marginBottom: '0.5rem'
-                    }}>
+                  <div id="address-phone" className="form-group">
+                    <label className="form-label">
                       Phone Number *
                     </label>
                     <input
@@ -1173,75 +802,31 @@ const CartView = ({
                       placeholder="6,7,8,9 numbers only"
                       value={address.phone}
                       onChange={(e) => handleAddressChange('phone', e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        border: `2px solid ${validationErrors.phone ? '#ff4444' : '#4DB6AC'}`, // mint
-                        borderRadius: '8px',
-                        fontSize: '0.9rem',
-                        outline: 'none',
-                        transition: 'border-color 0.3s ease',
-                        backgroundColor: 'white',
-                        boxSizing: 'border-box',
-                      }}
+                      className={`form-input ${validationErrors.phone ? 'error' : ''}`}
                       maxLength="10"
-                      onFocus={(e) => e.target.style.borderColor = '#009688'} // primary
-                      onBlur={(e) => {
-                        if (!validationErrors.phone) {
-                          e.target.style.borderColor = '#4DB6AC'; // mint
-                        }
-                      }}
                     />
                     {renderErrorMessage('phone')}
                   </div>
                 </div>
 
                 {/* Street Address - Full Width */}
-                <div id="address-street">
-                  <label style={{
-                    display: 'block',
-                    fontSize: '0.85rem',
-                    fontWeight: '600',
-                    color: '#124441', // darktext
-                    marginBottom: '0.5rem'
-                  }}>
+                <div id="address-street" className="form-group">
+                  <label className="form-label">
                     Street Address *
                   </label>
-                  <input
-                    type="text"
-                    placeholder="Enter street address"
-                    value={address.street}
-                    onChange={(e) => handleAddressChange('street', e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      border: `2px solid ${validationErrors.street ? '#ff4444' : '#4DB6AC'}`, // mint
-                      borderRadius: '8px',
-                      fontSize: '0.9rem',
-                      outline: 'none',
-                      transition: 'border-color 0.3s ease',
-                      backgroundColor: 'white',
-                      boxSizing: 'border-box',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#009688'} // primary
-                    onBlur={(e) => {
-                      if (!validationErrors.street) {
-                        e.target.style.borderColor = '#4DB6AC'; // mint
-                      }
-                    }}
-                  />
-                  {renderErrorMessage('street')}
+                    <input
+                      type="text"
+                      placeholder="Enter street address"
+                      value={address.street}
+                      onChange={(e) => handleAddressChange('street', e.target.value)}
+                      className={`form-input ${validationErrors.street ? 'error' : ''}`}
+                    />
+                    {renderErrorMessage('street')}
                 </div>
 
                 {/* Landmark - Full Width */}
-                <div>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '0.85rem',
-                    fontWeight: '600',
-                    color: '#124441', // darktext
-                    marginBottom: '0.5rem'
-                  }}>
+                <div className="form-group">
+                  <label className="form-label">
                     Landmark (Optional)
                   </label>
                   <input
@@ -1249,36 +834,14 @@ const CartView = ({
                     placeholder="Enter nearby landmark"
                     value={address.landmark}
                     onChange={(e) => handleAddressChange('landmark', e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      border: '2px solid #4DB6AC', // mint
-                      borderRadius: '8px',
-                      fontSize: '0.9rem',
-                      outline: 'none',
-                      transition: 'border-color 0.3s ease',
-                      backgroundColor: 'white',
-                      boxSizing: 'border-box',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#009688'} // primary
-                    onBlur={(e) => e.target.style.borderColor = '#4DB6AC'} // mint
+                    className="form-input"
                   />
                 </div>
 
                 {/* City & State - Same Row */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '1rem'
-                }}>
-                  <div id="address-city">
-                    <label style={{
-                      display: 'block',
-                      fontSize: '0.85rem',
-                      fontWeight: '600',
-                      color: '#124441', // darktext
-                      marginBottom: '0.5rem'
-                    }}>
+                <div className="form-row">
+                  <div id="address-city" className="form-group">
+                    <label className="form-label">
                       City *
                     </label>
                     <input
@@ -1286,34 +849,12 @@ const CartView = ({
                       placeholder="Enter city"
                       value={address.city}
                       onChange={(e) => handleAddressChange('city', e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        border: `2px solid ${validationErrors.city ? '#ff4444' : '#4DB6AC'}`, // mint
-                        borderRadius: '8px',
-                        fontSize: '0.9rem',
-                        outline: 'none',
-                        transition: 'border-color 0.3s ease',
-                        backgroundColor: 'white',
-                        boxSizing: 'border-box',
-                      }}
-                      onFocus={(e) => e.target.style.borderColor = '#009688'} // primary
-                      onBlur={(e) => {
-                        if (!validationErrors.city) {
-                          e.target.style.borderColor = '#4DB6AC'; // mint
-                        }
-                      }}
+                      className={`form-input ${validationErrors.city ? 'error' : ''}`}
                     />
                     {renderErrorMessage('city')}
                   </div>
-                  <div id="address-state">
-                    <label style={{
-                      display: 'block',
-                      fontSize: '0.85rem',
-                      fontWeight: '600',
-                      color: '#124441', // darktext
-                      marginBottom: '0.5rem'
-                    }}>
+                  <div id="address-state" className="form-group">
+                    <label className="form-label">
                       State *
                     </label>
                     <input
@@ -1321,37 +862,15 @@ const CartView = ({
                       placeholder="Enter state"
                       value={address.state}
                       onChange={(e) => handleAddressChange('state', e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        border: `2px solid ${validationErrors.state ? '#ff4444' : '#4DB6AC'}`, // mint
-                        borderRadius: '8px',
-                        fontSize: '0.9rem',
-                        outline: 'none',
-                        transition: 'border-color 0.3s ease',
-                        backgroundColor: 'white',
-                        boxSizing: 'border-box',
-                      }}
-                      onFocus={(e) => e.target.style.borderColor = '#009688'} // primary
-                      onBlur={(e) => {
-                        if (!validationErrors.state) {
-                          e.target.style.borderColor = '#4DB6AC'; // mint
-                        }
-                      }}
+                      className={`form-input ${validationErrors.state ? 'error' : ''}`}
                     />
                     {renderErrorMessage('state')}
                   </div>
                 </div>
 
                 {/* Pincode - Full Width */}
-                <div id="address-pincode">
-                  <label style={{
-                    display: 'block',
-                    fontSize: '0.85rem',
-                    fontWeight: '600',
-                    color: '#124441', // darktext
-                    marginBottom: '0.5rem'
-                  }}>
+                <div id="address-pincode" className="form-group">
+                  <label className="form-label">
                     Pincode *
                   </label>
                   <input
@@ -1359,24 +878,8 @@ const CartView = ({
                     placeholder="6-digit numbers only"
                     value={address.pincode}
                     onChange={(e) => handleAddressChange('pincode', e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      border: `2px solid ${validationErrors.pincode ? '#ff4444' : '#4DB6AC'}`, // mint
-                      borderRadius: '8px',
-                      fontSize: '0.9rem',
-                      outline: 'none',
-                      transition: 'border-color 0.3s ease',
-                      backgroundColor: 'white',
-                      boxSizing: 'border-box',
-                    }}
+                    className={`form-input ${validationErrors.pincode ? 'error' : ''}`}
                     maxLength="6"
-                    onFocus={(e) => e.target.style.borderColor = '#009688'} // primary
-                    onBlur={(e) => {
-                      if (!validationErrors.pincode) {
-                        e.target.style.borderColor = '#4DB6AC'; // mint
-                      }
-                    }}
                   />
                   {renderErrorMessage('pincode')}
                 </div>
@@ -1384,37 +887,10 @@ const CartView = ({
             </div>
 
             {/* Modal Footer */}
-            <div style={{
-              padding: '1.5rem 2rem',
-              borderTop: '2px solid #E0F2F1', // softbg
-              display: 'flex',
-              gap: '1rem',
-              justifyContent: 'flex-end',
-              backgroundColor: '#fafafa',
-              borderBottomLeftRadius: '15px',
-              borderBottomRightRadius: '15px'
-            }}>
+            <div className="modal-footer">
               <button
                 onClick={closeAddressModal}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: 'transparent',
-                  color: '#009688', // primary
-                  border: '2px solid #009688', // primary
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem',
-                  fontWeight: '600',
-                  transition: 'all 0.3s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#009688'; // primary
-                  e.target.style.color = 'white';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = '#009688'; // primary
-                }}
+                className="modal-cancel-btn"
                 type="button"
               >
                 Cancel
@@ -1422,67 +898,15 @@ const CartView = ({
               <button
                 onClick={handlePaymentSubmit}
                 disabled={paymentLoading}
-                style={{
-                  padding: '0.75rem 2rem',
-                  backgroundColor: paymentLoading ? '#cccccc' : '#009688', // primary
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: paymentLoading ? 'not-allowed' : 'pointer',
-                  fontSize: '0.9rem',
-                  fontWeight: '700',
-                  transition: 'all 0.3s ease',
-                  boxShadow: paymentLoading ? 'none' : '0 2px 8px rgba(0, 150, 136, 0.3)',
-                }}
-                onMouseEnter={(e) => {
-                  if (!paymentLoading) {
-                    e.target.style.backgroundColor = '#00796B';
-                    e.target.style.transform = 'translateY(-2px)';
-                    e.target.style.boxShadow = '0 4px 12px rgba(0, 150, 136, 0.4)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!paymentLoading) {
-                    e.target.style.backgroundColor = '#009688';
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = '0 2px 8px rgba(0, 150, 136, 0.3)';
-                  }
-                }}
+                className={`modal-submit-btn ${paymentLoading ? 'loading' : ''}`}
                 type="button"
               >
-                {paymentLoading ? '⏳ Processing...' : '💳 Proceed to Payment'}
+                {paymentLoading ? '⏳ Processing...' : `💳 Pay ₹${formatIndianNumber(totals.total)}`}
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Add CSS animations */}
-      <style>
-        {`
-          @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-          }
-          
-          @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
-          
-          @keyframes slideUp {
-            from {
-              opacity: 0;
-              transform: translateY(30px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-        `}
-      </style>
     </div>
   );
 };

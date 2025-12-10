@@ -1,12 +1,16 @@
-// BaseLogin.js - Updated with Delivery Partner Login UI
+// BaseLogin.js - Updated with Your Color Scheme
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = false }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get state from navigation (coming from signup)
+  const { signupSuccess, registeredEmail } = location.state || {};
   
   // Email/Password Login States
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(registeredEmail || '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -27,16 +31,112 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
   const [isLoading, setIsLoading] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
+  // Color Variables using your palette
+  const colors = {
+    primary: '#009688',
+    mint: '#4DB6AC',
+    softbg: '#E0F2F1',
+    white: '#FFFFFF',
+    darktext: '#124441',
+    softtext: '#4F6F6B'
+  };
+
   // Delivery Partner Demo Credentials
   const deliveryDemoCredentials = {
     email: 'delivery@quickmed.com',
     password: 'password123'
   };
 
+  // User-specific content based on userType
+  const userTypeContent = {
+    user: {
+      title: "Patient Portal",
+      quote: "Your health is our priority. Access your medical records, book appointments, and manage prescriptions all in one place.",
+      gradient: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.darktext} 100%)`,
+      features: [
+        { icon: "📋", text: "View medical records & history" },
+        { icon: "📅", text: "Book doctor appointments online" },
+        { icon: "💊", text: "Order medicines & track delivery" },
+        { icon: "📄", text: "Access digital prescriptions" },
+        { icon: "💬", text: "Chat with healthcare providers" }
+      ]
+    },
+    vendor: {
+      title: "Pharmacy Vendor Portal",
+      quote: "Manage your pharmacy inventory, process orders, and serve patients efficiently with our comprehensive vendor tools.",
+      gradient: `linear-gradient(135deg, ${colors.mint} 0%, #00695C 100%)`,
+      features: [
+        { icon: "📦", text: "Manage medicine inventory" },
+        { icon: "📋", text: "Process patient orders" },
+        { icon: "💰", text: "Track sales & revenue" },
+        { icon: "🚚", text: "Coordinate with delivery partners" },
+        { icon: "⭐", text: "Manage customer reviews" }
+      ]
+    },
+    delivery: {
+      title: "Medical Delivery Portal",
+      quote: "Join our network of healthcare heroes delivering medicines and supplies to those in need.",
+      gradient: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.darktext} 100%)`,
+      features: [
+        { icon: "📦", text: "View delivery assignments" },
+        { icon: "🗺️", text: "Track delivery routes" },
+        { icon: "🔄", text: "Update delivery status" },
+        { icon: "💰", text: "Earn delivery commissions" },
+        { icon: "⭐", text: "Access customer feedback" }
+      ]
+    },
+    doctor: {
+      title: "Doctor's Portal",
+      quote: "Provide exceptional care to your patients with our comprehensive medical practice management tools.",
+      gradient: `linear-gradient(135deg, ${colors.primary} 0%, #00695C 100%)`,
+      features: [
+        { icon: "👨‍⚕️", text: "Manage patient appointments" },
+        { icon: "📄", text: "Write digital prescriptions" },
+        { icon: "🏥", text: "Access patient medical history" },
+        { icon: "💬", text: "Consult with patients online" },
+        { icon: "📊", text: "Track practice analytics" }
+      ]
+    },
+    guardian: {
+      title: "Guardian Portal",
+      quote: "Care for your loved ones. Monitor their health, manage appointments, and ensure they receive the best care.",
+      gradient: `linear-gradient(135deg, ${colors.mint} 0%, ${colors.primary} 100%)`,
+      features: [
+        { icon: "👨‍👩‍👧", text: "Monitor dependent health records" },
+        { icon: "📅", text: "Schedule appointments for dependents" },
+        { icon: "💊", text: "Manage medication schedules" },
+        { icon: "🚨", text: "Emergency access to medical info" },
+        { icon: "📱", text: "Real-time health updates" }
+      ]
+    },
+    wife: {
+      title: "Family Care Portal",
+      quote: "Manage your family's healthcare needs from one place. Stay informed and proactive about family health.",
+      gradient: `linear-gradient(135deg, #E91E63 0%, ${colors.primary} 100%)`,
+      features: [
+        { icon: "👨‍👩‍👧‍👦", text: "Manage family health profiles" },
+        { icon: "📋", text: "Access family medical records" },
+        { icon: "💊", text: "Order medicines for family members" },
+        { icon: "🏥", text: "Coordinate family appointments" },
+        { icon: "📞", text: "Emergency family contact management" }
+      ]
+    }
+  };
+
+  // Get content for current user type
+  const currentContent = userTypeContent[userType] || userTypeContent.user;
+
   // Check if user type should have OTP login
   const shouldShowOTP = () => {
     return userType === 'user' || userType === 'guardian' || userType === 'wife';
   };
+
+  // Show signup success message if coming from signup
+  useEffect(() => {
+    if (signupSuccess) {
+      showToastMessage(`Account created successfully! Please login with your credentials.`, 'success');
+    }
+  }, [signupSuccess]);
 
   // Timer for OTP
   useEffect(() => {
@@ -411,19 +511,90 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
     if (userType === 'delivery') {
       setEmail(deliveryDemoCredentials.email);
       setPassword(deliveryDemoCredentials.password);
+      showToastMessage('Demo credentials pre-filled for testing', 'info');
     }
   };
 
-  // Custom Icons
+  // Custom Icons based on user type
+  const UserTypeIcon = () => {
+    const iconProps = {
+      width: "100",
+      height: "100",
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: colors.white,
+      strokeWidth: "1.5"
+    };
+
+    switch(userType) {
+      case 'user':
+        return (
+          <svg {...iconProps}>
+            <circle cx="12" cy="7" r="4"></circle>
+            <path d="M5 21v-2a7 7 0 0 1 14 0v2"></path>
+          </svg>
+        );
+      case 'vendor':
+        return (
+          <svg {...iconProps}>
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+          </svg>
+        );
+      case 'delivery':
+        return (
+          <svg {...iconProps}>
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        );
+      case 'doctor':
+        return (
+          <svg {...iconProps}>
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        );
+      case 'guardian':
+        return (
+          <svg {...iconProps}>
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        );
+      case 'wife':
+        return (
+          <svg {...iconProps}>
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        );
+      default:
+        return (
+          <svg {...iconProps}>
+            <circle cx="12" cy="7" r="4"></circle>
+            <path d="M5 21v-2a7 7 0 0 1 14 0v2"></path>
+          </svg>
+        );
+    }
+  };
+
   const EyeIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#009688" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="2">
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
       <circle cx="12" cy="12" r="3"></circle>
     </svg>
   );
 
   const EyeOffIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#009688" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="2">
       <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
       <line x1="1" y1="1" x2="23" y2="23"></line>
     </svg>
@@ -499,44 +670,30 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
 
       {/* Main Card Container */}
       <div className="main-card">
-        {/* Left Side - User Info (Delivery Partner Portal) */}
-        <div className="left-section delivery-left-section">
-          <div className="user-icon delivery-icon">
-            <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.5">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
+        {/* Left Side - User Info (Dynamic based on userType) */}
+        <div 
+          className="left-section"
+          style={{ background: currentContent.gradient }}
+        >
+          <div className="user-icon">
+            <UserTypeIcon />
           </div>
           
-          <h2 className="user-title delivery-title">
-            Medical Delivery Portal
+          <h2 className="user-title">
+            {currentContent.title}
           </h2>
           
-          <p className="user-quote delivery-quote">
-            Join our network of healthcare heroes delivering medicines and supplies to those in need
+          <p className="user-quote">
+            {currentContent.quote}
           </p>
           
-          <div className="features-list delivery-features">
-            <div className="feature-item">
-              <span className="feature-icon">📦</span>
-              <span>View delivery assignments</span>
-            </div>
-            <div className="feature-item">
-              <span className="feature-icon">🗺️</span>
-              <span>Track delivery routes</span>
-            </div>
-            <div className="feature-item">
-              <span className="feature-icon">🔄</span>
-              <span>Update delivery status</span>
-            </div>
-            <div className="feature-item">
-              <span className="feature-icon">💰</span>
-              <span>Earn delivery commissions</span>
-            </div>
-            <div className="feature-item">
-              <span className="feature-icon">⭐</span>
-              <span>Access customer feedback</span>
-            </div>
+          <div className="features-list">
+            {currentContent.features.map((feature, index) => (
+              <div className="feature-item" key={index}>
+                <span className="feature-icon">{feature.icon}</span>
+                <span>{feature.text}</span>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -553,7 +710,18 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
             </p>
           </div>
 
-          {/* Login Method Toggle - Only show for users */}
+          {/* Signup Success Message */}
+          {signupSuccess && (
+            <div className="success-message">
+              <div className="success-icon">✓</div>
+              <div>
+                <h4>Account Created Successfully!</h4>
+                <p>Your account has been created. Please login with your credentials.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Login Method Toggle - Only show for users, guardians, and wives */}
           {shouldShowOTP() && (
             <div className="login-method-toggle">
               <button
@@ -561,6 +729,10 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
                 className={`method-btn ${loginMethod === 'email' ? 'active' : ''}`}
                 onClick={() => handleLoginMethodChange('email')}
                 disabled={isLoading}
+                style={{ 
+                  backgroundColor: loginMethod === 'email' ? colors.primary : '',
+                  borderColor: loginMethod === 'email' ? colors.primary : ''
+                }}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
@@ -573,6 +745,10 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
                 className={`method-btn ${loginMethod === 'otp' ? 'active' : ''}`}
                 onClick={() => handleLoginMethodChange('otp')}
                 disabled={isLoading}
+                style={{ 
+                  backgroundColor: loginMethod === 'otp' ? colors.primary : '',
+                  borderColor: loginMethod === 'otp' ? colors.primary : ''
+                }}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
@@ -586,18 +762,24 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
           {!shouldShowOTP() || loginMethod === 'email' ? (
             <form onSubmit={handleEmailLogin}>
               <div className="input-group">
-                <label>Partner Email</label>
+                <label>{userType === 'delivery' ? 'Partner Email' : 'Email Address'}</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="user@gmail.com"
+                  placeholder={`${userType}@example.com`}
                   disabled={isLoading}
                   className={formErrors.email ? 'error' : ''}
+                  style={{ borderColor: formErrors.email ? '#f44336' : colors.softbg }}
                 />
                 {formErrors.email && (
                   <div className="error-message">{formErrors.email}</div>
+                )}
+                {signupSuccess && (
+                  <div className="input-hint">
+                    Email pre-filled from your recent signup
+                  </div>
                 )}
               </div>
 
@@ -612,6 +794,7 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
                     placeholder="Enter your password"
                     disabled={isLoading}
                     className={formErrors.password ? 'error' : ''}
+                    style={{ borderColor: formErrors.password ? '#f44336' : colors.softbg }}
                   />
                   <button
                     type="button"
@@ -644,22 +827,43 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
                   className="forgot-password-link"
                   tabIndex={0}
                   role="button"
+                  style={{ color: colors.primary }}
                 >
                   Forgot Password?
                 </span>
               </div>
 
+              {userType === 'delivery' && (
+                <div className="demo-credentials">
+                  <button
+                    type="button"
+                    onClick={prefillDeliveryCredentials}
+                    disabled={isLoading}
+                    className="demo-btn"
+                    style={{ 
+                      borderColor: colors.primary,
+                      color: colors.primary
+                    }}
+                  >
+                    Use Demo Credentials
+                  </button>
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={isLoading}
-                className="login-btn delivery-login-btn"
-                onClick={prefillDeliveryCredentials}
+                className="login-btn"
+                style={{ 
+                  background: currentContent.gradient,
+                  '--hover-color': colors.primary
+                }}
               >
                 {isLoading ? 'Signing In...' : `Login as ${userDetails.label}`}
               </button>
             </form>
           ) : (
-            /* OTP Login Form - Only for users */
+            /* OTP Login Form - Only for users, guardians, and wives */
             <form onSubmit={showOtpField ? handleVerifyOTP : handleSendOTP}>
               <div className="input-group">
                 <label>Phone Number *</label>
@@ -681,6 +885,7 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
                     placeholder="Enter 10-digit mobile number"
                     disabled={isLoading || showOtpField}
                     className={formErrors.phone ? 'error' : ''}
+                    style={{ borderColor: formErrors.phone ? '#f44336' : colors.softbg }}
                     maxLength={10}
                   />
                 </div>
@@ -718,6 +923,7 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
                         onClick={handleSendOTP}
                         className="resend-otp-btn"
                         disabled={isLoading}
+                        style={{ color: colors.primary }}
                       >
                         Resend OTP
                       </button>
@@ -735,7 +941,11 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
               <button
                 type="submit"
                 disabled={isLoading}
-                className="login-btn delivery-login-btn"
+                className="login-btn"
+                style={{ 
+                  background: currentContent.gradient,
+                  '--hover-color': colors.primary
+                }}
               >
                 {isLoading 
                   ? 'Processing...' 
@@ -768,6 +978,7 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
                 className="signup-link"
                 role="button"
                 tabIndex={0}
+                style={{ color: colors.primary }}
               >
                 Sign up as {userDetails.label}
               </span>
@@ -777,14 +988,15 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
       </div>
 
       <style jsx>{`
-        /* Color Variables */
+        /* Color Variables using your palette */
         :root {
-          --primary: #009688;
-          --mint: #4DB6AC;
-          --softbg: #E0F2F1;
-          --white: #FFFFFF;
-          --darktext: #124441;
-          --softtext: #4F6F6B;
+          --primary: ${colors.primary};
+          --mint: ${colors.mint};
+          --softbg: ${colors.softbg};
+          --white: ${colors.white};
+          --darktext: ${colors.darktext};
+          --softtext: ${colors.softtext};
+          --primary-dark: #00897B;
         }
 
         .login-container {
@@ -796,6 +1008,55 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
           background: linear-gradient(135deg, var(--softbg) 0%, var(--white) 50%, var(--softbg) 100%);
           padding: 65px;
           position: relative;
+        }
+
+        /* Success Message */
+        .success-message {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          background-color: #d4edda;
+          border: 1px solid #c3e6cb;
+          color: #155724;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          animation: fadeIn 0.5s ease;
+        }
+
+        .success-icon {
+          width: 40px;
+          height: 40px;
+          background-color: var(--darktext);
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 20px;
+          font-weight: bold;
+        }
+
+        .success-message h4 {
+          margin: 0 0 5px 0;
+          font-size: 16px;
+        }
+
+        .success-message p {
+          margin: 0;
+          font-size: 14px;
+          opacity: 0.9;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         /* Toast Message */
@@ -822,6 +1083,12 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
           background-color: #f8d7da;
           color: #721c24;
           border: 1px solid #f5c6cb;
+        }
+
+        .toast-message.info {
+          background-color: #d1ecf1;
+          color: #0c5460;
+          border: 1px solid #bee5eb;
         }
 
         @keyframes slideIn {
@@ -901,7 +1168,7 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
         }
 
         .submit-btn:hover:not(:disabled) {
-          background-color: #00897B;
+          background-color: var(--primary-dark);
         }
 
         .cancel-btn:disabled,
@@ -959,23 +1226,14 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
         /* Left Section */
         .left-section {
           flex: 1;
-          background: linear-gradient(135deg, var(--primary) 0%, #00796B 100%);
           padding: 50px 40px;
           color: var(--white);
           display: flex;
           flex-direction: column;
         }
 
-        .delivery-left-section {
-          background: linear-gradient(135deg, #124441 0%, var(--primary) 100%);
-        }
-
         .user-icon {
           margin-bottom: 30px;
-        }
-
-        .delivery-icon svg {
-          stroke: var(--white);
         }
 
         .user-title {
@@ -985,22 +1243,11 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
           line-height: 1.2;
         }
 
-        .delivery-title {
-          font-size: 36px;
-          text-align: center;
-        }
-
         .user-quote {
           font-size: 16px;
           line-height: 1.6;
           margin: 0 0 40px 0;
           opacity: 0.9;
-        }
-
-        .delivery-quote {
-          font-size: 18px;
-          text-align: center;
-          margin-bottom: 50px;
         }
 
         .features-list {
@@ -1010,19 +1257,22 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
           gap: 15px;
         }
 
-        .delivery-features .feature-item {
-          background-color: rgba(255, 255, 255, 0.1);
-          padding: 15px;
-          border-radius: 10px;
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
         .feature-item {
           display: flex;
           align-items: center;
           gap: 15px;
           font-size: 15px;
+          background-color: rgba(255, 255, 255, 0.1);
+          padding: 15px;
+          border-radius: 10px;
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        .feature-item:hover {
+          transform: translateX(5px);
+          background-color: rgba(255, 255, 255, 0.15);
         }
 
         .feature-icon {
@@ -1073,7 +1323,7 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
           border: 1px solid var(--softbg);
           border-radius: 8px;
           padding: 4px;
-          background-color: #FAFAFA;
+          background-color: var(--white);
         }
 
         .method-btn {
@@ -1095,13 +1345,12 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
 
         .method-btn:hover:not(:disabled) {
           background-color: var(--softbg);
-          color: var(--primary);
+          color: var(--darktext);
         }
 
         .method-btn.active {
-          background-color: var(--primary);
           color: var(--white);
-          box-shadow: 0 2px 8px rgba(0, 150, 136, 0.2);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
         .method-btn:disabled {
@@ -1145,7 +1394,7 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
         }
 
         .input-group input.error {
-          border-color: #f44336;
+          border-color: #f44336 !important;
         }
 
         .input-group input:disabled {
@@ -1153,9 +1402,30 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
           cursor: not-allowed;
         }
 
-        /* Password Input */
+        .input-hint {
+          font-size: 12px;
+          color: var(--softtext);
+          margin-top: 5px;
+          font-style: italic;
+        }
+
+                /* Password Input */
         .password-input-wrapper {
           position: relative;
+        }
+
+        .password-input-wrapper input {
+          width: 100%;
+          padding: 15px 45px 15px 15px;
+          border: 2px solid var(--softbg);
+          border-radius: 10px;
+          font-size: 15px;
+          color: var(--darktext);
+          background-color: var(--white);
+          transition: all 0.3s ease;
+          box-sizing: border-box;
+          font-family: 'Courier New', monospace;
+          letter-spacing: 1px;
         }
 
         .password-toggle {
@@ -1166,10 +1436,26 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
           background: none;
           border: none;
           cursor: pointer;
-          padding: 5px;
+          padding: 0;
           display: flex;
           align-items: center;
           justify-content: center;
+          width: 24px;
+          height: 24px;
+          border-radius: 4px; /* Changed from 50% to 4px */
+          transition: all 0.3s ease;
+          z-index: 2;
+          background-color: transparent; /* Explicitly set */
+        }
+
+        .password-toggle:hover:not(:disabled) {
+          background-color: var(--softbg);
+          transform: translateY(-50%) scale(1.05); /* Scale instead of background expansion */
+        }
+
+        .password-toggle:focus {
+          outline: 2px solid var(--primary);
+          outline-offset: 2px;
         }
 
         .password-toggle:disabled {
@@ -1237,7 +1523,6 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
         .resend-otp-btn {
           background: none;
           border: none;
-          color: var(--primary);
           font-size: 13px;
           font-weight: 500;
           cursor: pointer;
@@ -1296,7 +1581,6 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
         }
 
         .forgot-password-link {
-          color: var(--primary);
           font-size: 14px;
           font-weight: 500;
           cursor: pointer;
@@ -1307,11 +1591,37 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
           text-decoration: underline;
         }
 
+        /* Demo Credentials Button */
+        .demo-credentials {
+          margin-bottom: 20px;
+        }
+
+        .demo-btn {
+          width: 100%;
+          padding: 12px;
+          background-color: transparent;
+          border: 2px solid;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .demo-btn:hover:not(:disabled) {
+          background-color: var(--primary);
+          color: var(--white) !important;
+        }
+
+        .demo-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
         /* Login Button */
         .login-btn {
           width: 100%;
           padding: 16px;
-          background-color: var(--primary);
           color: var(--white);
           border: none;
           border-radius: 10px;
@@ -1322,33 +1632,26 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
           margin-bottom: 25px;
         }
 
-        .delivery-login-btn {
-          background: linear-gradient(135deg, #124441 0%, var(--primary) 100%);
-        }
-
         .login-btn:hover:not(:disabled) {
-          background-color: #00897B;
           transform: translateY(-2px);
           box-shadow: 0 6px 20px rgba(0, 150, 136, 0.3);
+          opacity: 0.9;
         }
 
         .login-btn:disabled {
           opacity: 0.6;
           cursor: not-allowed;
         }
-        .demo-credentials p {
-          margin: 0;
-        }
 
         /* Demo Note */
         .demo-note {
           font-size: 12px;
           color: var(--softtext);
-          background-color: #FFF8E1;
+          background-color: var(--softbg);
           padding: 12px;
           border-radius: 10px;
           margin-top: 15px;
-          border-left: 4px solid #FFB300;
+          border-left: 4px solid var(--mint);
         }
 
         .demo-note p {
@@ -1370,7 +1673,6 @@ const BaseLogin = ({ userType, userDetails, onLoginSuccess, isLinkedAccount = fa
         }
 
         .signup-link {
-          color: var(--primary);
           font-weight: 600;
           cursor: pointer;
           text-decoration: none;

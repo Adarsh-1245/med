@@ -35,7 +35,7 @@ const HealthRecordsView = ({ healthRecords, addHealthRecord, setActiveView }) =>
       padding: '20px',
       maxWidth: '1200px',
       margin: '0 auto',
-      marginTop: '120px',
+      marginTop: '140px',
       minHeight: 'calc(100vh - 120px)',
       width: '100%',
       boxSizing: 'border-box',
